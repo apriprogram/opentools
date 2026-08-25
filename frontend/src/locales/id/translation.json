@@ -1,0 +1,35 @@
+{
+  "navbar": {
+    "title": "OPENTOOLS",
+    "subtitle": "Konverter File",
+    "all_converters": "Semua Konverter",
+    "all_compressors": "Semua Kompresor",
+    "batch_convert": "Konversi Massal",
+    "donate": "Donasi"
+  },
+  "home": {
+    "hero_badge": "Siap Offline & Prioritas Privasi",
+    "hero_title": "Konversi & Kompres Video, Audio & Gambar <1>Gratis</1>",
+    "hero_desc": "Konverter dan kompresor file berkecepatan tinggi. Tanpa iklan, tanpa watermark. 100% aman & privat: file yang diunggah diproses secara end-to-end dan otomatis terhapus dari sistem setelah 5 menit.",
+    "batch_convert": "Konversi Massal",
+    "converters_title": "Konverter File",
+    "converters_desc": "Ubah format secara instan tanpa kehilangan kualitas.",
+    "loading": "Memuat alat...",
+    "compressors_title": "Kompresor File",
+    "compressors_desc": "Kurangi ukuran file secara drastis untuk web dan penyimpanan."
+  },
+  "category_list": {
+    "search_placeholder": "Cari alat (misal. mp4 ke mp3, webp, png...)",
+    "clear": "Hapus",
+    "tools_count": "{{count}} Alat",
+    "no_results": "Tidak ada alat ditemukan",
+    "no_results_desc": "Tidak ada alat yang cocok dengan \"{{query}}\"."
+  },
+  "footer": {
+    "desc": "Konverter dan kompresor file berkecepatan tinggi yang mengutamakan privasi. Berjalan langsung di atas mesin berperforma tinggi.",
+    "privacy": "Kebijakan Privasi",
+    "terms": "Syarat Ketentuan",
+    "contact": "Kontak",
+    "rights": "Hak cipta dilindungi undang-undang."
+  }
+}

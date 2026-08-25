@@ -1,0 +1,28 @@
+{
+  "navbar": {
+    "title": "OPENTOOLS",
+    "subtitle": "File Converter",
+    "all_converters": "All Converters",
+    "all_compressors": "All Compressors",
+    "batch_convert": "Batch Convert",
+    "donate": "Donate"
+  },
+  "home": {
+    "hero_badge": "Offline-ready & Privacy First Engine",
+    "hero_title": "<1>Free</1> Convert & Compress Video, Audio & Images",
+    "hero_desc": "High-speed file converter and compressor. No ads, no watermarks. 100% secure & private: uploaded files are processed end-to-end and automatically deleted from the system after 5 minutes.",
+    "batch_convert": "Batch Convert",
+    "converters_title": "File Converters",
+    "converters_desc": "Change formats instantly without losing quality.",
+    "loading": "Loading tools...",
+    "compressors_title": "File Compressors",
+    "compressors_desc": "Reduce file size dramatically for web and storage."
+  },
+  "category_list": {
+    "search_placeholder": "Search tool (e.g. mp4 to mp3, webp, png...)",
+    "clear": "Clear",
+    "tools_count": "{{count}} Tools",
+    "no_results": "No tools found",
+    "no_results_desc": "No tools matching \"{{query}}\"."
+  }
+}
