@@ -37,8 +37,6 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
   };
 
   const handleDownload = () => {
-    // downloadUrl is like /api/v1/convert/:jobId/download
-    // Since Vite proxies /api → backend, this works directly
     const url = fileItem.downloadUrl;
     if (!url) return;
     const link = document.createElement('a');
@@ -59,8 +57,15 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
 
   const isActive = fileItem.status === 'uploading' || fileItem.status === 'converting';
 
+  const iconColor =
+    fileItem.status === 'done'
+      ? 'text-green-600 dark:text-green-400'
+      : fileItem.status === 'failed'
+      ? 'text-red-500 dark:text-red-400'
+      : 'text-secondary';
+
   return (
-    <div className={`relative group w-full p-3 bg-card border rounded-lg transition-smooth select-none ${
+    <div className={`relative group w-full p-2 sm:p-3 bg-card border rounded-lg transition-smooth select-none ${
       fileItem.status === 'done'
         ? 'border-green-400/70 bg-green-50 dark:border-green-500/50 dark:bg-green-900/20'
         : fileItem.status === 'failed'
@@ -76,9 +81,9 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
         className="hidden"
       />
 
-      <div className="flex items-center justify-between gap-3 w-full">
-        {/* Thumbnail (56×56px, radius 10px) */}
-        <div className={`w-[56px] h-[56px] min-w-[56px] rounded-[10px] flex items-center justify-center overflow-hidden ${
+      <div className="flex items-center justify-between gap-2 sm:gap-3 w-full">
+        {/* Thumbnail — smaller on mobile */}
+        <div className={`w-[40px] h-[40px] min-w-[40px] sm:w-[48px] sm:h-[48px] sm:min-w-[48px] rounded-[8px] flex items-center justify-center overflow-hidden ${
           fileItem.status === 'done'
             ? 'bg-green-100 dark:bg-green-900/30 border border-green-400/60 dark:border-green-600/50'
             : fileItem.status === 'failed'
@@ -88,61 +93,49 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
           {fileItem.previewUrl ? (
             <img src={fileItem.previewUrl} alt={fileItem.name} className="w-full h-full object-cover" />
           ) : isVideo ? (
-            <Video size={22} className={fileItem.status === 'done' ? 'text-green-600 dark:text-green-400' : fileItem.status === 'failed' ? 'text-red-500 dark:text-red-400' : 'text-secondary'} strokeWidth={1.5} />
+            <Video size={18} className={iconColor} strokeWidth={1.5} />
           ) : isAudio ? (
-            <Music size={22} className={fileItem.status === 'done' ? 'text-green-600 dark:text-green-400' : fileItem.status === 'failed' ? 'text-red-500 dark:text-red-400' : 'text-secondary'} strokeWidth={1.5} />
+            <Music size={18} className={iconColor} strokeWidth={1.5} />
           ) : isImage ? (
-            <ImageIcon size={22} className={fileItem.status === 'done' ? 'text-green-600 dark:text-green-400' : fileItem.status === 'failed' ? 'text-red-500 dark:text-red-400' : 'text-secondary'} strokeWidth={1.5} />
+            <ImageIcon size={18} className={iconColor} strokeWidth={1.5} />
           ) : (
-            <FileText size={22} className={fileItem.status === 'done' ? 'text-green-600 dark:text-green-400' : fileItem.status === 'failed' ? 'text-red-500 dark:text-red-400' : 'text-secondary'} strokeWidth={1.5} />
+            <FileText size={18} className={iconColor} strokeWidth={1.5} />
           )}
         </div>
 
         {/* Middle: file info + progress */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <p className="text-[14px] font-medium text-primary leading-[18px] truncate" title={fileItem.outputFileName || fileItem.name}>
+          <div className="flex items-center gap-1 mb-0.5">
+            <p className="text-[12px] sm:text-[13px] font-medium text-primary leading-[16px] truncate" title={fileItem.outputFileName || fileItem.name}>
               {fileItem.outputFileName || fileItem.name}
             </p>
-            {fileItem.status === 'done' && (
-              <CheckCircle2 size={14} className="text-success shrink-0" />
-            )}
-            {fileItem.status === 'failed' && (
-              <AlertCircle size={14} className="text-danger shrink-0" />
-            )}
-            {isActive && (
-              <Loader2 size={13} className="text-secondary animate-spin shrink-0" />
-            )}
+            {fileItem.status === 'done' && <CheckCircle2 size={12} className="text-success shrink-0" />}
+            {fileItem.status === 'failed' && <AlertCircle size={12} className="text-danger shrink-0" />}
+            {isActive && <Loader2 size={11} className="text-secondary animate-spin shrink-0" />}
           </div>
 
           {isActive ? (
             <div className="space-y-1">
-              <div className="flex justify-between items-center text-[11px] text-secondary">
+              <div className="flex justify-between items-center text-[10px] sm:text-[11px] text-secondary">
                 <span>{fileItem.status === 'uploading' ? 'Uploading...' : 'Converting...'}</span>
                 <span className="font-medium">{fileItem.progress}%</span>
               </div>
               <ProgressBar progress={fileItem.progress} status={fileItem.status} />
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-[12px] text-secondary flex-wrap">
-              <span>{formatBytes(fileItem.size)}</span>
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-[12px] text-secondary overflow-hidden">
+              <span className="shrink-0">{formatBytes(fileItem.size)}</span>
               {fileItem.status === 'done' && (
                 <>
-                  <span>•</span>
-                  <span className="text-success font-medium">Conversion complete ✓</span>
-                  {fileItem.outputFileName && (
-                    <>
-                      <span>•</span>
-                      <span className="text-secondary truncate max-w-[160px]">{fileItem.outputFileName}</span>
-                    </>
-                  )}
+                  <span className="shrink-0">•</span>
+                  <span className="text-success font-medium shrink-0">Done ✓</span>
                 </>
               )}
               {fileItem.status === 'failed' && (
                 <>
-                  <span>•</span>
-                  <span className="text-danger font-medium truncate max-w-[240px]" title={fileItem.error}>
-                    {fileItem.error || 'Conversion failed'}
+                  <span className="shrink-0">•</span>
+                  <span className="text-danger font-medium truncate" title={fileItem.error}>
+                    {fileItem.error || 'Failed'}
                   </span>
                 </>
               )}
@@ -151,40 +144,37 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Download button — only when done */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {fileItem.status === 'done' && fileItem.downloadUrl && (
             <button
               type="button"
               onClick={handleDownload}
               title={`Download ${fileItem.outputFileName}`}
-              className="w-[36px] h-[36px] rounded-sm p-0 bg-accent-black dark:bg-white text-white dark:text-black hover:bg-accent-black-hover dark:hover:bg-zinc-200 flex items-center justify-center transition-smooth"
+              className="w-[30px] h-[30px] sm:w-[34px] sm:h-[34px] rounded-sm p-0 bg-accent-black dark:bg-white text-white dark:text-black hover:bg-accent-black-hover dark:hover:bg-zinc-200 flex items-center justify-center transition-smooth"
             >
-              <Download size={15} strokeWidth={2} />
+              <Download size={13} strokeWidth={2} />
             </button>
           )}
 
-          {/* Replace file — hide when converting/done */}
           {!isActive && fileItem.status !== 'done' && (
             <button
               type="button"
               onClick={handleReplaceClick}
               title="Replace file"
-              className="w-[32px] h-[32px] rounded-sm flex items-center justify-center text-tertiary hover:text-primary hover:bg-card-muted transition-smooth"
+              className="w-[28px] h-[28px] sm:w-[30px] sm:h-[30px] rounded-sm flex items-center justify-center text-tertiary hover:text-primary hover:bg-card-muted transition-smooth"
             >
-              <Edit2 size={15} strokeWidth={1.75} />
+              <Edit2 size={13} strokeWidth={1.75} />
             </button>
           )}
 
-          {/* Delete — always visible unless uploading */}
           {!isActive && (
             <button
               type="button"
               onClick={() => onDelete(fileItem.id)}
               title="Remove file"
-              className="w-[36px] h-[36px] rounded-sm p-0 flex items-center justify-center text-tertiary hover:text-danger hover:bg-[#FEE2E2] dark:hover:bg-red-900/30 transition-smooth"
+              className="w-[30px] h-[30px] sm:w-[34px] sm:h-[34px] rounded-sm p-0 flex items-center justify-center text-tertiary hover:text-danger hover:bg-[#FEE2E2] dark:hover:bg-red-900/30 transition-smooth"
             >
-              <Trash2 size={15} strokeWidth={1.75} />
+              <Trash2 size={13} strokeWidth={1.75} />
             </button>
           )}
         </div>
