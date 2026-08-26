@@ -317,7 +317,8 @@ export default function ConvertPage() {
                   variant="secondary"
                   size="md"
                   icon={CheckCircle2}
-                  className="w-full sm:w-auto min-w-[148px] !bg-accent-black dark:!bg-white !border-accent-black !text-white dark:!text-black cursor-default active:scale-100"
+                  onClick={clearFiles}
+                  className="w-full sm:w-auto min-w-[148px]"
                 >
                   All Done!
                 </Button>
