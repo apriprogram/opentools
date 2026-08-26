@@ -62,7 +62,7 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
   return (
     <div className={`relative group w-full px-4 bg-card border rounded-lg transition-smooth select-none ${
       fileItem.status === 'done'
-        ? 'border-[#BBF7D0] bg-[#F0FDF4] dark:border-green-800 dark:bg-green-950/30'
+        ? 'border-green-400/70 bg-green-50 dark:border-green-500/50 dark:bg-green-900/20'
         : fileItem.status === 'failed'
         ? 'border-[#FCA5A5] bg-[#FEF2F2] dark:border-red-800 dark:bg-red-950/30'
         : 'border-border hover:border-border-hover'
