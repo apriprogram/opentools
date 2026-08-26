@@ -79,7 +79,7 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
 
       <div className="flex items-center justify-between gap-4 w-full py-3">
         {/* Thumbnail (56×56px, radius 10px) */}
-        <div className="w-[56px] h-[56px] min-w-[56px] rounded-[10px] bg-card-muted border border-border/60 flex items-center justify-center overflow-hidden">
+        <div className="w-[56px] h-[56px] min-w-[56px] rounded-[10px] bg-card-muted dark:bg-zinc-800/50 border border-border/60 dark:border-zinc-700/50 flex items-center justify-center overflow-hidden">
           {fileItem.previewUrl ? (
             <img src={fileItem.previewUrl} alt={fileItem.name} className="w-full h-full object-cover" />
           ) : isVideo ? (
@@ -153,9 +153,9 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
               type="button"
               onClick={handleDownload}
               title={`Download ${fileItem.outputFileName}`}
-              className="w-[36px] h-[36px] rounded-full bg-accent-black dark:bg-white text-white dark:text-black hover:bg-accent-black-hover dark:hover:bg-zinc-200 flex items-center justify-center transition-smooth"
+              className="w-[32px] h-[32px] rounded-md bg-accent-black dark:bg-white text-white dark:text-black hover:bg-accent-black-hover dark:hover:bg-zinc-200 flex items-center justify-center transition-smooth"
             >
-              <Download size={16} strokeWidth={2} />
+              <Download size={15} strokeWidth={2} />
             </button>
           )}
 
@@ -177,7 +177,7 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
               type="button"
               onClick={() => onDelete(fileItem.id)}
               title="Remove file"
-              className="w-[32px] h-[32px] rounded-full flex items-center justify-center text-tertiary hover:text-danger hover:bg-[#FEE2E2] dark:hover:bg-red-900/30 transition-smooth"
+              className="w-[32px] h-[32px] rounded-md flex items-center justify-center text-tertiary hover:text-danger hover:bg-[#FEE2E2] dark:hover:bg-red-900/30 transition-smooth"
             >
               <Trash2 size={15} strokeWidth={1.75} />
             </button>
