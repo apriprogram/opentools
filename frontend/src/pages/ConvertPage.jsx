@@ -253,7 +253,7 @@ export default function ConvertPage() {
               )}
             </div>
 
-            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {files.map((fileItem) => (
                 <FileItemCard
                   key={fileItem.id}
