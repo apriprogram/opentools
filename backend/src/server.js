@@ -41,6 +41,15 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Serve React frontend static files
+const frontendDist = path.join(__dirname, "../../frontend/dist");
+app.use(express.static(frontendDist));
+
+// SPA fallback — serve index.html for all non-API routes
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendDist, "index.html"));
+});
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error("Unhandled Server Error:", err);
@@ -56,4 +65,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 File Converter Backend API running on http://localhost:${PORT}`);
   console.log(`📡 Endpoints available under http://localhost:${PORT}/api/v1`);
+  console.log(`🌐 Serving React frontend from: ${frontendDist}`);
 });
