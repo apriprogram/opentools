@@ -279,7 +279,7 @@ export default function ConvertPage() {
                   onClick={() => downloadAllZip(files)}
                   disabled={isZipping}
                   icon={FolderArchive}
-                  className="w-full sm:w-auto border-green-500/60 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 hover:border-green-500 hover:shadow-[0_0_12px_2px_rgba(34,197,94,0.4)] transition-all"
+                  className="w-full sm:w-auto !bg-green-500 hover:!bg-green-600 !border-green-500 hover:!border-green-600 !text-white hover:shadow-[0_0_16px_3px_rgba(34,197,94,0.5)] transition-all"
                 >
                   {isZipping ? 'Packaging ZIP...' : `Download All (${doneFiles.length}) ZIP`}
                 </Button>
@@ -317,7 +317,7 @@ export default function ConvertPage() {
                   variant="secondary"
                   size="md"
                   icon={CheckCircle2}
-                  className="w-full sm:w-auto min-w-[148px] border-green-500/60 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 cursor-default active:scale-100"
+                  className="w-full sm:w-auto min-w-[148px] !bg-accent-black dark:!bg-white !border-accent-black !text-white dark:!text-black cursor-default active:scale-100"
                 >
                   All Done!
                 </Button>

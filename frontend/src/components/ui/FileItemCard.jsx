@@ -79,17 +79,21 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
 
       <div className="flex items-center justify-between gap-4 w-full py-3">
         {/* Thumbnail (56×56px, radius 10px) */}
-        <div className="w-[56px] h-[56px] min-w-[56px] rounded-[10px] bg-card-muted dark:bg-zinc-800/50 border border-border/60 dark:border-zinc-700/50 flex items-center justify-center overflow-hidden">
+        <div className={`w-[56px] h-[56px] min-w-[56px] rounded-[10px] flex items-center justify-center overflow-hidden ${
+          fileItem.status === 'done'
+            ? 'bg-green-100 dark:bg-green-900/30 border border-green-400/60 dark:border-green-600/50'
+            : 'bg-card-muted dark:bg-zinc-800/50 border border-border/60 dark:border-zinc-700/50'
+        }`}>
           {fileItem.previewUrl ? (
             <img src={fileItem.previewUrl} alt={fileItem.name} className="w-full h-full object-cover" />
           ) : isVideo ? (
-            <Video size={22} className="text-secondary" strokeWidth={1.5} />
+            <Video size={22} className={fileItem.status === 'done' ? 'text-green-600 dark:text-green-400' : 'text-secondary'} strokeWidth={1.5} />
           ) : isAudio ? (
-            <Music size={22} className="text-secondary" strokeWidth={1.5} />
+            <Music size={22} className={fileItem.status === 'done' ? 'text-green-600 dark:text-green-400' : 'text-secondary'} strokeWidth={1.5} />
           ) : isImage ? (
-            <ImageIcon size={22} className="text-secondary" strokeWidth={1.5} />
+            <ImageIcon size={22} className={fileItem.status === 'done' ? 'text-green-600 dark:text-green-400' : 'text-secondary'} strokeWidth={1.5} />
           ) : (
-            <FileText size={22} className="text-secondary" strokeWidth={1.5} />
+            <FileText size={22} className={fileItem.status === 'done' ? 'text-green-600 dark:text-green-400' : 'text-secondary'} strokeWidth={1.5} />
           )}
         </div>
 
