@@ -279,7 +279,7 @@ export default function ConvertPage() {
                   onClick={() => downloadAllZip(files)}
                   disabled={isZipping}
                   icon={FolderArchive}
-                  className="w-full sm:w-auto !bg-green-500 hover:!bg-green-600 !border-green-500 hover:!border-green-600 !text-white hover:shadow-[0_0_16px_3px_rgba(34,197,94,0.5)] transition-all"
+                  className="w-full sm:w-auto !bg-green-500 hover:!bg-green-600 !border-green-500 hover:!border-green-600 !text-white transition-all"
                 >
                   {isZipping ? 'Packaging ZIP...' : `Download All (${doneFiles.length}) ZIP`}
                 </Button>
