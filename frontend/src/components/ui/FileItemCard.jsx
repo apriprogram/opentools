@@ -60,14 +60,13 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
   const isActive = fileItem.status === 'uploading' || fileItem.status === 'converting';
 
   return (
-    <div className={`relative group w-full px-3 bg-card border rounded-lg transition-smooth select-none ${
+    <div className={`relative group w-full p-3 bg-card border rounded-lg transition-smooth select-none ${
       fileItem.status === 'done'
         ? 'border-green-400/70 bg-green-50 dark:border-green-500/50 dark:bg-green-900/20'
         : fileItem.status === 'failed'
         ? 'border-[#FCA5A5] bg-[#FEF2F2] dark:border-red-800 dark:bg-red-950/30'
         : 'border-border hover:border-border-hover'
     }`}
-    style={{ minHeight: '68px', display: 'flex', alignItems: 'center' }}
     >
       <input
         ref={replaceInputRef}
@@ -77,7 +76,7 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
         className="hidden"
       />
 
-      <div className="flex items-center justify-between gap-3 w-full py-2">
+      <div className="flex items-center justify-between gap-3 w-full">
         {/* Thumbnail (56×56px, radius 10px) */}
         <div className={`w-[56px] h-[56px] min-w-[56px] rounded-[10px] flex items-center justify-center overflow-hidden ${
           fileItem.status === 'done'
