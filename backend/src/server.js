@@ -41,8 +41,8 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Serve React frontend static files
-const frontendDist = path.join(__dirname, "../../frontend/dist");
+// Serve React frontend static files (which are uploaded to the public root)
+const frontendDist = path.join(__dirname, "../../");
 app.use(express.static(frontendDist));
 
 // SPA fallback — serve index.html for all non-API routes
