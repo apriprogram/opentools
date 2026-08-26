@@ -22,7 +22,7 @@ export default function IconButton({
 
   const variantStyles = {
     bordered:
-      'bg-white border border-border text-primary hover:border-border-hover hover:bg-card-muted active:bg-[#ECECED]',
+      'bg-card dark:bg-zinc-900 border border-border text-primary hover:border-border-hover hover:bg-card-muted dark:hover:bg-zinc-800 active:bg-[#ECECED] dark:active:bg-zinc-800',
     ghost:
       'bg-transparent text-primary hover:bg-card-muted active:bg-[#ECECED]',
     black:

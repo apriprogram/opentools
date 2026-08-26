@@ -197,7 +197,7 @@ export default function ConvertPage() {
 
         {/* Error Banner */}
         {errorMessage && (
-          <div className="p-3.5 bg-[#FEF2F2] border border-danger/25 rounded-md flex items-start gap-2.5 text-danger text-[13px]">
+          <div className="p-3.5 bg-[#FEF2F2] dark:bg-red-950/40 border border-danger/25 rounded-md flex items-start gap-2.5 text-danger text-[13px]">
             <AlertTriangle size={16} className="shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
           </div>
@@ -228,13 +228,13 @@ export default function ConvertPage() {
                   Files ({files.length})
                 </span>
                 {allCompleted && anyDone && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#DCFCE7] text-success text-[11px] font-medium">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#DCFCE7] dark:bg-green-900/40 text-success text-[11px] font-medium">
                     <CheckCircle2 size={11} />
                     {doneFiles.length} {tool.isCompressor ? 'compressed' : 'converted'}
                   </span>
                 )}
                 {failedFiles.length > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEE2E2] text-danger text-[11px] font-medium">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEE2E2] dark:bg-red-900/40 text-danger text-[11px] font-medium">
                     <AlertTriangle size={11} />
                     {failedFiles.length} failed
                   </span>

@@ -62,9 +62,9 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
   return (
     <div className={`relative group w-full px-4 bg-card border rounded-lg transition-smooth select-none ${
       fileItem.status === 'done'
-        ? 'border-[#BBF7D0] bg-[#F0FDF4]'
+        ? 'border-[#BBF7D0] bg-[#F0FDF4] dark:border-green-800 dark:bg-green-950/30'
         : fileItem.status === 'failed'
-        ? 'border-[#FCA5A5] bg-[#FEF2F2]'
+        ? 'border-[#FCA5A5] bg-[#FEF2F2] dark:border-red-800 dark:bg-red-950/30'
         : 'border-border hover:border-border-hover'
     }`}
     style={{ minHeight: '88px', display: 'flex', alignItems: 'center' }}
@@ -153,7 +153,7 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
               type="button"
               onClick={handleDownload}
               title={`Download ${fileItem.outputFileName}`}
-              className="w-[36px] h-[36px] rounded-full bg-accent-black text-white hover:bg-accent-black-hover flex items-center justify-center transition-smooth"
+              className="w-[36px] h-[36px] rounded-full bg-accent-black dark:bg-white text-white dark:text-black hover:bg-accent-black-hover dark:hover:bg-zinc-200 flex items-center justify-center transition-smooth"
             >
               <Download size={16} strokeWidth={2} />
             </button>
@@ -177,7 +177,7 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
               type="button"
               onClick={() => onDelete(fileItem.id)}
               title="Remove file"
-              className="w-[32px] h-[32px] rounded-full flex items-center justify-center text-tertiary hover:text-danger hover:bg-[#FEE2E2] transition-smooth"
+              className="w-[32px] h-[32px] rounded-full flex items-center justify-center text-tertiary hover:text-danger hover:bg-[#FEE2E2] dark:hover:bg-red-900/30 transition-smooth"
             >
               <Trash2 size={15} strokeWidth={1.75} />
             </button>
