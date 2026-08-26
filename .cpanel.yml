@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/tanjunak/public/opentools.web.id/
+    - /bin/echo "Deploying to $DEPLOYPATH"
