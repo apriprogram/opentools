@@ -153,7 +153,7 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
               type="button"
               onClick={handleDownload}
               title={`Download ${fileItem.outputFileName}`}
-              className="w-[32px] h-[32px] rounded bg-accent-black dark:bg-white text-white dark:text-black hover:bg-accent-black-hover dark:hover:bg-zinc-200 flex items-center justify-center transition-smooth"
+              className="w-[32px] h-[32px] rounded-md bg-accent-black dark:bg-white text-white dark:text-black hover:bg-accent-black-hover dark:hover:bg-zinc-200 flex items-center justify-center transition-smooth"
             >
               <Download size={15} strokeWidth={2} />
             </button>
@@ -177,7 +177,7 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
               type="button"
               onClick={() => onDelete(fileItem.id)}
               title="Remove file"
-              className="w-[32px] h-[32px] rounded flex items-center justify-center text-tertiary hover:text-danger hover:bg-[#FEE2E2] dark:hover:bg-red-900/30 transition-smooth"
+              className="w-[32px] h-[32px] rounded-md flex items-center justify-center text-tertiary hover:text-danger hover:bg-[#FEE2E2] dark:hover:bg-red-900/30 transition-smooth"
             >
               <Trash2 size={15} strokeWidth={1.75} />
             </button>
