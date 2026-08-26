@@ -28,27 +28,36 @@ export default function ConverterCategoryList({ categories = [], isCompressor = 
 
   return (
     <div className="space-y-6">
-      {/* Search Bar matching section 3.9 */}
-      <div className="relative w-full max-w-[540px]">
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-secondary">
-          <Search size={18} strokeWidth={1.75} />
+      {/* Header: Search Bar & Legend */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Search Bar matching section 3.9 */}
+        <div className="relative w-full max-w-[540px]">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-secondary">
+            <Search size={18} strokeWidth={1.75} />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('category_list.search_placeholder', 'Search tool (e.g. mp4 to mp3, webp, png...)')}
+            className="w-full h-[44px] pl-10 pr-4 bg-card border border-border hover:border-border-hover focus:border-border-focus rounded-md text-[14px] text-primary placeholder-secondary transition-smooth focus:outline-none"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[12px] text-secondary hover:text-primary"
+            >
+              {t('category_list.clear', 'Clear')}
+            </button>
+          )}
         </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={t('category_list.search_placeholder', 'Search tool (e.g. mp4 to mp3, webp, png...)')}
-          className="w-full h-[44px] pl-10 pr-4 bg-card border border-border hover:border-border-hover focus:border-border-focus rounded-md text-[14px] text-primary placeholder-secondary transition-smooth focus:outline-none"
-        />
-        {searchQuery && (
-          <button
-            type="button"
-            onClick={() => setSearchQuery('')}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[12px] text-secondary hover:text-primary"
-          >
-            {t('category_list.clear', 'Clear')}
-          </button>
-        )}
+
+        {/* Popular Tool Legend */}
+        <div className="flex items-center gap-1.5 text-[13px] text-secondary">
+          <Star size={14} strokeWidth={2} className="text-yellow-400 fill-yellow-400 shrink-0" />
+          <span>{t('category_list.popular_legend', 'Alat populer yang sering dipakai')}</span>
+        </div>
       </div>
 
       {/* 2-Column Categories Grid */}
