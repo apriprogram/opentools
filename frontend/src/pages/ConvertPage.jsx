@@ -316,9 +316,8 @@ export default function ConvertPage() {
                 <Button
                   variant="primary"
                   size="md"
-                  disabled
                   icon={CheckCircle2}
-                  className="w-full sm:w-auto min-w-[148px] !bg-success"
+                  className="w-full sm:w-auto min-w-[148px] !bg-success cursor-default active:scale-100"
                 >
                   All Done!
                 </Button>
