@@ -246,7 +246,7 @@ export default function ConvertPage() {
                   size="sm"
                   onClick={clearFiles}
                   icon={RotateCcw}
-                  className="h-7 text-[12px] px-2.5 bg-card-muted hover:bg-[#FEE2E2] hover:text-danger hover:border-danger/30 transition-smooth"
+                  className="h-7 text-[12px] px-2.5 bg-card-muted hover:bg-[#FEE2E2] hover:text-danger hover:border-danger/30 transition-smooth !rounded-sm"
                 >
                   Reset
                 </Button>
