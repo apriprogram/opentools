@@ -45,33 +45,33 @@ export default function StatsOverview({ id }) {
   const stats = [
     {
       id: 'visitors',
-      label: 'Total Visitors',
+      label: t('overview.total_visitors', 'Total Visitors'),
       value: data.visitors.toLocaleString(),
-      change: 'Realtime',
+      change: t('overview.realtime', 'Realtime'),
       isPositive: true,
       icon: Users,
     },
     {
       id: 'conversions',
-      label: 'Files Processed (Convert/Compress)',
+      label: t('overview.files_processed', 'Files Processed (Convert/Compress)'),
       value: data.processedFiles.toLocaleString(),
-      change: 'Realtime',
+      change: t('overview.realtime', 'Realtime'),
       isPositive: true,
       icon: Activity,
     },
     {
       id: 'uploads',
-      label: 'Total Uploads',
+      label: t('overview.total_uploads', 'Total Uploads'),
       value: formatBytes(data.uploadsBytes),
-      change: 'Realtime',
+      change: t('overview.realtime', 'Realtime'),
       isPositive: true,
       icon: UploadCloud,
     },
     {
       id: 'downloads',
-      label: 'Total Downloads',
+      label: t('overview.total_downloads', 'Total Downloads'),
       value: formatBytes(data.downloadsBytes),
-      change: 'Realtime',
+      change: t('overview.realtime', 'Realtime'),
       isPositive: true,
       icon: DownloadCloud,
     },
@@ -108,7 +108,7 @@ export default function StatsOverview({ id }) {
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-3">
             <MapPin size={16} className="text-secondary" />
-            <h3 className="text-[14px] font-semibold text-primary">Visitor Locations (Realtime)</h3>
+            <h3 className="text-[14px] font-semibold text-primary">{t('overview.visitor_locations', 'Visitor Locations (Realtime)')}</h3>
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.entries(data.countries).map(([country, count]) => (
@@ -125,7 +125,7 @@ export default function StatsOverview({ id }) {
         <Card className="p-5 mt-4">
           <div className="flex items-center gap-2 mb-4">
              <Activity size={16} className="text-secondary" />
-             <h3 className="text-[14px] font-semibold text-primary">Popular Features Used</h3>
+             <h3 className="text-[14px] font-semibold text-primary">{t('overview.popular_features', 'Popular Features Used')}</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {Object.entries(data.toolUsage)

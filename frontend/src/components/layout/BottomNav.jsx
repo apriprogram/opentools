@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Layers, BarChart2, Plus } from 'lucide-react';
+import { Home, BarChart2, Plus, ArrowLeftRight, Minimize, ImagePlus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
   const location = useLocation();
+  const { t } = useTranslation();
 
   return (
     <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
@@ -16,10 +18,52 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
               ? 'bg-card-muted text-primary font-medium'
               : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
           }`}
-          title="Home"
+          title="Explore"
         >
           <Home size={22} strokeWidth={1.75} />
-          <span className="hidden sm:inline text-[13px]">Explore</span>
+          <span className="hidden sm:inline text-[13px] whitespace-nowrap">Explore</span>
+        </Link>
+
+        {/* Converter Tab */}
+        <Link
+          to="/converters"
+          className={`h-[44px] px-4 rounded-full flex items-center gap-2 transition-smooth ${
+            location.pathname === '/converters'
+              ? 'bg-card-muted text-primary font-medium'
+              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+          }`}
+          title={t('home.converters_title', 'Converters')}
+        >
+          <ArrowLeftRight size={22} strokeWidth={1.75} />
+          <span className="hidden sm:inline text-[13px] whitespace-nowrap">{t('home.converters_title', 'Converters')}</span>
+        </Link>
+
+        {/* Compressor Tab */}
+        <Link
+          to="/compressors"
+          className={`h-[44px] px-4 rounded-full flex items-center gap-2 transition-smooth ${
+            location.pathname === '/compressors'
+              ? 'bg-card-muted text-primary font-medium'
+              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+          }`}
+          title={t('home.compressors_title', 'Compressors')}
+        >
+          <Minimize size={22} strokeWidth={1.75} />
+          <span className="hidden sm:inline text-[13px] whitespace-nowrap">{t('home.compressors_title', 'Compressors')}</span>
+        </Link>
+
+        {/* Twibbon Tab */}
+        <Link
+          to="/campaigns"
+          className={`h-[44px] px-4 rounded-full flex items-center gap-2 transition-smooth ${
+            location.pathname.startsWith('/campaigns') || location.pathname.startsWith('/c/') || location.pathname.startsWith('/twibbon')
+              ? 'bg-card-muted text-primary font-medium'
+              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+          }`}
+          title="Twibbon"
+        >
+          <ImagePlus size={22} strokeWidth={1.75} />
+          <span className="hidden sm:inline text-[13px] whitespace-nowrap">Twibbon</span>
         </Link>
 
         {/* Stats Tab */}
@@ -33,7 +77,7 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
           title="Statistics"
         >
           <BarChart2 size={22} strokeWidth={1.75} />
-          <span className="hidden sm:inline text-[13px]">Overview</span>
+          <span className="hidden sm:inline text-[13px] whitespace-nowrap">Overview</span>
         </Link>
 
         {/* Separator */}

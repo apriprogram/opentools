@@ -8,7 +8,7 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true };
+    return { hasError: true, error };
   }
 
   componentDidCatch(error, errorInfo) {
@@ -24,9 +24,14 @@ class ErrorBoundary extends React.Component {
               <AlertTriangle size={32} />
             </div>
             <h1 className="text-2xl font-bold text-primary mb-3 tracking-tight">Oops! Something went wrong.</h1>
-            <p className="text-secondary text-[15px] leading-relaxed mb-8">
+            <p className="text-secondary text-[15px] leading-relaxed mb-4">
               We encountered an unexpected error while trying to display this page.
             </p>
+            {this.state.error && (
+              <pre className="text-xs text-red-500 bg-red-100 p-2 rounded mb-8 w-full overflow-x-auto text-left">
+                {this.state.error.toString()}
+              </pre>
+            )}
             
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <button 

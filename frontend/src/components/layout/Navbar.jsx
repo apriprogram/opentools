@@ -63,7 +63,7 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/75 dark:bg-[#18181b]/75 backdrop-blur-xl border-b border-border transition-smooth select-none">
-      <div className="max-w-[1140px] mx-auto px-4 sm:px-6 h-[64px] flex items-center justify-between">
+      <div className="w-full px-4 sm:px-6 md:px-8 h-[64px] flex items-center justify-between">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <div className="w-[28px] h-[28px] flex items-center justify-center">
@@ -111,6 +111,20 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
                 {t('navbar.all_compressors', 'All Compressors')}
                 <ChevronDown size={14} className={`transition-transform duration-200 ${activeMenu === 'compressors' ? 'rotate-180' : ''}`} />
               </button>
+            </div>
+
+            {/* Twibbon Link */}
+            <div className="relative h-[64px] flex items-center">
+              <Link 
+                to="/campaigns"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[14px] font-medium transition-smooth ${
+                  location.pathname.startsWith('/campaigns') || location.pathname.startsWith('/c/') || location.pathname.startsWith('/twibbon')
+                    ? 'text-primary bg-card-muted'
+                    : 'text-primary hover:bg-card-muted'
+                }`}
+              >
+                Twibbon
+              </Link>
             </div>
           </div>
 
@@ -265,7 +279,14 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
             ))}
           </div>
         </div>
-        <Button variant="secondary" className="w-full mt-2 justify-center" onClick={() => { setIsMobileMenuOpen(false); onOpenDonate(); }}>
+        <Link 
+          to="/campaigns" 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="text-[13px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium text-center transition-colors mt-2"
+        >
+          Twibbon Campaigns
+        </Link>
+        <Button variant="secondary" className="w-full justify-center" onClick={() => { setIsMobileMenuOpen(false); onOpenDonate(); }}>
           <Heart size={16} className="text-danger mr-1" /> {t('navbar.donate', 'Donate')}
         </Button>
       </div>

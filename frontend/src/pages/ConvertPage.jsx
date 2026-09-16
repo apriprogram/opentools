@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Video,
@@ -28,6 +29,7 @@ import { useUpload } from '../hooks/useUpload';
 import { useConvertJob } from '../hooks/useConvertJob';
 
 export default function ConvertPage() {
+  const { t } = useTranslation();
   const { type } = useParams();
   const navigate = useNavigate();
 
@@ -143,8 +145,8 @@ export default function ConvertPage() {
           to="/"
           className="inline-flex items-center gap-2 text-[13px] font-medium text-secondary hover:text-primary transition-smooth"
         >
-          <IconButton icon={ArrowLeft} size="sm" variant="bordered" title="Back" />
-          <span className="hidden sm:inline">{tool.isCompressor ? 'All Compressors' : 'All Converters'}</span>
+          <IconButton icon={ArrowLeft} size="sm" variant="bordered" title="Kembali" />
+          <span className="hidden sm:inline">{t('common.back', 'Kembali')}</span>
         </Link>
 
         <Button

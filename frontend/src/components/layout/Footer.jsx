@@ -9,7 +9,7 @@ export default function Footer() {
 
   return (
     <footer className="w-full bg-card border-t border-border mt-auto pb-20 sm:pb-8">
-      <div className="max-w-[1140px] mx-auto px-4 sm:px-6 py-8">
+      <div className="w-full px-4 sm:px-6 md:px-8 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6">
           
           {/* Logo & Info */}

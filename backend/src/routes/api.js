@@ -10,6 +10,15 @@ import {
   downloadResult,
   downloadAllZip
 } from "../controllers/converter.controller.js";
+import {
+  login,
+  createCampaign,
+  getAllCampaigns,
+  getCampaign,
+  trackView,
+  trackUsage,
+  deleteCampaign
+} from "../controllers/twibbon.controller.js";
 
 const router = express.Router();
 
@@ -33,5 +42,14 @@ router.post("/convert/batch", upload.array("files", 20), convertBatch);
 router.get("/convert/:jobId/status", getJobStatus);
 router.get("/convert/:jobId/download", downloadResult);
 router.post("/convert/download-all", downloadAllZip);
+
+// Twibbon endpoints
+router.post("/twibbon/auth", express.json({limit: '10mb'}), login);
+router.post("/twibbon/campaigns", express.json({limit: '50mb'}), createCampaign);
+router.get("/twibbon/campaigns", getAllCampaigns);
+router.get("/twibbon/campaigns/:slug", getCampaign);
+router.post("/twibbon/campaigns/:id/view", trackView);
+router.post("/twibbon/campaigns/:id/usage", trackUsage);
+router.delete("/twibbon/campaigns/:id", express.json(), deleteCampaign);
 
 export default router;
