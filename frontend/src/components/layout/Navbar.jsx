@@ -254,39 +254,42 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
       </div>
       
       {/* Mobile Menu Dropdown */}
-      <div className={`md:hidden absolute top-[64px] left-0 w-full bg-card border-b border-border shadow-lg p-4 flex flex-col gap-4 z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform origin-top ${
+      <div className={`md:hidden absolute top-[64px] left-0 w-full bg-card border-b border-border shadow-lg p-4 flex flex-col gap-3 z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform origin-top ${
         isMobileMenuOpen ? 'opacity-100 scale-y-100 visible pointer-events-auto' : 'opacity-0 scale-y-95 invisible pointer-events-none -translate-y-8'
       }`}>
-        <div className="flex flex-col gap-2">
-          <span className="text-xs font-bold text-secondary uppercase tracking-wider">{t('navbar.all_converters', 'All Converters')}</span>
-          <div className="grid grid-cols-2 gap-2">
-            {categories.flatMap(c => c.tools).slice(0, 6).map(tool => (
-              <Link key={tool.id} to={`/convert/${tool.id}`} onClick={() => setIsMobileMenuOpen(false)} className="text-[13px] text-primary p-2 bg-card-muted rounded-md truncate border border-border flex items-center gap-2">
-                <span className="truncate">{tool.label}</span>
-                {tool.popular && <Star size={12} className="text-yellow-500 fill-yellow-500 shrink-0" />}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 mt-2">
-          <span className="text-xs font-bold text-secondary uppercase tracking-wider">{t('navbar.all_compressors', 'All Compressors')}</span>
-          <div className="grid grid-cols-2 gap-2">
-            {compressorCategories.flatMap(c => c.tools).slice(0, 4).map(tool => (
-              <Link key={tool.id} to={`/compress/${tool.id}`} onClick={() => setIsMobileMenuOpen(false)} className="text-[13px] text-primary p-2 bg-card-muted rounded-md truncate border border-border flex items-center gap-2">
-                <span className="truncate">{tool.label}</span>
-                {tool.popular && <Star size={12} className="text-yellow-500 fill-yellow-500 shrink-0" />}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <Link 
+          to="/converters" 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
+        >
+          <ArrowLeftRight size={18} className="text-primary" /> {t('navbar.all_converters', 'All Converters')}
+        </Link>
+        
+        <Link 
+          to="/compressors" 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
+        >
+          <Sparkles size={18} className="text-primary" /> {t('navbar.all_compressors', 'All Compressors')}
+        </Link>
+
         <Link 
           to="/campaigns" 
           onClick={() => setIsMobileMenuOpen(false)}
-          className="text-[13px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium text-center transition-colors mt-2"
+          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
-          Twibbon Campaigns
+          <ImageIcon size={18} className="text-primary" /> Twibbon Campaigns
         </Link>
-        <Button variant="secondary" className="w-full justify-center" onClick={() => { setIsMobileMenuOpen(false); onOpenDonate(); }}>
+
+        <Link 
+          to="/linktree" 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
+        >
+          <Globe size={18} className="text-primary" /> Linktree Builder
+        </Link>
+
+        <Button variant="secondary" className="w-full justify-center mt-2" onClick={() => { setIsMobileMenuOpen(false); onOpenDonate(); }}>
           <Heart size={16} className="text-danger mr-1" /> {t('navbar.donate', 'Donate')}
         </Button>
       </div>
