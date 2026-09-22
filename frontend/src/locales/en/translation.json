@@ -1,4 +1,11 @@
 {
+  "donate": {
+    "title": "Support Our Project",
+    "desc": "If you find this tool useful, consider supporting us! Your support helps keep the servers running and this tool free.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "paypal": "Donate via PayPal"
+  },
   "navbar": {
     "title": "OPENTOOLS",
     "subtitle": "File Converter",

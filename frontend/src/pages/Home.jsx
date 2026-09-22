@@ -11,7 +11,7 @@ function VerticalCard({ tool }) {
   return (
     <Link
       to={tool.to}
-      className={`group flex flex-col bg-card border border-border ${tool.ring} rounded-2xl overflow-hidden transition-colors duration-200 outline-none focus:outline-none h-full`}
+      className={`group flex flex-col bg-card border border-border ${tool.ring} rounded-2xl overflow-hidden transition-all duration-200 outline-none focus:outline-none h-full`}
     >
       {/* Image */}
       <div className="relative w-full h-48 shrink-0 overflow-hidden">
@@ -62,7 +62,7 @@ function HorizontalCard({ tool }) {
   return (
     <Link
       to={tool.to}
-      className={`group flex flex-row bg-card border border-border ${tool.ring} rounded-2xl overflow-hidden transition-colors duration-200 outline-none focus:outline-none h-full`}
+      className={`group flex flex-row bg-card border border-border ${tool.ring} rounded-2xl overflow-hidden transition-all duration-200 outline-none focus:outline-none h-full`}
     >
       {/* Content — left */}
       <div className="flex flex-col justify-between gap-3 p-6 flex-1 min-w-0 relative z-10">
@@ -125,7 +125,7 @@ export default function Home() {
     desc: t('home.convert_desc', 'Ubah format video, audio, dan gambar dalam hitungan detik. Tanpa watermark, tanpa biaya.'),
     icon: ArrowLeftRight, img: '/images/tools/fitur1.png',
     chips: ['MP4', 'MP3', 'WebP', 'PDF'],
-    ring: 'hover:border-primary/50',
+    ring: 'hover:border-blue-500',
     badgeBg: 'bg-secondary/10 text-primary border-border',
     iconBg: 'bg-secondary/10 text-primary',
     chipColor: 'bg-secondary/10 text-primary border-border',
@@ -139,7 +139,7 @@ export default function Home() {
     desc: t('home.compress_desc', 'Perkecil ukuran file untuk web dan penyimpanan tanpa kehilangan kualitas.'),
     icon: Minimize2, img: '/images/tools/fitur2.png',
     chips: ['−80%', 'Cepat', 'Lossless'],
-    ring: 'hover:border-primary/50',
+    ring: 'hover:border-blue-500',
     badgeBg: 'bg-secondary/10 text-primary border-border',
     iconBg: 'bg-secondary/10 text-primary',
     chipColor: 'bg-secondary/10 text-primary border-border',
@@ -153,7 +153,7 @@ export default function Home() {
     desc: t('home.twibbon_desc', 'Frame kustom, preview campaign, dan bagikan ke komunitas dengan mudah.'),
     icon: ImagePlus, img: '/images/tools/fitur3.png',
     chips: ['Frame', 'Campaign', 'Share'],
-    ring: 'hover:border-primary/50',
+    ring: 'hover:border-blue-500',
     badgeBg: 'bg-secondary/10 text-primary border-border',
     iconBg: 'bg-secondary/10 text-primary',
     chipColor: 'bg-secondary/10 text-primary border-border',
@@ -168,7 +168,7 @@ export default function Home() {
     desc: t('home.linktree_desc', 'Halaman bio link personal yang elegan untuk semua platform sosial mediamu.'),
     icon: Link2, img: '/images/tools/fitur4.png',
     chips: ['Bio', 'Social', 'QR Code'],
-    ring: 'hover:border-primary/50',
+    ring: 'hover:border-blue-500',
     badgeBg: 'bg-secondary/10 text-primary border-border',
     iconBg: 'bg-secondary/10 text-primary',
     chipColor: 'bg-secondary/10 text-primary border-border',
@@ -183,11 +183,7 @@ export default function Home() {
       <section className="mb-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-border">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card border border-border text-[12px] font-medium text-secondary mb-3">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <Shield size={13} className="text-secondary" />
-              <span>{t('home.hero_badge', 'Offline-ready & Privacy First Engine')}</span>
-            </div>
+
             <h1 className="text-[28px] sm:text-[34px] font-bold text-primary tracking-tight leading-[1.2]" style={{ fontFamily: "'Special Gothic Expanded One', sans-serif" }}>
               {t('home.hero_title2', 'Semua Tools yang Kamu')}<br />
               <span className="text-blue-500">{t('home.hero_title3', 'Butuhkan')}</span>{t('home.hero_title4', ', dalam Satu Tempat')} <span className="text-blue-500">{t('home.hero_title5', 'GRATIS!')}</span>

@@ -1,4 +1,11 @@
 {
+  "donate": {
+    "title": "Dukung Proyek Kami",
+    "desc": "Jika alat ini bermanfaat bagi Anda, pertimbangkan untuk mendukung kami! Dukungan Anda membantu kami menjaga server tetap berjalan dan alat ini tetap gratis.",
+    "copy": "Salin",
+    "copied": "Tersalin",
+    "paypal": "Donasi via PayPal"
+  },
   "navbar": {
     "title": "OPENTOOLS",
     "subtitle": "Konverter File",
