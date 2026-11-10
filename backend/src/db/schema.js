@@ -55,6 +55,7 @@ const STATEMENTS = [
 // Kolom bukti pembayaran ditambahkan ke tabel qr_orders yang sudah ada (ALTER hanya jika belum ada).
 const QR_ORDER_COLUMNS = [
   ["wa_number", "VARCHAR(20) NULL"],
+  ["nota_number", "VARCHAR(20) NULL"],
   ["proof_data", "MEDIUMBLOB NULL"],
   ["proof_hash", "CHAR(64) NULL"],
   ["proof_uploaded_at", "DATETIME NULL"],

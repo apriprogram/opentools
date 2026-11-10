@@ -57,6 +57,23 @@ export async function uploadQrProof({ code, email, file }) {
   return res.data;
 }
 
+// Nota pesanan (HTML untuk dilihat dan dicetak, atau PDF untuk diunduh)
+export async function adminFetchQrNota(adminKey, code) {
+  const res = await api.get(`/admin/qr/orders/${encodeURIComponent(code)}/nota`, {
+    headers: { 'x-admin-key': adminKey },
+    responseType: 'blob',
+  });
+  return res.data;
+}
+
+export async function adminFetchQrNotaPdf(adminKey, code) {
+  const res = await api.get(`/admin/qr/orders/${encodeURIComponent(code)}/nota.pdf`, {
+    headers: { 'x-admin-key': adminKey },
+    responseType: 'blob',
+  });
+  return res.data;
+}
+
 export async function adminFetchQrProof(adminKey, code) {
   const res = await api.get(`/admin/qr/orders/${encodeURIComponent(code)}/proof`, {
     headers: { 'x-admin-key': adminKey },

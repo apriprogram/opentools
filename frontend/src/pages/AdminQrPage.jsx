@@ -1,10 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, RefreshCw, LogOut, Copy, Eye } from 'lucide-react';
+import { Check, X, RefreshCw, LogOut, Copy, Eye, FileText, Download } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
 import Button from '../components/ui/Button';
 import { useToast } from '../components/ui/Toast';
-import { adminFetchQrOrders, adminConfirmQrOrder, adminCancelQrOrder, adminFetchQrProof, adminLogin } from '../services/qrApi';
+import {
+  adminFetchQrOrders,
+  adminConfirmQrOrder,
+  adminCancelQrOrder,
+  adminFetchQrProof,
+  adminFetchQrNota,
+  adminFetchQrNotaPdf,
+  adminLogin,
+} from '../services/qrApi';
 
 const KEY_STORAGE = 'ot_admin_key';
 const FILTERS = [
@@ -116,6 +124,41 @@ export default function AdminQrPage() {
   const copy = (text) => {
     navigator.clipboard?.writeText(text);
     toast({ type: 'success', title: 'Disalin', message: text });
+  };
+
+  // Nota HTML dibuka di tab baru untuk dilihat atau dicetak
+  const viewNota = async (code) => {
+    setBusy(code);
+    try {
+      const blob = await adminFetchQrNota(adminKey, code);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      toast({ type: 'error', title: 'Gagal membuka nota', message: 'Nota tidak bisa dimuat.' });
+    } finally {
+      setBusy('');
+    }
+  };
+
+  // Nota PDF diunduh langsung dengan nama berkas INV-...pdf
+  const downloadNotaPdf = async (code) => {
+    setBusy(code);
+    try {
+      const blob = await adminFetchQrNotaPdf(adminKey, code);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `nota-${code}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      toast({ type: 'error', title: 'Gagal mengunduh nota', message: 'PDF tidak bisa dibuat.' });
+    } finally {
+      setBusy('');
+    }
   };
 
   const viewProof = async (code) => {
@@ -253,6 +296,8 @@ export default function AdminQrPage() {
                   </td>
                   <td className="p-3">
                     <div className="flex justify-end gap-2 flex-wrap">
+                      <Button size="sm" variant="ghost" icon={FileText} disabled={busy === o.code} onClick={() => viewNota(o.code)}>Nota</Button>
+                      <Button size="sm" variant="ghost" icon={Download} disabled={busy === o.code} onClick={() => downloadNotaPdf(o.code)}>PDF</Button>
                       {o.hasProof && (
                         <Button size="sm" variant="ghost" icon={Eye} disabled={busy === o.code} onClick={() => viewProof(o.code)}>Bukti</Button>
                       )}

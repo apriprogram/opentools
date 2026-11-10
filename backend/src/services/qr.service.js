@@ -7,6 +7,7 @@ import {
   analyzeProof,
   decideProof
 } from "./proof.service.js";
+import { buildNotaData, notaPeriod, formatNotaNumber } from "./nota.service.js";
 
 // Paket QR Generator (pembayaran transfer, dikonfirmasi admin atau otomatis dari bukti).
 export const PLANS = {
@@ -40,7 +41,7 @@ export const getPaymentInfo = () => ({
 });
 
 // Kolom pesanan tanpa data gambar (proof_data), agar daftar pesanan tetap ringan.
-const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_number, status, license_key, created_at, paid_at,
+const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_number, nota_number, status, license_key, created_at, paid_at,
   verify_status, verify_note, verify_amount, proof_uploaded_at, proof_attempts, (proof_data IS NOT NULL) AS has_proof`;
 
 const toOrder = (row, { withLicense = false } = {}) => ({
@@ -53,6 +54,7 @@ const toOrder = (row, { withLicense = false } = {}) => ({
   name: row.name,
   email: row.email,
   whatsapp: row.wa_number || null,
+  notaNumber: row.nota_number || null,
   status: row.status,
   createdAt: iso(row.created_at),
   paidAt: row.paid_at ? iso(row.paid_at) : null,
@@ -89,8 +91,40 @@ export const createOrder = async ({ plan, name, email, whatsapp }) => {
     [code, plan, p.price, uniqueCode, amount, name, email, waNumber, new Date()]
   );
 
+  await assignNotaNumber(code, new Date());
   const rows = await query(`SELECT ${ORDER_COLUMNS} FROM qr_orders WHERE code = ?`, [code]);
   return toOrder(rows[0]);
+};
+
+// Nomor nota INV-YYYYMM-NNN, urut per bulan (WIB). Pesanan lama diberi nomor saat nota pertama kali dibuka.
+export const assignNotaNumber = async (code, createdAt) => {
+  const period = notaPeriod(createdAt);
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const [{ n }] = await query("SELECT COUNT(*) AS n FROM qr_orders WHERE nota_number LIKE ?", [`INV-${period}-%`]);
+    const number = formatNotaNumber(period, Number(n) + 1 + attempt);
+    const taken = await query("SELECT code FROM qr_orders WHERE nota_number = ? LIMIT 1", [number]);
+    if (taken.length) continue;
+    await query("UPDATE qr_orders SET nota_number = ? WHERE code = ? AND nota_number IS NULL", [number, code]);
+    const check = await query("SELECT nota_number FROM qr_orders WHERE code = ?", [code]);
+    if (check[0]?.nota_number) return check[0].nota_number;
+  }
+  throw httpError(500, "Gagal membuat nomor nota");
+};
+
+// Data nota untuk satu pesanan (dipakai untuk tampilan HTML dan PDF).
+export const getNotaData = async (code) => {
+  const rows = await query(`SELECT ${ORDER_COLUMNS} FROM qr_orders WHERE code = ? LIMIT 1`, [
+    String(code).trim().toUpperCase()
+  ]);
+  if (!rows.length) throw httpError(404, "Pesanan tidak ditemukan");
+  const order = toOrder(rows[0]);
+  const notaNumber = order.notaNumber || (await assignNotaNumber(order.code, order.createdAt));
+  const pay = getPaymentInfo();
+  return buildNotaData(order, {
+    notaNumber,
+    planDays: PLANS[order.plan]?.days || 0,
+    dana: { method: pay.method, number: pay.number, name: pay.name }
+  });
 };
 
 export const lookupOrder = async (code, email) => {

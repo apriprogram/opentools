@@ -1,4 +1,5 @@
 import * as qr from "../services/qr.service.js";
+import { renderNotaHtml, renderNotaPdf } from "../services/nota.service.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -66,6 +67,32 @@ export const uploadProof = async (req, res) => {
     res.json({ success: true, order, approved: order.status === "paid" });
   } catch (error) {
     return fail(res, error, "Upload QR proof");
+  }
+};
+
+// Admin: nota pesanan (HTML untuk dilihat dan dicetak)
+export const adminGetNota = async (req, res) => {
+  try {
+    const data = await qr.getNotaData(req.params.code);
+    res.set("Content-Type", "text/html; charset=utf-8");
+    res.set("Cache-Control", "no-store");
+    res.send(renderNotaHtml(data));
+  } catch (error) {
+    return fail(res, error, "Admin nota");
+  }
+};
+
+// Admin: nota pesanan dalam bentuk PDF
+export const adminGetNotaPdf = async (req, res) => {
+  try {
+    const data = await qr.getNotaData(req.params.code);
+    const pdf = await renderNotaPdf(data);
+    res.set("Content-Type", "application/pdf");
+    res.set("Content-Disposition", `inline; filename="${data.noNota}.pdf"`);
+    res.set("Cache-Control", "no-store");
+    res.send(pdf);
+  } catch (error) {
+    return fail(res, error, "Admin nota pdf");
   }
 };
 

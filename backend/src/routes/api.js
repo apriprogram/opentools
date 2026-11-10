@@ -28,7 +28,9 @@ import {
   adminListOrders,
   adminConfirmOrder,
   adminCancelOrder,
-  adminGetProof
+  adminGetProof,
+  adminGetNota,
+  adminGetNotaPdf
 } from "../controllers/qr.controller.js";
 import { requireAdmin } from "../middleware/admin.middleware.js";
 import { adminLogin } from "../controllers/admin.controller.js";
@@ -77,6 +79,8 @@ router.post("/qr/license/verify", express.json(), verifyLicense);
 router.post("/admin/login", express.json(), adminLogin);
 router.get("/admin/qr/orders", requireAdmin, adminListOrders);
 router.get("/admin/qr/orders/:code/proof", requireAdmin, adminGetProof);
+router.get("/admin/qr/orders/:code/nota", requireAdmin, adminGetNota);
+router.get("/admin/qr/orders/:code/nota.pdf", requireAdmin, adminGetNotaPdf);
 router.post("/admin/qr/orders/:code/confirm", requireAdmin, adminConfirmOrder);
 router.post("/admin/qr/orders/:code/cancel", requireAdmin, adminCancelOrder);
 
