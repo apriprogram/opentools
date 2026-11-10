@@ -49,25 +49,25 @@ export default function LinktreeLandingPage() {
             <span className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1 text-[12px] font-medium text-secondary">
               Gratis
             </span>
-            <h1 className="mt-4 text-[32px] font-semibold leading-[40px] tracking-tight text-primary sm:text-[40px] sm:leading-[48px]">
+            <h1 className="mt-4 text-[24px] font-semibold leading-[1.2] tracking-tight text-primary sm:text-[40px] sm:leading-[48px]">
               Satu link untuk semua profil Anda
             </h1>
-            <p className="mt-4 max-w-xl text-[15px] leading-[24px] text-secondary">
+            <p className="mt-4 max-w-xl text-[14px] leading-[22px] text-secondary sm:text-[15px] sm:leading-[24px]">
               Kumpulkan semua tautan penting dalam satu halaman. Daftar akun untuk membuat dan mengedit Linktree. Halaman yang sudah diterbitkan bisa dibuka siapa saja.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               {user ? (
                 <Link to={dashboardPath}>
-                  <Button variant="primary" size="lg" icon={ArrowRight}>Buka Linktree saya</Button>
+                  <Button variant="primary" size="md" icon={ArrowRight}>Buka Linktree saya</Button>
                 </Link>
               ) : (
                 <>
                   <Link to={`/daftar?next=${encodeURIComponent(dashboardPath)}`}>
-                    <Button variant="primary" size="lg" icon={UserPlus}>Daftar dan buat Linktree</Button>
+                    <Button variant="primary" size="md" icon={UserPlus}>Daftar dan buat Linktree</Button>
                   </Link>
                   <Link to={`/masuk?next=${encodeURIComponent(dashboardPath)}`}>
-                    <Button variant="secondary" size="lg" icon={LogIn}>Sudah punya akun? Masuk</Button>
+                    <Button variant="secondary" size="md" icon={LogIn}>Sudah punya akun? Masuk</Button>
                   </Link>
                 </>
               )}

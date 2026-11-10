@@ -13,7 +13,7 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* Home Tab */}
         <Link
           to="/"
-          className={`h-[40px] px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
             location.pathname === '/'
               ? 'bg-card-muted text-primary font-medium'
               : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
@@ -27,7 +27,7 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* Converter Tab */}
         <Link
           to="/converters"
-          className={`h-[40px] px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
             location.pathname === '/converters'
               ? 'bg-card-muted text-primary font-medium'
               : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
@@ -41,7 +41,7 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* Compressor Tab */}
         <Link
           to="/compressors"
-          className={`h-[40px] px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
             location.pathname === '/compressors'
               ? 'bg-card-muted text-primary font-medium'
               : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
@@ -55,7 +55,7 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* Twibbon Tab */}
         <Link
           to="/campaigns"
-          className={`h-[40px] px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
             location.pathname.startsWith('/campaigns') || location.pathname.startsWith('/c/') || location.pathname.startsWith('/twibbon')
               ? 'bg-card-muted text-primary font-medium'
               : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
@@ -69,7 +69,7 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* QR Generator Tab */}
         <Link
           to="/qr"
-          className={`h-[40px] px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
             location.pathname.startsWith('/qr')
               ? 'bg-card-muted text-primary font-medium'
               : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
@@ -83,7 +83,7 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* Stats Tab */}
         <Link
           to="/overview"
-          className={`h-[40px] px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
             location.pathname === '/overview'
               ? 'bg-card-muted text-primary font-medium'
               : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
