@@ -163,7 +163,7 @@ export default function Home() {
 
   const linktree = {
     id: 'linktree', to: '/linktree', label: 'Linktree',
-    badge: 'Coming Soon',
+    badge: 'Gratis',
     title: t('home.linktree_title', 'Linktree\nBuilder'),
     desc: t('home.linktree_desc', 'Halaman bio link personal yang elegan untuk semua platform sosial mediamu.'),
     icon: Link2, img: '/images/tools/fitur4.png',
@@ -173,7 +173,7 @@ export default function Home() {
     iconBg: 'bg-secondary/10 text-primary',
     chipColor: 'bg-secondary/10 text-primary border-border',
     arrowColor: 'text-primary border-border',
-    comingSoon: true,
+    comingSoon: false,
   };
 
   return (

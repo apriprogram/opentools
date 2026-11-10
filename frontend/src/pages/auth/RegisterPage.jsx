@@ -17,6 +17,9 @@ export default function RegisterPage() {
   const [params] = useSearchParams();
   // Paket yang dipilih di halaman harga dibawa sampai ke pemesanan.
   const paketParam = ['monthly', 'yearly'].includes(params.get('paket')) ? params.get('paket') : null;
+  // Tujuan setelah daftar (misalnya dari halaman Linktree). Hanya halaman panel yang diizinkan.
+  const nextParam = params.get('next');
+  const nextPath = nextParam && nextParam.startsWith('/dashboard/') ? nextParam : null;
   const [form, setForm] = useState({ name: '', email: '', whatsapp: '', password: '', confirm: '' });
   const [busy, setBusy] = useState(false);
 
@@ -35,7 +38,7 @@ export default function RegisterPage() {
         password: form.password,
       });
       signIn(res);
-      navigate(paketParam ? `/dashboard/qr?paket=${paketParam}` : '/dashboard/qr', { replace: true });
+      navigate(nextPath || (paketParam ? `/dashboard/qr?paket=${paketParam}` : '/dashboard/qr'), { replace: true });
     } catch (err) {
       toast({ type: 'error', title: 'Gagal daftar', message: err?.response?.data?.message || 'Coba lagi beberapa saat.' });
     } finally {
@@ -50,7 +53,7 @@ export default function RegisterPage() {
           <h1 className="text-[22px] font-semibold text-primary">Daftar akun</h1>
           <p className="mt-1 text-[13px] text-secondary">
             Akun menyimpan QR dan lisensi Anda. Sudah punya akun?{' '}
-            <Link to={paketParam ? `/masuk?paket=${paketParam}` : '/masuk'} className="underline hover:text-primary">Masuk</Link>.
+            <Link to={nextPath ? `/masuk?next=${encodeURIComponent(nextPath)}` : paketParam ? `/masuk?paket=${paketParam}` : '/masuk'} className="underline hover:text-primary">Masuk</Link>.
           </p>
 
           <form onSubmit={submit} className="mt-6 grid gap-3">

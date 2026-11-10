@@ -40,6 +40,16 @@ import { register, login as accountLogin, logout as accountLogout, me as current
 import { myQr, saveQr, removeQr, myOrders, myLicenses, myProof, myNota, myNotaPdf, setWhatsapp } from "../controllers/me.controller.js";
 import { requireUser } from "../middleware/auth.middleware.js";
 import { proofUploadSingle } from "../middleware/proof.middleware.js";
+import {
+  listLinktrees,
+  createLinktree,
+  getLinktree,
+  updateLinktree,
+  deleteLinktree,
+  publicLinktree,
+  publicView,
+  publicClick
+} from "../controllers/linktree.controller.js";
 
 const router = express.Router();
 
@@ -94,6 +104,16 @@ router.get("/me/orders/:code/proof", requireUser, myProof);
 router.get("/me/orders/:code/nota", requireUser, myNota);
 router.get("/me/orders/:code/nota.pdf", requireUser, myNotaPdf);
 router.put("/me/whatsapp", requireUser, express.json(), setWhatsapp);
+
+// Linktree: akun wajib masuk untuk membuat dan mengedit. Halaman publik bisa dibuka siapa saja.
+router.get("/linktree", requireUser, listLinktrees);
+router.post("/linktree", requireUser, express.json({ limit: "50kb" }), createLinktree);
+router.get("/linktree/public/:slug", publicLinktree);
+router.post("/linktree/public/:slug/view", publicView);
+router.post("/linktree/public/:slug/click/:itemId", publicClick);
+router.get("/linktree/:id", requireUser, getLinktree);
+router.put("/linktree/:id", requireUser, express.json({ limit: "3mb" }), updateLinktree);
+router.delete("/linktree/:id", requireUser, deleteLinktree);
 
 // Admin: masuk dengan username + password, lalu kirim token di header x-admin-key
 router.post("/admin/login", express.json(), adminLogin);

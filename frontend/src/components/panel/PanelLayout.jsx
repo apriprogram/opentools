@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { QrCode, ClipboardList, LogOut, Bell, Eye, Moon, Sun } from 'lucide-react';
+import { QrCode, Link2, ClipboardList, LogOut, Bell, Eye, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -12,6 +12,7 @@ const MENUS = {
       section: 'Utama',
       items: [
         { label: 'QR Generator', to: '/dashboard/qr', icon: QrCode },
+        { label: 'Linktree', to: '/dashboard/linktree', icon: Link2 },
       ],
     },
   ],

@@ -17,8 +17,12 @@ export default function LoginPage() {
   const [params] = useSearchParams();
   // Paket yang dipilih di halaman harga dibawa sampai ke pemesanan.
   const paketParam = ['monthly', 'yearly'].includes(params.get('paket')) ? params.get('paket') : null;
+  // Tujuan setelah masuk (misalnya dari halaman Linktree). Hanya halaman panel yang diizinkan.
+  const nextParam = params.get('next');
+  const nextPath = nextParam && nextParam.startsWith('/dashboard/') ? nextParam : null;
   const afterLogin = (role) => {
     if (role === 'superadmin') return '/admin';
+    if (nextPath) return nextPath;
     return paketParam ? `/dashboard/qr?paket=${paketParam}` : '/dashboard/qr';
   };
   const [form, setForm] = useState({ login: '', password: '' });
@@ -51,7 +55,7 @@ export default function LoginPage() {
           <h1 className="text-[22px] font-semibold text-primary">Masuk</h1>
           <p className="mt-1 text-[13px] text-secondary">
             Masuk untuk melihat QR dan lisensi Anda. Belum punya akun?{' '}
-            <Link to={paketParam ? `/daftar?paket=${paketParam}` : '/daftar'} className="underline hover:text-primary">Daftar dulu</Link>.
+            <Link to={nextPath ? `/daftar?next=${encodeURIComponent(nextPath)}` : paketParam ? `/daftar?paket=${paketParam}` : '/daftar'} className="underline hover:text-primary">Daftar dulu</Link>.
           </p>
 
           <form onSubmit={submit} className="mt-6 grid gap-3">

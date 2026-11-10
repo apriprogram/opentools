@@ -15,7 +15,10 @@ import BatchPage from './pages/BatchPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import DonateModal from './components/ui/DonateModal';
-import ComingSoonPage from './pages/ComingSoonPage';
+import LinktreeLandingPage from './pages/LinktreeLandingPage';
+import LinktreePublicPage from './pages/LinktreePublicPage';
+import UserLinktreePage from './pages/panel/UserLinktreePage';
+import LinktreeEditorPage from './pages/panel/LinktreeEditorPage';
 import QrGeneratorPage from './pages/QrGeneratorPage';
 import QrPricingPage from './pages/QrPricingPage';
 import LoginPage from './pages/auth/LoginPage';
@@ -68,7 +71,9 @@ function AppContent() {
   }, []);
 
   // Halaman panel (dashboard user dan admin) memakai tata letak sendiri, tanpa navbar dan menu bawah.
-  const isPanel = location.pathname.startsWith('/admin') || location.pathname.startsWith('/dashboard');
+  // Halaman publik Linktree (/l/:slug) juga tampil tanpa navbar, seperti halaman tersendiri.
+  const isPanel =
+    location.pathname.startsWith('/admin') || location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/l/');
 
   const handleOpenBatch = () => {
     navigate('/batch');
@@ -102,7 +107,8 @@ function AppContent() {
           <Route path="/batch" element={<BatchPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
-          <Route path="/linktree" element={<ComingSoonPage toolName="Linktree Builder" />} />
+          <Route path="/linktree" element={<LinktreeLandingPage />} />
+          <Route path="/l/:slug" element={<LinktreePublicPage />} />
           <Route path="/qr" element={<QrGeneratorPage />} />
           <Route path="/qr/harga" element={<QrPricingPage />} />
           <Route path="/masuk" element={<LoginPage />} />
@@ -110,6 +116,8 @@ function AppContent() {
           <Route path="/dashboard" element={<Navigate to="/dashboard/qr" replace />} />
           <Route path="/dashboard/qr" element={<RequireRole role="user"><UserQrPage /></RequireRole>} />
           <Route path="/dashboard/pesan" element={<RedirectPesan />} />
+          <Route path="/dashboard/linktree" element={<RequireRole role="user"><UserLinktreePage /></RequireRole>} />
+          <Route path="/dashboard/linktree/:id" element={<RequireRole role="user"><LinktreeEditorPage /></RequireRole>} />
           <Route path="/admin" element={<RequireRole role="superadmin"><AdminPanelPage /></RequireRole>} />
           <Route path="/admin/qr" element={<Navigate to="/admin" replace />} />
         </Routes>

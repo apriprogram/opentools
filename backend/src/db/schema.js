@@ -81,6 +81,38 @@ const STATEMENTS = [
     plan_expires_at DATETIME NULL,
     created_at DATETIME NOT NULL,
     KEY idx_user_qr_user (user_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  // Linktree: satu akun bisa punya banyak Linktree. Alamat (slug) unik untuk halaman publik /l/:slug.
+  `CREATE TABLE IF NOT EXISTS linktrees (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    slug VARCHAR(40) NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    bio VARCHAR(300) NULL,
+    avatar MEDIUMTEXT NULL,
+    theme TEXT NULL,
+    published TINYINT(1) NOT NULL DEFAULT 0,
+    views INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    UNIQUE KEY uq_linktrees_slug (slug),
+    KEY idx_linktrees_user (user_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  // Item Linktree: tautan, header, dan ikon sosial. Jumlah klik disimpan per item.
+  `CREATE TABLE IF NOT EXISTS linktree_items (
+    id VARCHAR(36) PRIMARY KEY,
+    linktree_id VARCHAR(36) NOT NULL,
+    type ENUM('link','header','social') NOT NULL,
+    title VARCHAR(200) NULL,
+    url VARCHAR(2048) NULL,
+    platform VARCHAR(30) NULL,
+    position INT UNSIGNED NOT NULL DEFAULT 0,
+    enabled TINYINT(1) NOT NULL DEFAULT 1,
+    clicks INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    KEY idx_linktree_items_tree (linktree_id)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
 ];
 
