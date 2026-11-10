@@ -76,6 +76,7 @@ export default function PaymentInstruction({ order, payment, expiresAt, onUpdate
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-80">Premium Gold</p>
             <p className="text-[18px] font-semibold">{order.planLabel}</p>
+            {order.qrLink && <p className="mt-1 truncate text-[12px] opacity-80">QR: {order.qrLink}</p>}
           </div>
           <span className="rounded-full border border-current px-2.5 py-1 text-[12px] font-medium">Menunggu pembayaran</span>
         </div>

@@ -71,6 +71,9 @@ function OrderRow({ order: o, expiresAt, onProof, onNota, onPdf }) {
           Premium Gold
         </span>
         <span className="mt-1 block font-mono text-[12px] text-tertiary">{o.code}</span>
+        {o.qrLink && (
+          <span className="block max-w-[220px] truncate text-[12px] text-tertiary" title={o.qrLink}>QR: {o.qrLink}</span>
+        )}
         <span className="block text-[12px] text-tertiary">Dibuat {tanggal(o.createdAt)}</span>
         {o.notaNumber && <span className="block text-[12px] text-tertiary">Nota {o.notaNumber}</span>}
       </td>

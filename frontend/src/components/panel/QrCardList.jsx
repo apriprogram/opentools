@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Download, Trash2 } from 'lucide-react';
+import { Crown, Download, Trash2 } from 'lucide-react';
 import Button from '../ui/Button';
 import Countdown from '../ui/Countdown';
 import { useToast } from '../ui/Toast';
@@ -15,17 +15,17 @@ const STATUS_TEXT = {
 };
 
 // Daftar QR milik pengguna. QR yang paket berbayarnya aktif tampil dengan gaya Premium Gold.
-export default function QrCardList({ items, logoUrl, onChanged }) {
+export default function QrCardList({ items, logoUrl, onChanged, onUpgrade }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((qr) => (
-        <QrCard key={qr.id} qr={qr} logoUrl={logoUrl} onChanged={onChanged} />
+        <QrCard key={qr.id} qr={qr} logoUrl={logoUrl} onChanged={onChanged} onUpgrade={onUpgrade} />
       ))}
     </div>
   );
 }
 
-function QrCard({ qr, logoUrl, onChanged }) {
+function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
   const { addToast: toast } = useToast();
   const premium = qr.status === 'aktif';
 
@@ -108,6 +108,11 @@ function QrCard({ qr, logoUrl, onChanged }) {
       <div className="mt-auto flex flex-wrap gap-2">
         <Button size="sm" variant="primary" icon={Download} onClick={downloadPng} disabled={!svg}>PNG</Button>
         <Button size="sm" variant="secondary" icon={Download} onClick={downloadSvg} disabled={!svg}>SVG</Button>
+        {qr.status !== 'nonaktif' && (
+          <Button size="sm" variant={qr.status === 'gratis' ? 'primary' : 'secondary'} icon={Crown} onClick={() => onUpgrade(qr)}>
+            {qr.status === 'gratis' ? 'Jadikan Premium' : 'Perpanjang'}
+          </Button>
+        )}
         <Button size="sm" variant="ghost" icon={Trash2} onClick={remove}>Hapus</Button>
       </div>
     </div>

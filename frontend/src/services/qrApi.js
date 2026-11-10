@@ -6,8 +6,9 @@ export async function fetchQrPlans() {
   return res.data;
 }
 
-export async function createQrOrder({ plan, name, email, whatsapp }) {
-  const res = await api.post('/qr/orders', { plan, name, email, whatsapp });
+// Pesanan untuk satu QR: design berisi link, warna, dan logo. qrId dipakai saat memperpanjang QR yang sudah ada.
+export async function createQrOrder({ plan, name, email, whatsapp, design, qrId }) {
+  const res = await api.post('/qr/orders', { plan, name, email, whatsapp, design, qrId });
   return res.data;
 }
 
@@ -72,33 +73,6 @@ export async function adminFetchQrNotaPdf(code) {
     responseType: 'blob',
   });
   return res.data;
-}
-
-// Lisensi disimpan di localStorage hanya sebagai kunci; validitasnya selalu dicek ulang ke server.
-const LICENSE_KEY = 'ot_qr_license';
-
-export function getStoredLicenseKey() {
-  try {
-    return localStorage.getItem(LICENSE_KEY) || '';
-  } catch {
-    return '';
-  }
-}
-
-export function storeLicenseKey(key) {
-  try {
-    localStorage.setItem(LICENSE_KEY, key);
-  } catch {
-    /* penyimpanan diblokir: lisensi hanya aktif selama tab terbuka */
-  }
-}
-
-export function clearStoredLicenseKey() {
-  try {
-    localStorage.removeItem(LICENSE_KEY);
-  } catch {
-    /* abaikan */
-  }
 }
 
 // Admin: nonaktifkan atau aktifkan lisensi pesanan lunas.

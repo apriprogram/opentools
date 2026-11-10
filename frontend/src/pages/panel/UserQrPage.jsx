@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, QrCode } from 'lucide-react';
 import PanelLayout from '../../components/panel/PanelLayout';
@@ -11,21 +11,19 @@ import { fetchMyQr, fetchMyOrders, fetchMyLicenses, fetchMyNotaPdf, updateMyWhat
 import QrGeneratorPage from '../QrGeneratorPage';
 import QrCardList from '../../components/panel/QrCardList';
 import OrderTable from '../../components/panel/OrderTable';
-import PlanPicker from '../../components/panel/PlanPicker';
+import PlanPicker, { WhatsappStep } from '../../components/panel/PlanPicker';
 import PaymentInstruction from '../../components/panel/PaymentInstruction';
 import ProofModal from '../../components/panel/ProofModal';
 import NotaModal from '../../components/panel/NotaModal';
 import { proofDetails } from '../../components/panel/OrderParts';
 
-const TITLE = { daftar: 'QR Generator', pilih: 'Buat QR baru', bayar: 'Pembayaran' };
-const SUBTITLE = {
-  daftar: 'Daftar QR, pesanan, dan lisensi Anda dalam satu menu.',
-  pilih: 'Paket gratis langsung bisa dipakai. Paket Premium Gold dibayar lewat transfer DANA, lalu aktif setelah bukti diverifikasi.',
-  bayar: 'Transfer sesuai nominal, lalu unggah bukti. Pesanan yang lunas tampil di tabel pesanan.',
-};
+const TITLE = { daftar: 'QR Generator', pilih: 'Buat QR baru', wa: 'Satu langkah lagi', bayar: 'Pembayaran' };
 
-// Satu menu QR Generator: daftar QR, buat QR baru (pilih paket), pembayaran, dan generator.
-// Tampilan ditentukan dari URL: ?view=pilih, ?view=buat, atau ?kode=KODE. Tanpa parameter berarti daftar QR.
+// Satu menu QR Generator. Tampilan ditentukan dari URL:
+// - tanpa parameter: daftar QR dan pesanan
+// - ?view=pilih (dan &qr=ID): pilih paket, untuk QR baru atau QR yang sudah ada
+// - ?view=buat: generator gratis, atau ?paket=monthly: desain Premium untuk satu QR
+// - ?kode=KODE: instruksi pembayaran pesanan
 export default function UserQrPage() {
   const { addToast: toast } = useToast();
   const { user, updateUser } = useAuth();
@@ -33,8 +31,15 @@ export default function UserQrPage() {
   const [params] = useSearchParams();
   const kode = params.get('kode');
   const paket = params.get('paket');
+  const qrParam = params.get('qr');
   const rawView = params.get('view');
-  const view = kode ? 'bayar' : ['pilih', 'buat'].includes(rawView) ? rawView : paket ? 'pilih' : 'daftar';
+  const needWa = !user?.whatsapp;
+
+  let view = 'daftar';
+  if (kode) view = 'bayar';
+  else if (rawView === 'pilih') view = 'pilih';
+  else if (paket) view = needWa ? 'wa' : 'buat';
+  else if (rawView === 'buat') view = 'buat';
 
   const [plans, setPlans] = useState([]);
   const [payment, setPayment] = useState(null);
@@ -42,12 +47,10 @@ export default function UserQrPage() {
   const [orders, setOrders] = useState(null);
   const [licenses, setLicenses] = useState([]);
   const [logoUrl, setLogoUrl] = useState(null);
-  const [busyPlan, setBusyPlan] = useState('');
-  const [waForPlan, setWaForPlan] = useState(null); // paket yang menunggu nomor WhatsApp (akun lama)
+  const [busy, setBusy] = useState('');
   const [waInput, setWaInput] = useState('');
   const [proofCode, setProofCode] = useState(null);
   const [notaCode, setNotaCode] = useState(null);
-  const autoRef = useRef(false);
 
   const loadAll = () =>
     Promise.all([fetchMyQr(), fetchMyOrders(), fetchMyLicenses()])
@@ -81,60 +84,49 @@ export default function UserQrPage() {
     () => Object.fromEntries((licenses || []).map((l) => [l.licenseKey, l.expiresAt])),
     [licenses]
   );
-  const autoPlan = !kode && paket ? plans.find((p) => p.id === paket) || null : null;
-  const unknownPlan = !kode && Boolean(paket) && plans.length > 0 && !autoPlan;
+  const planObj = paket ? plans.find((p) => p.id === paket) || null : null;
+  const unknownPlan = !kode && Boolean(paket) && plans.length > 0 && !planObj;
+  const renewQr = qrParam ? (qrList || []).find((q) => q.id === qrParam) || null : null;
+  const qrMissing = Boolean(qrParam) && qrList !== null && !renewQr;
 
-  const createOrderFor = async (planId, whatsapp, { replace = false } = {}) => {
-    setBusyPlan(planId);
+  // Paket berbayar dipilih: lanjut ke desain QR (lewat langkah WhatsApp bila akun belum punya nomor).
+  const choosePaid = (planId) => {
+    navigate(`/dashboard/qr?view=buat&paket=${planId}${qrParam ? `&qr=${qrParam}` : ''}`);
+  };
+
+  // Desain dari generator menjadi satu pesanan. Bila qrParam ada, pesanan untuk QR itu (perpanjang / jadikan Premium).
+  const placeOrder = async (design) => {
+    setBusy(paket);
     try {
-      const res = await createQrOrder({ plan: planId, name: user.name, email: user.email, whatsapp });
+      const res = await createQrOrder({
+        plan: paket,
+        name: user.name,
+        email: user.email,
+        whatsapp: user.whatsapp,
+        design,
+        qrId: qrParam || undefined,
+      });
       toast({ type: 'success', title: 'Pesanan dibuat', message: `Kode ${res.order.code}. Silakan lakukan pembayaran.` });
       await loadAll();
-      navigate(`/dashboard/qr?kode=${res.order.code}`, { replace });
+      navigate(`/dashboard/qr?kode=${res.order.code}`);
     } catch (err) {
       toast({ type: 'error', title: 'Pesanan gagal', message: err?.response?.data?.message || 'Coba lagi beberapa saat.' });
     } finally {
-      setBusyPlan('');
+      setBusy('');
     }
   };
 
-  // Pilih paket: pakai pesanan yang masih menunggu untuk paket yang sama, atau buat pesanan baru.
-  const choosePlan = (planId, opts = {}) => {
-    const existing = (orders || []).find((o) => o.status === 'pending' && o.plan === planId);
-    if (existing) {
-      navigate(`/dashboard/qr?kode=${existing.code}`, { replace: Boolean(opts.replace) });
-      return;
-    }
-    if (!user?.whatsapp) {
-      setWaForPlan(planId);
-      return;
-    }
-    createOrderFor(planId, user.whatsapp, opts);
-  };
-
-  // Dari halaman harga (?paket=...): buat pesanan sekali, tanpa form.
-  useEffect(() => {
-    if (!paket || kode || orders === null || autoRef.current) return;
-    if (!plans.some((p) => p.id === paket)) return;
-    autoRef.current = true;
-    choosePlan(paket, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paket, kode, orders, plans]);
-
-  // Akun lama yang belum punya nomor WhatsApp: diminta sekali, lalu disimpan ke akun.
+  // Akun lama tanpa nomor WhatsApp: diminta sekali. Setelah tersimpan, tampilan berpindah ke desain.
   const saveWhatsapp = async (e) => {
     e.preventDefault();
-    const planId = waForPlan;
-    setBusyPlan('wa');
+    setBusy('wa');
     try {
       const next = await updateMyWhatsapp(waInput.trim());
       updateUser(next);
-      setWaForPlan(null);
-      setBusyPlan('');
-      await createOrderFor(planId, next.whatsapp);
     } catch (err) {
       toast({ type: 'error', title: 'Nomor tidak valid', message: err?.response?.data?.message || 'Periksa nomor WhatsApp Anda.' });
-      setBusyPlan('');
+    } finally {
+      setBusy('');
     }
   };
 
@@ -153,14 +145,26 @@ export default function UserQrPage() {
   };
 
   const headerTitle = view === 'bayar' && order ? `Pesanan ${order.code}` : TITLE[view] || TITLE.daftar;
+  const subtitle = {
+    daftar: 'Daftar QR, pesanan, dan lisensi Anda dalam satu menu.',
+    pilih: renewQr
+      ? `Pilih paket untuk QR: ${renewQr.link}. Satu pembayaran berlaku untuk satu QR code.`
+      : 'Paket gratis langsung bisa dipakai. Paket Premium Gold berlaku untuk satu QR code dan dibayar lewat transfer DANA.',
+    wa: 'Nomor WhatsApp dipakai admin untuk menghubungi Anda. Nomor disimpan di akun dan tidak perlu diisi lagi.',
+    bayar: 'Transfer sesuai nominal, lalu unggah bukti. Pesanan yang lunas tampil di tabel pesanan.',
+  }[view];
 
   return (
     <PanelLayout title="QR Generator">
-      {view !== 'buat' && (
+      {view === 'buat' ? (
+        <Link to="/dashboard/qr" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-secondary hover:text-primary">
+          <ArrowLeft size={14} /> Kembali ke daftar QR
+        </Link>
+      ) : (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-[24px] font-semibold text-primary">{headerTitle}</h1>
-            <p className="mt-1 max-w-2xl text-[14px] text-secondary">{SUBTITLE[view] || SUBTITLE.daftar}</p>
+            <p className="mt-1 max-w-2xl text-[14px] text-secondary">{subtitle}</p>
           </div>
           {view === 'daftar' ? (
             <Button variant="primary" icon={QrCode} onClick={() => navigate('/dashboard/qr?view=pilih')}>
@@ -184,14 +188,19 @@ export default function UserQrPage() {
               <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
                 <p className="text-[14px] text-primary">Belum ada QR tersimpan.</p>
                 <p className="mt-1 text-[13px] text-secondary">
-                  Buat QR pertama Anda. Gratis, atau pilih Premium Gold untuk warna sendiri dan tanpa logo.
+                  Buat QR pertama Anda. Gratis, atau pilih Premium Gold untuk satu QR dengan warna sendiri dan tanpa logo.
                 </p>
                 <Button variant="primary" icon={QrCode} className="mt-4" onClick={() => navigate('/dashboard/qr?view=pilih')}>
                   Buat QR baru
                 </Button>
               </div>
             ) : (
-              <QrCardList items={qrList} logoUrl={logoUrl} onChanged={loadAll} />
+              <QrCardList
+                items={qrList}
+                logoUrl={logoUrl}
+                onChanged={loadAll}
+                onUpgrade={(qr) => navigate(`/dashboard/qr?view=pilih&qr=${qr.id}`)}
+              />
             )}
           </section>
 
@@ -209,27 +218,48 @@ export default function UserQrPage() {
       )}
 
       {view === 'pilih' && (
-        <PlanPicker
-          plans={plans}
-          busyPlan={busyPlan}
-          autoPlan={autoPlan}
-          unknownPlan={unknownPlan}
-          pendingOrders={pendingOrders}
-          onFree={() => navigate('/dashboard/qr?view=buat')}
-          onPaid={(planId) => choosePlan(planId)}
-          waForPlan={waForPlan}
-          waInput={waInput}
-          onWaInput={setWaInput}
-          onSaveWhatsapp={saveWhatsapp}
-        />
+        qrMissing ? (
+          <p className="text-[13px] text-tertiary">QR tidak ditemukan di akun Anda.</p>
+        ) : qrParam && !qrList ? (
+          <p className="text-[13px] text-tertiary">Memuat...</p>
+        ) : (
+          <PlanPicker
+            plans={plans}
+            busy={busy}
+            pendingOrders={pendingOrders}
+            qrContext={renewQr}
+            onFree={() => navigate('/dashboard/qr?view=buat')}
+            onPaid={choosePaid}
+          />
+        )
+      )}
+
+      {view === 'wa' && (
+        <WhatsappStep value={waInput} onChange={setWaInput} onSubmit={saveWhatsapp} busy={busy === 'wa'} />
       )}
 
       {view === 'buat' && (
         <div>
-          <Link to="/dashboard/qr" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-secondary hover:text-primary">
-            <ArrowLeft size={14} /> Kembali ke daftar QR
-          </Link>
-          <QrGeneratorPage embedded />
+          {Boolean(paket) && plans.length === 0 ? (
+            <p className="text-[13px] text-tertiary">Memuat paket...</p>
+          ) : paket && !planObj ? (
+            <p className="text-[13px] text-tertiary">
+              Paket tidak dikenal. <Link to="/dashboard/qr?view=pilih" className="underline">Pilih paket lain</Link>.
+            </p>
+          ) : qrParam && !qrList ? (
+            <p className="text-[13px] text-tertiary">Memuat...</p>
+          ) : qrMissing ? (
+            <p className="text-[13px] text-tertiary">QR tidak ditemukan di akun Anda.</p>
+          ) : (
+            <QrGeneratorPage
+              key={`${paket || 'gratis'}-${renewQr?.id || 'baru'}`}
+              embedded
+              orderPlan={planObj}
+              renewQr={renewQr}
+              onOrder={placeOrder}
+              orderBusy={busy === paket}
+            />
+          )}
         </div>
       )}
 

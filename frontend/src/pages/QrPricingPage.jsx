@@ -11,7 +11,7 @@ const rupiah = (n) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 
 const FREE_FEATURES = ['QR Code tanpa batas jumlah', 'Logo OpenTools di tengah', 'Warna hitam-putih', 'Unduh PNG & SVG'];
-const PAID_FEATURES = ['Semua fitur gratis', 'Ganti warna QR dan latar', 'Logo bisa dihilangkan', 'Berlaku sesuai masa paket'];
+const PAID_FEATURES = ['Semua fitur gratis', 'Ganti warna QR dan latar', 'Logo bisa dihilangkan', 'Untuk satu QR code'];
 
 // Halaman harga hanya menampilkan paket. Pemesanan, pembayaran, dan bukti dilakukan di dashboard akun.
 export default function QrPricingPage() {

@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import { query } from "../db/mysql.js";
 
-// QR tersimpan milik pengguna. Masa aktif mengikuti lisensi berbayar yang aktif:
-// tanpa lisensi aktif, QR berstatus gratis (hitam-putih, logo tetap) dan tidak berakhir.
+// QR tersimpan milik pengguna. Satu pembelian berlaku untuk satu QR (per QR code).
+// QR yang belum punya lisensi berstatus gratis: hitam-putih dengan logo.
 const FREE_FG = "#000000";
 const FREE_BG = "#FFFFFF";
 
@@ -14,55 +14,50 @@ const toQr = (row) => ({
   fg: row.fg,
   bg: row.bg,
   logo: Boolean(row.logo),
-  createdAt: iso(row.created_at),
-  planExpiresAt: row.plan_expires_at ? iso(row.plan_expires_at) : null
+  createdAt: iso(row.created_at)
 });
 
-// Lisensi aktif terlama milik email akun, atau null jika tidak ada.
-export const activePlanExpiry = async (email) => {
-  if (!email) return null;
-  const rows = await query(
-    "SELECT MAX(expires_at) AS expires_at FROM qr_licenses WHERE LOWER(email) = LOWER(?) AND revoked = 0 AND expires_at > ?",
-    [email, new Date()]
-  );
-  return rows[0]?.expires_at ? new Date(rows[0].expires_at) : null;
+// Status satu QR dari lisensi yang terikat padanya.
+// aktif: ada lisensi yang belum berakhir dan tidak dinonaktifkan admin.
+// nonaktif: lisensi terakhir dinonaktifkan admin. berakhir: lisensi terakhir sudah lewat masa aktifnya.
+// gratis: QR belum pernah punya lisensi.
+const qrStatus = (licenses, now) => {
+  if (!licenses.length) return { status: "gratis", planExpiresAt: null };
+  const newest = (list) => list.reduce((a, b) => (new Date(b.expires_at) > new Date(a.expires_at) ? b : a));
+  const active = licenses.filter((l) => !l.revoked && new Date(l.expires_at) > now);
+  if (active.length) return { status: "aktif", planExpiresAt: iso(new Date(newest(active).expires_at)) };
+  return { status: newest(licenses).revoked ? "nonaktif" : "berakhir", planExpiresAt: null };
 };
 
-// Status QR dihitung dari lisensi saat ini: aktif, nonaktif (dimatikan admin), berakhir, atau gratis.
 export const listUserQr = async (user) => {
   const rows = await query(
-    "SELECT id, link, fg, bg, logo, plan_expires_at, created_at FROM user_qr WHERE user_id = ? ORDER BY created_at DESC LIMIT 200",
+    "SELECT id, link, fg, bg, logo, created_at FROM user_qr WHERE user_id = ? ORDER BY created_at DESC LIMIT 200",
     [user.id]
   );
-  const activeExpiry = await activePlanExpiry(user.email);
+  if (!rows.length) return [];
+  const licenses = await query(
+    "SELECT user_qr_id, expires_at, revoked FROM qr_licenses WHERE user_qr_id IN (?)",
+    [rows.map((r) => r.id)]
+  );
   const now = new Date();
-  return rows.map((row) => {
-    const q = toQr(row);
-    if (!row.plan_expires_at) return { ...q, status: "gratis", planExpiresAt: null };
-    if (activeExpiry) return { ...q, status: "aktif", planExpiresAt: iso(activeExpiry) };
-    const expired = new Date(row.plan_expires_at) <= now;
-    return { ...q, status: expired ? "berakhir" : "nonaktif", planExpiresAt: null };
-  });
+  return rows.map((row) => ({
+    ...toQr(row),
+    ...qrStatus(
+      licenses.filter((l) => l.user_qr_id === row.id),
+      now
+    )
+  }));
 };
 
-export const createUserQr = async (user, { link, fg, bg, logo }) => {
-  const expiresAt = await activePlanExpiry(user.email);
-  const paid = Boolean(expiresAt);
+// QR dari generator selalu gratis. Paket berbayar dibuat lewat pesanan, satu pesanan untuk satu QR.
+export const createUserQr = async (user, { link }) => {
   const id = crypto.randomUUID();
-  const row = {
-    id,
-    link,
-    fg: paid && /^#[0-9a-fA-F]{6}$/.test(fg) ? fg : FREE_FG,
-    bg: paid && /^#[0-9a-fA-F]{6}$/.test(bg) ? bg : FREE_BG,
-    logo: paid ? (logo === false ? 0 : 1) : 1,
-    plan_expires_at: expiresAt,
-    created_at: new Date()
-  };
+  const createdAt = new Date();
   await query(
-    "INSERT INTO user_qr (id, user_id, link, fg, bg, logo, plan_expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    [row.id, user.id, row.link, row.fg, row.bg, row.logo, row.plan_expires_at, row.created_at]
+    "INSERT INTO user_qr (id, user_id, link, fg, bg, logo, plan_expires_at, created_at) VALUES (?, ?, ?, ?, ?, 1, NULL, ?)",
+    [id, user.id, link, FREE_FG, FREE_BG, createdAt]
   );
-  return { ...toQr(row), status: expiresAt ? "aktif" : "gratis" };
+  return { ...toQr({ id, link, fg: FREE_FG, bg: FREE_BG, logo: 1, created_at: createdAt }), status: "gratis", planExpiresAt: null };
 };
 
 export const deleteUserQr = async (userId, id) => {

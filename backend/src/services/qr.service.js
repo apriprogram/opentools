@@ -11,8 +11,8 @@ import { buildNotaData, notaPeriod, formatNotaNumber } from "./nota.service.js";
 
 // Paket QR Generator (pembayaran transfer, dikonfirmasi admin atau otomatis dari bukti).
 export const PLANS = {
-  monthly: { id: "monthly", label: "Bulanan", price: 30000, days: 30, note: "Aktif 30 hari" },
-  yearly: { id: "yearly", label: "Tahunan", price: 300000, days: 365, note: "Aktif 365 hari, hemat Rp60.000" }
+  monthly: { id: "monthly", label: "Bulanan", price: 30000, days: 30, note: "1 QR, aktif 30 hari" },
+  yearly: { id: "yearly", label: "Tahunan", price: 300000, days: 365, note: "1 QR, aktif 365 hari, hemat Rp60.000" }
 };
 
 const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // tanpa 0/O/1/I agar mudah dibaca
@@ -41,7 +41,7 @@ export const getPaymentInfo = () => ({
 });
 
 // Kolom pesanan tanpa data gambar (proof_data), agar daftar pesanan tetap ringan.
-const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_number, nota_number, status, license_key, created_at, paid_at,
+const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_number, nota_number, status, license_key, created_at, paid_at, qr_payload, user_qr_id,
   verify_status, verify_note, verify_amount, proof_uploaded_at, proof_attempts, (proof_data IS NOT NULL) AS has_proof,
   (SELECT l.revoked FROM qr_licenses l WHERE l.order_code = qr_orders.code LIMIT 1) AS license_revoked,
   (SELECT l.expires_at FROM qr_licenses l WHERE l.order_code = qr_orders.code LIMIT 1) AS license_expires_at`;
@@ -52,6 +52,27 @@ const licenseStateOf = (row) => {
   if (row.license_revoked === null && row.license_expires_at === null) return "tidak_ada";
   if (Number(row.license_revoked) === 1) return "nonaktif";
   return new Date(row.license_expires_at).getTime() > Date.now() ? "aktif" : "berakhir";
+};
+
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+const parseQrPayload = (text) => {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+};
+
+// Desain QR untuk paket berbayar: link, warna, dan logo. Dicek sebelum pesanan dibuat.
+export const parseQrDesign = (design) => {
+  const link = String(design?.link || "").trim();
+  if (!link || link.length > 2048) throw httpError(400, "Link QR wajib diisi (maksimal 2048 karakter).");
+  const fg = String(design?.fg || "#000000");
+  const bg = String(design?.bg || "#FFFFFF");
+  if (!HEX_RE.test(fg) || !HEX_RE.test(bg)) throw httpError(400, "Format warna QR tidak valid.");
+  return { link, fg, bg, logo: design?.logo !== false };
 };
 
 const toOrder = (row, { withLicense = false } = {}) => ({
@@ -76,14 +97,23 @@ const toOrder = (row, { withLicense = false } = {}) => ({
   proofAttempts: row.proof_attempts || 0,
   maxProofAttempts: MAX_PROOF_ATTEMPTS,
   hasProof: Boolean(row.has_proof),
+  qrId: row.user_qr_id || null,
+  qrLink: parseQrPayload(row.qr_payload)?.link || null,
   licenseState: row.status === "paid" ? licenseStateOf(row) : null
 });
 
-export const createOrder = async ({ plan, name, email, whatsapp }) => {
+export const createOrder = async ({ plan, name, email, whatsapp, design, qrId }) => {
   const p = PLANS[plan];
   if (!p) throw httpError(400, "Paket tidak valid");
   const waNumber = normalizeWhatsapp(whatsapp);
   if (!waNumber) throw httpError(400, "Nomor WhatsApp tidak valid. Contoh: 081234567890");
+  const qrDesign = parseQrDesign(design);
+  const account = await query("SELECT id FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1", [email]);
+  if (!account.length) throw httpError(400, "Daftar akun terlebih dahulu sebelum memesan paket.");
+  if (qrId) {
+    const owned = await query("SELECT id FROM user_qr WHERE id = ? AND user_id = ? LIMIT 1", [String(qrId), account[0].id]);
+    if (!owned.length) throw httpError(404, "QR tidak ditemukan di akun Anda.");
+  }
 
   // Kode unik 1-99 ditambahkan ke harga agar transfer mudah dicocokkan.
   const uniqueCode = crypto.randomInt(1, 100);
@@ -97,9 +127,9 @@ export const createOrder = async ({ plan, name, email, whatsapp }) => {
   }
 
   await query(
-    `INSERT INTO qr_orders (code, plan, price, unique_code, amount, name, email, wa_number, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
-    [code, plan, p.price, uniqueCode, amount, name, email, waNumber, new Date()]
+    `INSERT INTO qr_orders (code, plan, price, unique_code, amount, name, email, wa_number, status, created_at, qr_payload, user_qr_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
+    [code, plan, p.price, uniqueCode, amount, name, email, waNumber, new Date(), JSON.stringify(qrDesign), qrId ? String(qrId) : null]
   );
 
   await assignNotaNumber(code, new Date());
@@ -269,12 +299,52 @@ export const verifyLicense = async (key) => {
 
 const newLicenseKey = () => `OTP-${randomChars(4)}-${randomChars(4)}-${randomChars(4)}-${randomChars(4)}`;
 
+// Expiry aktif terakhir untuk satu QR. Perpanjangan dimulai dari sisa masa aktif, bukan dari hari ini.
+const activeQrExpiry = async (conn, qrId, now) => {
+  const [rows] = await conn.query(
+    "SELECT MAX(expires_at) AS expires_at FROM qr_licenses WHERE user_qr_id = ? AND revoked = 0 AND expires_at > ?",
+    [qrId, now]
+  );
+  return rows[0]?.expires_at ? new Date(rows[0].expires_at) : null;
+};
+
+// Pesanan dengan desain QR: buat QR baru di akun pembeli, atau perbarui QR yang dipilih (perpanjang / ubah desain).
+// Pesanan tanpa desain (pesanan lama) hanya menerbitkan lisensi, tidak membuat QR.
+const bindQrForOrder = async (conn, { order, design, now }) => {
+  if (!design) return null;
+  const [users] = await conn.query("SELECT id FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1", [order.email]);
+  if (!users.length) throw httpError(409, "Akun pembeli tidak ditemukan.");
+  const userId = users[0].id;
+  if (order.user_qr_id) {
+    const [owned] = await conn.query("SELECT id FROM user_qr WHERE id = ? AND user_id = ? LIMIT 1", [order.user_qr_id, userId]);
+    if (owned.length) {
+      await conn.query("UPDATE user_qr SET link = ?, fg = ?, bg = ?, logo = ? WHERE id = ?", [
+        design.link,
+        design.fg,
+        design.bg,
+        design.logo ? 1 : 0,
+        order.user_qr_id
+      ]);
+      return order.user_qr_id;
+    }
+  }
+  const id = crypto.randomUUID();
+  await conn.query(
+    "INSERT INTO user_qr (id, user_id, link, fg, bg, logo, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [id, userId, design.link, design.fg, design.bg, design.logo ? 1 : 0, now]
+  );
+  return id;
+};
+
 // Tandai pesanan lunas dan terbitkan kode lisensi (dipakai admin maupun aktivasi otomatis).
 export const confirmOrder = async (code) => {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-    const [rows] = await conn.query("SELECT code, plan, email, status FROM qr_orders WHERE code = ? FOR UPDATE", [code]);
+    const [rows] = await conn.query(
+      "SELECT code, plan, email, status, qr_payload, user_qr_id FROM qr_orders WHERE code = ? FOR UPDATE",
+      [code]
+    );
     if (!rows.length) throw httpError(404, "Pesanan tidak ditemukan");
     const order = rows[0];
     if (order.status === "paid") throw httpError(409, "Pesanan sudah dikonfirmasi");
@@ -282,7 +352,10 @@ export const confirmOrder = async (code) => {
 
     const plan = PLANS[order.plan];
     const now = new Date();
-    const expires = new Date(now.getTime() + plan.days * 24 * 60 * 60 * 1000);
+    const design = parseQrPayload(order.qr_payload);
+    const qrId = await bindQrForOrder(conn, { order, design, now });
+    const base = qrId ? await activeQrExpiry(conn, qrId, now) : null;
+    const expires = new Date((base || now).getTime() + plan.days * 24 * 60 * 60 * 1000);
     let key = newLicenseKey();
     for (let attempt = 0; attempt < 5; attempt++) {
       const [dup] = await conn.query("SELECT license_key FROM qr_licenses WHERE license_key = ?", [key]);
@@ -291,8 +364,8 @@ export const confirmOrder = async (code) => {
     }
 
     await conn.query(
-      "INSERT INTO qr_licenses (license_key, plan, email, order_code, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?)",
-      [key, order.plan, order.email, order.code, now, expires]
+      "INSERT INTO qr_licenses (license_key, plan, email, order_code, created_at, expires_at, user_qr_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [key, order.plan, order.email, order.code, now, expires, qrId]
     );
     await conn.query(
       "UPDATE qr_orders SET status = 'paid', license_key = ?, paid_at = ? WHERE code = ?",

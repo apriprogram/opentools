@@ -95,7 +95,10 @@ const QR_ORDER_COLUMNS = [
   ["verify_status", "VARCHAR(20) NOT NULL DEFAULT 'none'"],
   ["verify_note", "VARCHAR(500) NULL"],
   ["verify_amount", "INT UNSIGNED NULL"],
-  ["verify_detail", "TEXT NULL"]
+  ["verify_detail", "TEXT NULL"],
+  // Desain QR (JSON: link, fg, bg, logo) dan QR yang dituju (perpanjang). Satu pesanan untuk satu QR.
+  ["qr_payload", "TEXT NULL"],
+  ["user_qr_id", "VARCHAR(36) NULL"]
 ];
 
 async function ensureColumn(table, column, definition) {
@@ -118,4 +121,6 @@ export async function ensureSchema() {
   }
   // Nomor WhatsApp pemilik akun (dipakai untuk pesanan dari dashboard).
   await ensureColumn("users", "wa_number", "VARCHAR(20) NULL");
+  // Lisensi terikat pada satu QR (per QR code).
+  await ensureColumn("qr_licenses", "user_qr_id", "VARCHAR(36) NULL");
 }
