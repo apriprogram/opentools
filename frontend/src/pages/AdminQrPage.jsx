@@ -214,7 +214,20 @@ export default function AdminQrPage() {
                   <td className="p-3 font-medium text-primary">{o.code}<div className="text-[11px] text-tertiary">{new Date(o.createdAt).toLocaleString('id-ID')}</div></td>
                   <td className="p-3 text-primary">{o.planLabel}</td>
                   <td className="p-3 text-primary">{rupiah(o.amount)}</td>
-                  <td className="p-3 text-secondary">{o.name}<div className="text-[12px] text-tertiary break-all">{o.email}</div></td>
+                  <td className="p-3 text-secondary">
+                    {o.name}
+                    <div className="text-[12px] text-tertiary break-all">{o.email}</div>
+                    {o.whatsapp && (
+                      <a
+                        href={`https://wa.me/${o.whatsapp}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[12px] text-primary underline hover:no-underline"
+                      >
+                        WA +{o.whatsapp}
+                      </a>
+                    )}
+                  </td>
                   <td className="p-3">
                     <span className={`text-[12px] font-medium ${o.status === 'paid' ? 'text-success' : o.status === 'cancelled' ? 'text-danger' : 'text-secondary'}`}>
                       {o.status === 'pending' ? 'Menunggu' : o.status === 'paid' ? 'Lunas' : 'Batal'}

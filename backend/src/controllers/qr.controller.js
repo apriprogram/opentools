@@ -18,7 +18,7 @@ export const getPlans = (req, res) => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { plan, name, email } = req.body || {};
+    const { plan, name, email, whatsapp } = req.body || {};
     const cleanName = String(name || "").trim();
     const cleanEmail = String(email || "").trim();
     if (cleanName.length < 2 || cleanName.length > 120) {
@@ -27,7 +27,10 @@ export const createOrder = async (req, res) => {
     if (!EMAIL_RE.test(cleanEmail) || cleanEmail.length > 190) {
       return res.status(400).json({ success: false, message: "Email tidak valid" });
     }
-    const order = await qr.createOrder({ plan, name: cleanName, email: cleanEmail });
+    if (!qr.normalizeWhatsapp(whatsapp)) {
+      return res.status(400).json({ success: false, message: "Nomor WhatsApp tidak valid. Contoh: 081234567890" });
+    }
+    const order = await qr.createOrder({ plan, name: cleanName, email: cleanEmail, whatsapp });
     res.status(201).json({ success: true, order, payment: qr.getPaymentInfo() });
   } catch (error) {
     return fail(res, error, "Create QR order");

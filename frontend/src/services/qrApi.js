@@ -5,8 +5,8 @@ export async function fetchQrPlans() {
   return res.data;
 }
 
-export async function createQrOrder({ plan, name, email }) {
-  const res = await api.post('/qr/orders', { plan, name, email });
+export async function createQrOrder({ plan, name, email, whatsapp }) {
+  const res = await api.post('/qr/orders', { plan, name, email, whatsapp });
   return res.data;
 }
 

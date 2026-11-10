@@ -23,7 +23,7 @@ export default function QrPricingPage() {
   const [plans, setPlans] = useState([]);
   const [payment, setPayment] = useState(null);
   const [selected, setSelected] = useState(null); // 'monthly' | 'yearly'
-  const [form, setForm] = useState({ name: '', email: '' });
+  const [form, setForm] = useState({ name: '', email: '', whatsapp: '' });
   const [submitting, setSubmitting] = useState(false);
   const [order, setOrder] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -49,7 +49,12 @@ export default function QrPricingPage() {
     if (!selectedPlan) return;
     setSubmitting(true);
     try {
-      const res = await createQrOrder({ plan: selectedPlan.id, name: form.name, email: form.email });
+      const res = await createQrOrder({
+        plan: selectedPlan.id,
+        name: form.name,
+        email: form.email,
+        whatsapp: form.whatsapp,
+      });
       setOrder(res.order);
       if (res.payment) setPayment(res.payment);
       setLookup({ code: res.order.code, email: form.email });
@@ -140,7 +145,7 @@ export default function QrPricingPage() {
           <form onSubmit={createOrder} className="mt-6 rounded-2xl border border-border bg-card p-5 max-w-xl">
             <h2 className="text-[15px] font-semibold text-primary mb-1">Pesan paket {selectedPlan.label}</h2>
             <p className="text-[13px] text-secondary mb-4">Isi data Anda untuk mendapatkan nomor pesanan dan instruksi transfer.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <input
                 type="text"
                 required
@@ -158,7 +163,17 @@ export default function QrPricingPage() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="h-[40px] px-3 rounded-md border border-border bg-card text-primary text-[14px] placeholder:text-tertiary focus:outline-none focus:border-border-focus transition-smooth"
               />
+              <input
+                type="tel"
+                required
+                inputMode="tel"
+                placeholder="Nomor WhatsApp (08xxxx)"
+                value={form.whatsapp}
+                onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                className="h-[40px] px-3 rounded-md border border-border bg-card text-primary text-[14px] placeholder:text-tertiary focus:outline-none focus:border-border-focus transition-smooth"
+              />
             </div>
+            <p className="text-[12px] text-tertiary mt-2">Nomor WhatsApp dipakai admin untuk mengirim kode lisensi dan menghubungi Anda.</p>
             <div className="mt-4 flex items-center justify-between gap-3">
               <p className="text-[13px] text-secondary">Total {selectedPlan.label}: <span className="text-primary font-semibold">{rupiah(selectedPlan.price)}</span> + kode unik</p>
               <Button type="submit" variant="primary" disabled={submitting} icon={Crown}>

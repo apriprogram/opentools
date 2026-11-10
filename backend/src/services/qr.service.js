@@ -24,6 +24,14 @@ const randomChars = (length) => {
 
 const iso = (d) => (d instanceof Date ? d.toISOString() : d);
 
+// Nomor WhatsApp pembeli dinormalisasi ke format 62xxxxxxxxxx. Mengembalikan null jika tidak valid.
+export const normalizeWhatsapp = (input) => {
+  let digits = String(input || "").replace(/\D/g, "");
+  if (digits.startsWith("0")) digits = `62${digits.slice(1)}`;
+  else if (digits.startsWith("8")) digits = `62${digits}`;
+  return /^628\d{7,11}$/.test(digits) ? digits : null;
+};
+
 export const getPaymentInfo = () => ({
   method: "Transfer DANA",
   number: process.env.PAY_DANA_NUMBER || "082181361433",
@@ -32,7 +40,7 @@ export const getPaymentInfo = () => ({
 });
 
 // Kolom pesanan tanpa data gambar (proof_data), agar daftar pesanan tetap ringan.
-const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, status, license_key, created_at, paid_at,
+const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_number, status, license_key, created_at, paid_at,
   verify_status, verify_note, verify_amount, proof_uploaded_at, proof_attempts, (proof_data IS NOT NULL) AS has_proof`;
 
 const toOrder = (row, { withLicense = false } = {}) => ({
@@ -44,6 +52,7 @@ const toOrder = (row, { withLicense = false } = {}) => ({
   amount: row.amount,
   name: row.name,
   email: row.email,
+  whatsapp: row.wa_number || null,
   status: row.status,
   createdAt: iso(row.created_at),
   paidAt: row.paid_at ? iso(row.paid_at) : null,
@@ -57,9 +66,11 @@ const toOrder = (row, { withLicense = false } = {}) => ({
   hasProof: Boolean(row.has_proof)
 });
 
-export const createOrder = async ({ plan, name, email }) => {
+export const createOrder = async ({ plan, name, email, whatsapp }) => {
   const p = PLANS[plan];
   if (!p) throw httpError(400, "Paket tidak valid");
+  const waNumber = normalizeWhatsapp(whatsapp);
+  if (!waNumber) throw httpError(400, "Nomor WhatsApp tidak valid. Contoh: 081234567890");
 
   // Kode unik 1-99 ditambahkan ke harga agar transfer mudah dicocokkan.
   const uniqueCode = crypto.randomInt(1, 100);
@@ -73,9 +84,9 @@ export const createOrder = async ({ plan, name, email }) => {
   }
 
   await query(
-    `INSERT INTO qr_orders (code, plan, price, unique_code, amount, name, email, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
-    [code, plan, p.price, uniqueCode, amount, name, email, new Date()]
+    `INSERT INTO qr_orders (code, plan, price, unique_code, amount, name, email, wa_number, status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
+    [code, plan, p.price, uniqueCode, amount, name, email, waNumber, new Date()]
   );
 
   const rows = await query(`SELECT ${ORDER_COLUMNS} FROM qr_orders WHERE code = ?`, [code]);
