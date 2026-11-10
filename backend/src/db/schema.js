@@ -1,0 +1,85 @@
+import { pool } from "./mysql.js";
+
+// Tabel dibuat otomatis saat server start (CREATE TABLE IF NOT EXISTS). Aman dijalankan berulang.
+const STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS twibbon_users (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(190) NOT NULL,
+    created_at DATETIME NOT NULL,
+    UNIQUE KEY uq_twibbon_users_email (email)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  `CREATE TABLE IF NOT EXISTS twibbon_campaigns (
+    id VARCHAR(36) PRIMARY KEY,
+    slug VARCHAR(190) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    frame_base64 LONGTEXT NOT NULL,
+    creator_id VARCHAR(36) NOT NULL,
+    views INT UNSIGNED NOT NULL DEFAULT 0,
+    usage_count INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    UNIQUE KEY uq_twibbon_campaigns_slug (slug),
+    KEY idx_twibbon_campaigns_creator (creator_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  `CREATE TABLE IF NOT EXISTS qr_orders (
+    code VARCHAR(20) PRIMARY KEY,
+    plan ENUM('monthly','yearly') NOT NULL,
+    price INT UNSIGNED NOT NULL,
+    unique_code INT UNSIGNED NOT NULL,
+    amount INT UNSIGNED NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(190) NOT NULL,
+    status ENUM('pending','paid','cancelled') NOT NULL DEFAULT 'pending',
+    license_key VARCHAR(64) NULL,
+    created_at DATETIME NOT NULL,
+    paid_at DATETIME NULL,
+    KEY idx_qr_orders_status (status),
+    KEY idx_qr_orders_email (email)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  `CREATE TABLE IF NOT EXISTS qr_licenses (
+    license_key VARCHAR(64) PRIMARY KEY,
+    plan ENUM('monthly','yearly') NOT NULL,
+    email VARCHAR(190) NOT NULL,
+    order_code VARCHAR(20) NULL,
+    created_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    revoked TINYINT(1) NOT NULL DEFAULT 0,
+    KEY idx_qr_licenses_email (email)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+];
+
+// Kolom bukti pembayaran ditambahkan ke tabel qr_orders yang sudah ada (ALTER hanya jika belum ada).
+const QR_ORDER_COLUMNS = [
+  ["proof_data", "MEDIUMBLOB NULL"],
+  ["proof_hash", "CHAR(64) NULL"],
+  ["proof_uploaded_at", "DATETIME NULL"],
+  ["proof_attempts", "TINYINT UNSIGNED NOT NULL DEFAULT 0"],
+  ["verify_status", "VARCHAR(20) NOT NULL DEFAULT 'none'"],
+  ["verify_note", "VARCHAR(500) NULL"],
+  ["verify_amount", "INT UNSIGNED NULL"],
+  ["verify_detail", "TEXT NULL"]
+];
+
+async function ensureColumn(table, column, definition) {
+  const [rows] = await pool.query(
+    `SELECT COUNT(*) AS n FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+    [table, column]
+  );
+  if (Number(rows[0].n) === 0) {
+    await pool.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
+  }
+}
+
+export async function ensureSchema() {
+  for (const sql of STATEMENTS) {
+    await pool.query(sql);
+  }
+  for (const [column, definition] of QR_ORDER_COLUMNS) {
+    await ensureColumn("qr_orders", column, definition);
+  }
+}

@@ -20,6 +20,9 @@ export async function recordVisit(country) {
   return res.data;
 }
 
+// Uploads can be up to 100MB; the default 60s api timeout would abort slow uploads.
+const UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
+
 export async function convertSingleFile(file, toolId, targetFormat, onUploadProgress) {
   const formData = new FormData();
   formData.append('file', file);
@@ -28,6 +31,7 @@ export async function convertSingleFile(file, toolId, targetFormat, onUploadProg
 
   const res = await api.post('/convert', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: UPLOAD_TIMEOUT_MS,
     onUploadProgress: (progressEvent) => {
       if (progressEvent.total && onUploadProgress) {
         const pct = Math.round((progressEvent.loaded * 100) / progressEvent.total);

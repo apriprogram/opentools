@@ -1,11 +1,12 @@
+import "./config/env.js";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import apiRouter from "./routes/api.js";
+import { ensureSchema } from "./db/schema.js";
 
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,9 +42,25 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Serve React frontend static files (which are uploaded to the public root)
-const frontendDist = path.join(__dirname, "../../");
-app.use(express.static(frontendDist));
+// Serve React frontend static files (build output in the public root, next to the backend folder).
+// STATIC_DIR bisa diisi untuk menunjuk folder lain. Folder backend (berisi .env dan kode server)
+// tidak boleh terbaca dari web, jadi permintaan ke /backend, /node_modules, /.git dan file dotfile ditolak.
+const frontendDist = process.env.STATIC_DIR
+  ? path.resolve(process.env.STATIC_DIR)
+  : path.join(__dirname, "../../");
+
+app.use((req, res, next) => {
+  if (/^\/(backend|node_modules|\.git|temp|data)(\/|$)/i.test(req.path) || /\/\.[^/]+$/.test(req.path)) {
+    return res.status(404).end();
+  }
+  next();
+});
+app.use(express.static(frontendDist, { dotfiles: "ignore" }));
+
+// Endpoint API yang tidak ada: balas JSON, jangan index.html
+app.all("/api/*", (req, res) => {
+  res.status(404).json({ success: false, message: "Endpoint tidak ditemukan" });
+});
 
 // SPA fallback — serve index.html for all non-API routes
 app.get("*", (req, res) => {
@@ -62,8 +79,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 File Converter Backend API running on http://localhost:${PORT}`);
-  console.log(`📡 Endpoints available under http://localhost:${PORT}/api/v1`);
-  console.log(`🌐 Serving React frontend from: ${frontendDist}`);
-});
+ensureSchema()
+  .then(() => console.log("🗄️  MySQL schema siap"))
+  .catch((err) => console.error("⚠️  MySQL belum terhubung (fitur Twibbon & QR tidak aktif):", err.message))
+  .finally(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 File Converter Backend API running on http://localhost:${PORT}`);
+      console.log(`📡 Endpoints available under http://localhost:${PORT}/api/v1`);
+      console.log(`🌐 Serving React frontend from: ${frontendDist}`);
+    });
+  });

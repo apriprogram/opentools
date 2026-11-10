@@ -73,7 +73,7 @@ export default function UploadBox({
       onClick={handleClickBrowse}
       className={`relative w-full h-[200px] rounded-md transition-smooth flex flex-col items-center justify-center p-6 text-center cursor-pointer select-none ${
         isDragOver
-          ? 'bg-white border-2 border-solid border-border-focus'
+          ? 'bg-card border-2 border-solid border-border-focus'
           : dragError
           ? 'bg-card-muted border-[1.5px] border-dashed border-danger'
           : 'bg-card-muted border-[1.5px] border-dashed border-border hover:border-border-hover'

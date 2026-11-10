@@ -1,4 +1,5 @@
-const API_BASE = 'http://localhost:5000/api/v1/twibbon';
+// Relatif terhadap domain yang sedang dibuka (lokal maupun production)
+const API_BASE = '/api/v1/twibbon';
 
 export const login = async (name, email) => {
   const res = await fetch(`${API_BASE}/auth`, {

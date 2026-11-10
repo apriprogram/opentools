@@ -92,7 +92,7 @@ export default function ConvertPage() {
     clearFiles,
     errorMessage,
     setErrorMessage,
-  } = useUpload(tool?.from || []);
+  } = useUpload(tool?.from || [], tool?.maxSizeMB || 50);
 
   const {
     isConverting,

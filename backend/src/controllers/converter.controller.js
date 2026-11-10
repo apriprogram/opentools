@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import archiver from "archiver";
-import { CATEGORIES_CONFIG, COMPRESSORS_CONFIG } from "../config/tools.config.js";
+import { CATEGORIES_CONFIG, COMPRESSORS_CONFIG, visibleCategories } from "../config/tools.config.js";
 import { createJob, getJob } from "../services/job.service.js";
 import { runConversion } from "../services/converter.service.js";
 import { tempDir } from "../middleware/upload.middleware.js";
@@ -13,7 +13,7 @@ import { recordUpload, recordDownload } from "../services/stats.service.js";
  */
 export function getTools(req, res) {
   try {
-    return res.json({ success: true, categories: CATEGORIES_CONFIG });
+    return res.json({ success: true, categories: visibleCategories(CATEGORIES_CONFIG) });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -27,7 +27,7 @@ export function getTools(req, res) {
  */
 export function getCompressors(req, res) {
   try {
-    return res.json({ success: true, categories: COMPRESSORS_CONFIG });
+    return res.json({ success: true, categories: visibleCategories(COMPRESSORS_CONFIG) });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -283,8 +283,15 @@ export async function downloadAllZip(req, res) {
 
     archive.pipe(res);
 
+    // Nama entry dibuat unik: dua file dengan nama sama tidak saling menimpa di dalam ZIP
+    const usedNames = new Map();
     for (const file of validFiles) {
-      archive.file(file.path, { name: file.name });
+      const count = usedNames.get(file.name) || 0;
+      usedNames.set(file.name, count + 1);
+      const ext = path.extname(file.name);
+      const base = path.basename(file.name, ext);
+      const entryName = count === 0 ? file.name : `${base}_${count}${ext}`;
+      archive.file(file.path, { name: entryName });
     }
 
     await archive.finalize();

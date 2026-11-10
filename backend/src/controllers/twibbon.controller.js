@@ -1,122 +1,97 @@
 import * as twibbonService from '../services/twibbon.service.js';
+import { isAdminRequest } from '../middleware/admin.middleware.js';
 
-export const login = (req, res) => {
+const serverError = (res, label, error) => {
+  console.error(`${label} error:`, error);
+  return res.status(500).json({ success: false, message: 'Internal server error' });
+};
+
+export const login = async (req, res) => {
   try {
     const { name, email } = req.body;
     if (!name || name.trim() === '' || !email || email.trim() === '') {
       return res.status(400).json({ success: false, message: 'Name and Email are required' });
     }
-    
-    const user = twibbonService.loginUser(name.trim(), email.trim());
+    const user = await twibbonService.loginUser(name.trim(), email.trim());
     res.json({ success: true, user });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    return serverError(res, 'Login', error);
   }
 };
 
-export const createCampaign = (req, res) => {
+export const createCampaign = async (req, res) => {
   try {
     const { title, description, slug, frameBase64, creatorId } = req.body;
-    
     if (!title || !slug || !frameBase64 || !creatorId) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
-
-    const campaign = twibbonService.createCampaign({
-      title,
-      description,
-      slug,
-      frameBase64,
-      creatorId
-    });
-
+    const campaign = await twibbonService.createCampaign({ title, description, slug, frameBase64, creatorId });
     res.status(201).json({ success: true, campaign });
   } catch (error) {
-    console.error('Create campaign error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    return serverError(res, 'Create campaign', error);
   }
 };
 
-export const getAllCampaigns = (req, res) => {
+export const getAllCampaigns = async (req, res) => {
   try {
-    const campaigns = twibbonService.getAllCampaigns();
+    const campaigns = await twibbonService.getAllCampaigns();
     res.json({ success: true, campaigns });
   } catch (error) {
-    console.error('Get campaigns error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    return serverError(res, 'Get campaigns', error);
   }
 };
 
-export const getCampaign = (req, res) => {
+export const getCampaign = async (req, res) => {
   try {
-    const { slug } = req.params;
-    const campaign = twibbonService.getCampaignBySlug(slug);
-    
+    const campaign = await twibbonService.getCampaignBySlug(req.params.slug);
     if (!campaign) {
       return res.status(404).json({ success: false, message: 'Campaign not found' });
     }
-    
     res.json({ success: true, campaign });
   } catch (error) {
-    console.error('Get campaign error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    return serverError(res, 'Get campaign', error);
   }
 };
 
-export const trackView = (req, res) => {
+export const trackView = async (req, res) => {
   try {
-    const { id } = req.params;
-    const success = twibbonService.trackCampaignView(id);
-    if (success) {
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ success: false, message: 'Campaign not found' });
-    }
+    const ok = await twibbonService.trackCampaignView(req.params.id);
+    if (ok) return res.json({ success: true });
+    res.status(404).json({ success: false, message: 'Campaign not found' });
   } catch (error) {
-    console.error('Track view error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    return serverError(res, 'Track view', error);
   }
 };
 
-export const trackUsage = (req, res) => {
+export const trackUsage = async (req, res) => {
   try {
-    const { id } = req.params;
-    const success = twibbonService.trackCampaignUsage(id);
-    if (success) {
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ success: false, message: 'Campaign not found' });
-    }
+    const ok = await twibbonService.trackCampaignUsage(req.params.id);
+    if (ok) return res.json({ success: true });
+    res.status(404).json({ success: false, message: 'Campaign not found' });
   } catch (error) {
-    console.error('Track usage error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    return serverError(res, 'Track usage', error);
   }
 };
 
-export const deleteCampaign = (req, res) => {
+export const deleteCampaign = async (req, res) => {
   try {
     const { id } = req.params;
-    const { creatorId } = req.body;
+    const { creatorId } = req.body || {};
 
-    // Local admin mode: requests from localhost can delete any campaign
-    const isLocalhost = req.hostname === 'localhost' || req.hostname === '127.0.0.1' || req.ip === '::1' || req.ip === '127.0.0.1';
-    
-    if (!creatorId && !isLocalhost) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-    
-    const success = isLocalhost
-      ? twibbonService.deleteCampaignById(id)      // admin: delete by id only
-      : twibbonService.deleteCampaign(id, creatorId); // normal: must match creatorId
+    // Admin: header x-admin-key (ADMIN_KEY di .env) boleh menghapus campaign mana pun.
+    // Pengguna biasa hanya boleh menghapus campaign miliknya sendiri (creatorId harus cocok).
+    // Catatan: jangan pakai req.ip/localhost sebagai bypass, karena di cPanel semua request
+    // datang lewat proxy lokal sehingga selalu terbaca sebagai localhost.
+    const ok = isAdminRequest(req)
+      ? await twibbonService.deleteCampaignById(id)
+      : creatorId
+        ? await twibbonService.deleteCampaign(id, creatorId)
+        : null;
 
-    if (success) {
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ success: false, message: 'Campaign not found' });
-    }
+    if (ok === null) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    if (ok) return res.json({ success: true });
+    res.status(404).json({ success: false, message: 'Campaign not found' });
   } catch (error) {
-    console.error('Delete campaign error:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    return serverError(res, 'Delete campaign', error);
   }
 };

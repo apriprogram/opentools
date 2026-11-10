@@ -16,6 +16,9 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import DonateModal from './components/ui/DonateModal';
 import ComingSoonPage from './pages/ComingSoonPage';
+import QrGeneratorPage from './pages/QrGeneratorPage';
+import QrPricingPage from './pages/QrPricingPage';
+import AdminQrPage from './pages/AdminQrPage';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { recordVisit } from './services/converterApi';
@@ -78,6 +81,9 @@ function AppContent() {
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
           <Route path="/linktree" element={<ComingSoonPage toolName="Linktree Builder" />} />
+          <Route path="/qr" element={<QrGeneratorPage />} />
+          <Route path="/qr/harga" element={<QrPricingPage />} />
+          <Route path="/admin/qr" element={<AdminQrPage />} />
         </Routes>
       </div>
 

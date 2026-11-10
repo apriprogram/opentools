@@ -19,6 +19,20 @@ import {
   trackUsage,
   deleteCampaign
 } from "../controllers/twibbon.controller.js";
+import {
+  getPlans,
+  createOrder,
+  lookupOrder,
+  uploadProof,
+  verifyLicense,
+  adminListOrders,
+  adminConfirmOrder,
+  adminCancelOrder,
+  adminGetProof
+} from "../controllers/qr.controller.js";
+import { requireAdmin } from "../middleware/admin.middleware.js";
+import { adminLogin } from "../controllers/admin.controller.js";
+import { proofUploadSingle } from "../middleware/proof.middleware.js";
 
 const router = express.Router();
 
@@ -51,5 +65,19 @@ router.get("/twibbon/campaigns/:slug", getCampaign);
 router.post("/twibbon/campaigns/:id/view", trackView);
 router.post("/twibbon/campaigns/:id/usage", trackUsage);
 router.delete("/twibbon/campaigns/:id", express.json(), deleteCampaign);
+
+// QR Generator: paket berbayar (transfer manual) dan verifikasi lisensi
+router.get("/qr/plans", getPlans);
+router.post("/qr/orders", express.json(), createOrder);
+router.post("/qr/orders/lookup", express.json(), lookupOrder);
+router.post("/qr/orders/:code/proof", proofUploadSingle, uploadProof);
+router.post("/qr/license/verify", express.json(), verifyLicense);
+
+// Admin: masuk dengan username + password, lalu kirim token di header x-admin-key
+router.post("/admin/login", express.json(), adminLogin);
+router.get("/admin/qr/orders", requireAdmin, adminListOrders);
+router.get("/admin/qr/orders/:code/proof", requireAdmin, adminGetProof);
+router.post("/admin/qr/orders/:code/confirm", requireAdmin, adminConfirmOrder);
+router.post("/admin/qr/orders/:code/cancel", requireAdmin, adminCancelOrder);
 
 export default router;

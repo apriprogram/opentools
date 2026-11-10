@@ -10,6 +10,7 @@ import Card from '../ui/Card';
 import { useTranslation } from 'react-i18next';
 
 const ALL_FORMATS = ['png', 'jpg', 'webp', 'mp3', 'mp4', 'ogg', 'wav', 'svg'];
+const MAX_BATCH_FILES = 20;
 
 export default function BatchConvertSection() {
   const { t } = useTranslation();
@@ -22,7 +23,18 @@ export default function BatchConvertSection() {
     updateFileStatus,
     clearFiles,
     errorMessage,
-  } = useUpload();
+    setErrorMessage,
+  } = useUpload([], 150);
+
+  // Enforce the "Maksimal 20 file sekaligus" limit shown in the upload box.
+  const handleFilesSelected = (list) => {
+    const incoming = Array.from(list);
+    const remaining = Math.max(0, MAX_BATCH_FILES - files.length);
+    addFiles(incoming.slice(0, remaining));
+    if (incoming.length > remaining) {
+      setErrorMessage(t('batch.max_files', { count: incoming.length - remaining }));
+    }
+  };
 
   const {
     isConverting,
@@ -60,7 +72,7 @@ export default function BatchConvertSection() {
       <div className="space-y-5">
         {/* Upload Box */}
         <UploadBox
-          onFilesSelected={addFiles}
+          onFilesSelected={handleFilesSelected}
           maxSizeMB={150}
           multiple={true}
           title={t('batch.upload_title', 'Tarik beberapa file ke sini atau telusuri')}
@@ -68,7 +80,7 @@ export default function BatchConvertSection() {
         />
 
         {errorMessage && (
-          <div className="p-3 bg-[#FEF2F2] border border-danger/20 rounded-md text-danger text-[12px]">
+          <div className="p-3 bg-[#FEF2F2] dark:bg-red-950/40 border border-danger/20 rounded-md text-danger text-[12px]">
             {errorMessage}
           </div>
         )}
@@ -102,13 +114,13 @@ export default function BatchConvertSection() {
                   {t('batch.queue', 'Antrean')} ({files.length})
                 </span>
                 {allCompleted && anyDone && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#DCFCE7] text-success text-[11px] font-medium">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#DCFCE7] dark:bg-green-900/40 text-success text-[11px] font-medium">
                     <CheckCircle2 size={11} />
                     {doneFiles.length} {t('batch.converted', 'berhasil')}
                   </span>
                 )}
                 {failedFiles.length > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEE2E2] text-danger text-[11px] font-medium">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEE2E2] dark:bg-red-900/40 text-danger text-[11px] font-medium">
                     <AlertTriangle size={11} />
                     {failedFiles.length} {t('batch.failed', 'gagal')}
                   </span>

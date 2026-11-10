@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Copy, Check, Heart, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Button from './Button';
@@ -7,6 +7,16 @@ export default function DonateModal({ isOpen, onClose }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const danaNumber = '082181361433';
+
+  // Close on Escape, matching the other modals (ui/Modal.jsx).
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -25,7 +35,7 @@ export default function DonateModal({ isOpen, onClose }) {
       ></div>
 
       {/* Modal */}
-      <div className="relative w-full max-w-md bg-card rounded-2xl shadow-2xl border border-border overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md bg-card rounded-2xl shadow-subtle-modal border border-border overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
         <div className="p-5 border-b border-border flex items-center justify-between bg-card-muted/50">
           <div className="flex items-center gap-2 text-danger">
             <Heart size={20} className="fill-danger" />

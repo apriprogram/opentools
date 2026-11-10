@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeftRight, Sparkles, ChevronDown, Video, Image as ImageIcon, FileText, FileCode2, Music, Star, Moon, Sun, Globe, Heart, Menu, X } from 'lucide-react';
+import { ArrowLeftRight, Sparkles, ChevronDown, Video, Image as ImageIcon, FileText, FileCode2, Music, Star, Moon, Sun, Globe, Heart, Menu, X, QrCode } from 'lucide-react';
 import Button from '../ui/Button';
 import { fetchTools, fetchCompressors } from '../../services/converterApi';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -124,6 +124,18 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
                 }`}
               >
                 Twibbon
+              </Link>
+            </div>
+
+            {/* QR Generator Link */}
+            <div className="relative h-[64px] flex items-center">
+              <Link
+                to="/qr"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[14px] font-medium transition-smooth ${
+                  location.pathname.startsWith('/qr') ? 'text-primary bg-card-muted' : 'text-primary hover:bg-card-muted'
+                }`}
+              >
+                QR Generator
               </Link>
             </div>
           </div>
@@ -287,6 +299,14 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
           className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
           <Globe size={18} className="text-primary" /> Linktree Builder
+        </Link>
+
+        <Link
+          to="/qr"
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
+        >
+          <QrCode size={18} className="text-primary" /> QR Generator
         </Link>
 
         <Button variant="secondary" className="w-full justify-center mt-2" onClick={() => { setIsMobileMenuOpen(false); onOpenDonate(); }}>

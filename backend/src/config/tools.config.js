@@ -289,3 +289,21 @@ export const COMPRESSORS_CONFIG = [
   }
 ];
 
+
+// Konversi dokumen yang belum diimplementasikan di server. Sebelumnya hanya menyalin file dengan
+// ekstensi baru sehingga hasilnya rusak. Tool ini disembunyikan dari daftar sampai ada engine-nya.
+export const UNSUPPORTED_TOOL_IDS = new Set([
+  "pdf-converter",
+  "document-converter",
+  "ebook-converter",
+  "pdf-to-word",
+  "pdf-to-jpg",
+  "pdf-to-epub",
+  "epub-to-pdf",
+  "docx-to-pdf"
+]);
+
+export const visibleCategories = (categories) =>
+  categories
+    .map((cat) => ({ ...cat, tools: cat.tools.filter((t) => !UNSUPPORTED_TOOL_IDS.has(t.id)) }))
+    .filter((cat) => cat.tools.length > 0);

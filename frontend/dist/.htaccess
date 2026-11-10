@@ -1,6 +1,13 @@
-Options -MultiViews
-RewriteEngine On
-RewriteBase /
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.html [L]
+<IfModule mod_rewrite.c>
+  Options -MultiViews
+  RewriteEngine On
+  RewriteBase /
+  # Folder backend (kode server dan .env) dan repo git tidak boleh diakses dari web
+  RewriteRule ^(backend|node_modules|\.git)(/|$) - [F,L]
+  RewriteRule ^index\.html$ - [L]
+  # API ditangani server Node, jangan dialihkan ke index.html
+  RewriteCond %{REQUEST_URI} !^/api/ [NC]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>

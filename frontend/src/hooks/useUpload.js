@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-export function useUpload(supportedExtensions = []) {
+export function useUpload(supportedExtensions = [], maxSizeMB = null) {
   // files: [{ id, file, name, size, type, previewUrl, error }]
   const [files, setFiles] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -14,13 +14,22 @@ export function useUpload(supportedExtensions = []) {
     return isSupported;
   }, [supportedExtensions]);
 
+  // Enforce the "Max NMB" limit shown on the upload box.
+  const validateSize = useCallback((file) => {
+    if (!maxSizeMB) return true;
+    return file.size <= maxSizeMB * 1024 * 1024;
+  }, [maxSizeMB]);
+
   const addFiles = useCallback((newFiles) => {
     setErrorMessage(null);
     const validItems = [];
     const invalidNames = [];
+    const oversizedNames = [];
 
     Array.from(newFiles).forEach((file) => {
-      if (validateFile(file)) {
+      if (!validateSize(file)) {
+        oversizedNames.push(file.name);
+      } else if (validateFile(file)) {
         let previewUrl = null;
         if (file.type.startsWith('image/')) {
           previewUrl = URL.createObjectURL(file);
@@ -46,10 +55,14 @@ export function useUpload(supportedExtensions = []) {
       setErrorMessage(`Unsupported format: ${invalidNames.join(', ')}. Supported: ${supportedExtensions.join(', ')}`);
     }
 
+    if (oversizedNames.length > 0) {
+      setErrorMessage(`File too large (max ${maxSizeMB}MB): ${oversizedNames.join(', ')}`);
+    }
+
     if (validItems.length > 0) {
       setFiles((prev) => [...prev, ...validItems]);
     }
-  }, [validateFile, supportedExtensions]);
+  }, [validateFile, validateSize, supportedExtensions, maxSizeMB]);
 
   const removeFile = useCallback((id) => {
     setFiles((prev) => {
@@ -62,6 +75,10 @@ export function useUpload(supportedExtensions = []) {
   }, []);
 
   const replaceFile = useCallback((id, newFile) => {
+    if (!validateSize(newFile)) {
+      setErrorMessage(`File too large (max ${maxSizeMB}MB): ${newFile.name}`);
+      return false;
+    }
     if (!validateFile(newFile)) {
       setErrorMessage(`Unsupported format for replacement: ${newFile.name}`);
       return false;
@@ -94,7 +111,7 @@ export function useUpload(supportedExtensions = []) {
       });
     });
     return true;
-  }, [validateFile]);
+  }, [validateFile, validateSize, maxSizeMB]);
 
   const updateFileStatus = useCallback((id, updates) => {
     setFiles((prev) =>

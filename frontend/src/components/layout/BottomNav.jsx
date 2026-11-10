@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BarChart2, Plus, ArrowLeftRight, Minimize, ImagePlus } from 'lucide-react';
+import { Home, BarChart2, Plus, ArrowLeftRight, Minimize, ImagePlus, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
@@ -64,6 +64,20 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         >
           <ImagePlus size={18} strokeWidth={1.75} />
           <span className="hidden sm:inline text-[12px] whitespace-nowrap">Twibbon</span>
+        </Link>
+
+        {/* QR Generator Tab */}
+        <Link
+          to="/qr"
+          className={`h-[40px] px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+            location.pathname.startsWith('/qr')
+              ? 'bg-card-muted text-primary font-medium'
+              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+          }`}
+          title="QR Generator"
+        >
+          <QrCode size={18} strokeWidth={1.75} />
+          <span className="hidden sm:inline text-[12px] whitespace-nowrap">QR</span>
         </Link>
 
         {/* Stats Tab */}

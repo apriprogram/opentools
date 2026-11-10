@@ -1,6 +1,15 @@
 ---
+# Deploy otomatis dari cPanel Git Version Control ke opentools.garudanexa.com.
+# Frontend sudah di-build dan tersimpan di frontend/dist (di-commit).
+# Setelah deploy, Node.js App di-restart lewat tmp/restart.txt.
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/tanjunak/public/opentools.web.id/
-    - /bin/cp -r frontend/dist/. $DEPLOYPATH
-    - /bin/echo "Frontend deployed to $DEPLOYPATH"
+    - export DEPLOYPATH=/home/garudanexa/opentools.garudanexa.com
+    - /bin/mkdir -p $DEPLOYPATH/backend
+    - /bin/cp -R frontend/dist/. $DEPLOYPATH/
+    - /bin/cp -R backend/src $DEPLOYPATH/backend/
+    - /bin/cp -R backend/scripts $DEPLOYPATH/backend/
+    - /bin/cp backend/package.json backend/package-lock.json backend/start.cjs backend/.env.example $DEPLOYPATH/backend/
+    - /bin/mkdir -p $DEPLOYPATH/backend/tmp
+    - /bin/touch $DEPLOYPATH/backend/tmp/restart.txt
+    - /bin/echo "Deployed to $DEPLOYPATH"

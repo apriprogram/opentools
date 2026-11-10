@@ -43,7 +43,28 @@
     "clear": "Clear",
     "tools_count": "{{count}} Tools",
     "no_results": "No tools found",
-    "no_results_desc": "No tools matching \"{{query}}\"."
+    "no_results_desc": "No tools matching \"{{query}}\".",
+    "popular_legend": "Popular tools used often"
+  },
+  "batch": {
+    "title": "Batch Convert",
+    "subtitle": "Convert many files at once.",
+    "converter_title": "Batch Converter",
+    "converter_desc": "Convert dozens of images, videos, or audio files at once",
+    "upload_title": "Drag several files here or browse",
+    "upload_subtext": "Images, Videos, or Audio • Up to 20 files at once",
+    "max_files": "Maximum 20 files at once. {{count}} file(s) were not added.",
+    "format_title": "Universal Output Format",
+    "format_desc": "All selected files will be converted into this format",
+    "queue": "Queue",
+    "converted": "converted",
+    "failed": "failed",
+    "clear_queue": "Clear Queue",
+    "download_all_zip": "Download All ({{count}}) ZIP",
+    "packaging_zip": "Packaging ZIP...",
+    "convert_files": "Convert {{count}} File(s)",
+    "processing": "Processing...",
+    "all_done": "All Done!"
   },
   "footer": {
     "support": "Support this Open Source development:",

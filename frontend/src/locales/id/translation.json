@@ -43,7 +43,28 @@
     "clear": "Hapus",
     "tools_count": "{{count}} Alat",
     "no_results": "Tidak ada alat ditemukan",
-    "no_results_desc": "Tidak ada alat yang cocok dengan \"{{query}}\"."
+    "no_results_desc": "Tidak ada alat yang cocok dengan \"{{query}}\".",
+    "popular_legend": "Alat populer yang sering dipakai"
+  },
+  "batch": {
+    "title": "Konversi Massal",
+    "subtitle": "Konversi puluhan file secara bersamaan.",
+    "converter_title": "Konverter Massal",
+    "converter_desc": "Konversi puluhan gambar, video, atau audio sekaligus",
+    "upload_title": "Tarik beberapa file ke sini atau telusuri",
+    "upload_subtext": "Gambar, Video, atau Audio • Maksimal 20 file sekaligus",
+    "max_files": "Maksimal 20 file sekaligus. {{count}} file tidak ditambahkan.",
+    "format_title": "Format Output Universal",
+    "format_desc": "Semua file yang dipilih akan dikonversi ke format ini",
+    "queue": "Antrean",
+    "converted": "berhasil",
+    "failed": "gagal",
+    "clear_queue": "Bersihkan Antrean",
+    "download_all_zip": "Unduh Semua ({{count}}) ZIP",
+    "packaging_zip": "Membungkus ZIP...",
+    "convert_files": "Konversi {{count}} File",
+    "processing": "Memproses...",
+    "all_done": "Semua Selesai!"
   },
   "footer": {
     "support": "Dukung pengembangan Open Source ini:",

@@ -63,8 +63,9 @@ export async function runConversion(job) {
         fs.copyFileSync(inputPath, outputPath);
       }
     } else if (["pdf", "docx", "epub", "mobi", "txt", "rtf"].includes(outExt) || ["pdf", "docx", "epub", "mobi", "txt", "rtf"].includes(inExt)) {
-      // Document conversion fallback (Pro paywall removed)
-      fs.copyFileSync(inputPath, outputPath);
+      // Konversi dokumen yang belum diimplementasikan. Dulu file hanya disalin dengan ekstensi baru
+      // sehingga hasilnya rusak; sekarang job ditandai gagal dengan pesan jelas.
+      throw new Error(`Konversi ${inExt || "file"} ke ${outExt} belum didukung di server.`);
     } else if (isHeicInput) {
       // HEIC input: use heic-convert to decode, then sharp to output
       await convertHeic(job);
