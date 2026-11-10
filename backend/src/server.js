@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import apiRouter from "./routes/api.js";
 import { ensureSchema } from "./db/schema.js";
+import { ensureSuperAdmin } from "./services/auth.service.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -80,6 +81,7 @@ app.use((err, req, res, next) => {
 });
 
 ensureSchema()
+  .then(() => ensureSuperAdmin())
   .then(() => console.log("🗄️  MySQL schema siap"))
   .catch((err) => console.error("⚠️  MySQL belum terhubung (fitur Twibbon & QR tidak aktif):", err.message))
   .finally(() => {

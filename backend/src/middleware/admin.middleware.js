@@ -1,8 +1,10 @@
 import crypto from "crypto";
+import { sessionUser } from "./auth.middleware.js";
 
-// Admin masuk dengan username + password (ADMIN_USERNAME, ADMIN_PASSWORD_HASH) dan menerima sesi berupa token.
-// Token ditandatangani HMAC dengan ADMIN_KEY dan berlaku 12 jam. Header x-admin-key tetap menerima ADMIN_KEY langsung
-// (untuk skrip dan akses cadangan).
+// Akses admin diterima dari tiga cara:
+// 1. Sesi super admin (token dari halaman masuk), lewat header Authorization.
+// 2. Token admin lama (HMAC dengan ADMIN_KEY) lewat header x-admin-key.
+// 3. ADMIN_KEY langsung lewat header x-admin-key (untuk skrip dan akses cadangan).
 const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
 
 const safeEqual = (a, b) => {
@@ -33,12 +35,16 @@ export function isAdminRequest(req) {
   return safeEqual(given, process.env.ADMIN_KEY) || verifyAdminToken(given);
 }
 
-export function requireAdmin(req, res, next) {
-  if (!process.env.ADMIN_KEY) {
-    return res.status(503).json({ success: false, message: "ADMIN_KEY belum diatur di server" });
-  }
-  if (!isAdminRequest(req)) {
+export async function requireAdmin(req, res, next) {
+  try {
+    if (isAdminRequest(req)) return next();
+    const user = await sessionUser(req);
+    if (user && user.role === "superadmin") {
+      req.user = user;
+      return next();
+    }
     return res.status(401).json({ success: false, message: "Sesi admin tidak valid. Silakan masuk ulang." });
+  } catch (error) {
+    return next(error);
   }
-  next();
 }

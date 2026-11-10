@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, Lock, Crown, KeyRound, LogOut, Link2, AlertTriangle, QrCode } from 'lucide-react';
+import { Download, Lock, Crown, KeyRound, LogOut, Link2, AlertTriangle, QrCode, Save } from 'lucide-react';
+import Countdown from '../components/ui/Countdown';
+import { useAuth } from '../contexts/AuthContext';
+import { fetchMyLicenses, saveMyQr } from '../services/authApi';
 import PageContainer from '../components/layout/PageContainer';
 import Button from '../components/ui/Button';
 import { useToast } from '../components/ui/Toast';
@@ -22,7 +25,13 @@ import {
 const FREE_FG = '#000000';
 const FREE_BG = '#FFFFFF';
 
-export default function QrGeneratorPage() {
+// Di dalam panel dashboard, halaman tidak perlu pembungkus <main> sendiri.
+function EmbeddedWrap({ children }) {
+  return <div className="w-full">{children}</div>;
+}
+
+export default function QrGeneratorPage({ embedded = false }) {
+  const Wrap = embedded ? EmbeddedWrap : PageContainer;
   const { addToast: toast } = useToast();
   const [link, setLink] = useState('');
   const [fg, setFg] = useState('#111111');
@@ -32,6 +41,8 @@ export default function QrGeneratorPage() {
   const [license, setLicense] = useState(null);
   const [licenseInput, setLicenseInput] = useState('');
   const [checkingLicense, setCheckingLicense] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const { user } = useAuth();
 
   const isPaid = Boolean(license);
   // Paket gratis: warna tetap hitam-putih dan logo selalu tampil.
@@ -46,14 +57,27 @@ export default function QrGeneratorPage() {
     loadLogoDataUrl().then(setLogoDataUrl).catch(() => setLogoDataUrl(null));
 
     const stored = getStoredLicenseKey();
-    if (!stored) return;
+    if (!stored) {
+      // Akun masuk: pakai lisensi aktif milik email akun, tanpa perlu memasukkan kode.
+      if (user) {
+        fetchMyLicenses()
+          .then((list) => {
+            const active = list
+              .filter((l) => l.active)
+              .sort((a, b) => new Date(b.expiresAt) - new Date(a.expiresAt))[0];
+            if (active) setLicense({ valid: true, plan: active.plan, planLabel: active.planLabel, expiresAt: active.expiresAt });
+          })
+          .catch(() => { /* tetap mode gratis */ });
+      }
+      return;
+    }
     verifyQrLicense(stored)
       .then((res) => {
         if (res.valid) setLicense(res);
         else clearStoredLicenseKey();
       })
       .catch(() => { /* server belum bisa dihubungi: tetap mode gratis */ });
-  }, []);
+  }, [user]);
 
   const svg = useMemo(() => {
     if (!target) return '';
@@ -72,6 +96,38 @@ export default function QrGeneratorPage() {
   }, [target, colors.fg, colors.bg, colors.logo, logoDataUrl]);
 
   const tooLong = Boolean(target) && !svg;
+
+  // Link lisensi dari dashboard (?lisensi=KODE): aktifkan lisensi di browser ini.
+  useEffect(() => {
+    const key = new URLSearchParams(window.location.search).get('lisensi');
+    if (!key) return;
+    const code = key.trim().toUpperCase();
+    verifyQrLicense(code)
+      .then((res) => {
+        if (res.valid) {
+          storeLicenseKey(code);
+          setLicense(res);
+          toast({ type: 'success', title: 'Lisensi aktif', message: `Paket ${res.planLabel} aktif sampai ${new Date(res.expiresAt).toLocaleDateString('id-ID')}` });
+        } else {
+          toast({ type: 'error', title: res.expired ? 'Lisensi kedaluwarsa' : 'Kode tidak valid', message: 'Periksa kembali link lisensi Anda.' });
+        }
+      })
+      .catch(() => toast({ type: 'error', title: 'Gagal', message: 'Tidak bisa menghubungi server. Coba lagi.' }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const saveToAccount = async () => {
+    if (!target) return;
+    setSaving(true);
+    try {
+      await saveMyQr({ link: target, fg: colors.fg, bg: colors.bg, logo: colors.logo });
+      toast({ type: 'success', title: 'QR disimpan', message: 'Lihat dan unduh lagi di menu QR Generator.' });
+    } catch (err) {
+      toast({ type: 'error', title: 'Gagal menyimpan', message: err?.response?.data?.message || 'Coba lagi beberapa saat.' });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const contrast = contrastRatio(colors.fg, colors.bg);
   const lowContrast = contrast < 3;
@@ -126,7 +182,7 @@ export default function QrGeneratorPage() {
   const previewSrc = svg ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}` : '';
 
   return (
-    <PageContainer>
+    <Wrap>
       <section className="max-w-5xl mx-auto pt-4">
         <div className="mb-6">
           <h1 className="text-[24px] sm:text-[28px] font-semibold text-primary tracking-tight leading-[32px]">
@@ -164,7 +220,7 @@ export default function QrGeneratorPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[15px] font-semibold text-primary">Tampilan</h2>
                 {isPaid ? (
-                  <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-success border border-success/30 rounded-full px-2.5 py-1">
+                  <span className="premium-gold inline-flex items-center gap-1.5 text-[12px] font-semibold border rounded-full px-2.5 py-1">
                     <Crown size={13} strokeWidth={1.75} /> Paket {license.planLabel}
                   </span>
                 ) : (
@@ -225,7 +281,7 @@ export default function QrGeneratorPage() {
                   <p className="text-[13px] text-secondary">
                     Ingin ubah warna atau hapus logo? Paket Bulanan Rp15.000 atau Tahunan Rp100.000.
                   </p>
-                  <Link to="/qr/harga" className="shrink-0">
+                  <Link to={user ? '/dashboard/qr?view=pilih' : '/qr/harga'} className="shrink-0">
                     <Button variant="primary" size="sm" icon={Crown}>Lihat paket</Button>
                   </Link>
                 </div>
@@ -239,6 +295,9 @@ export default function QrGeneratorPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <p className="text-[13px] text-secondary">
                     Aktif sampai {new Date(license.expiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.
+                  </p>
+                  <p className="text-[13px] text-secondary">
+                    Sisa waktu: <Countdown expiresAt={license.expiresAt} className="font-medium text-primary" />
                   </p>
                   <Button variant="secondary" size="sm" icon={LogOut} onClick={removeLicense}>Keluarkan lisensi</Button>
                 </div>
@@ -261,7 +320,7 @@ export default function QrGeneratorPage() {
                     </Button>
                   </div>
                   <p className="text-[12px] text-tertiary mt-3">
-                    Belum punya kode? <Link to="/qr/harga" className="underline hover:text-primary">Beli paket</Link> atau cek status pesanan di halaman yang sama.
+                    Belum punya kode? <Link to={user ? '/dashboard/qr?view=pilih' : '/qr/harga'} className="underline hover:text-primary">Beli paket</Link> atau cek status pesanan di halaman yang sama.
                   </p>
                 </>
               )}
@@ -286,6 +345,15 @@ export default function QrGeneratorPage() {
                 <Button variant="primary" icon={Download} onClick={downloadPng} disabled={!svg}>PNG</Button>
                 <Button variant="secondary" icon={Download} onClick={downloadSvg} disabled={!svg}>SVG</Button>
               </div>
+              {user ? (
+                <Button variant="secondary" icon={Save} className="w-full mt-2" disabled={!svg || saving} onClick={saveToAccount}>
+                  {saving ? 'Menyimpan...' : 'Simpan ke akun'}
+                </Button>
+              ) : (
+                <Link to="/masuk" className="mt-3 block text-center text-[13px] text-secondary underline hover:text-primary">
+                  Masuk untuk menyimpan QR ke akun
+                </Link>
+              )}
               <p className="text-[12px] text-tertiary mt-3 text-center">
                 PNG 1024 px untuk cetak dan media sosial. SVG bisa diperbesar tanpa pecah.
               </p>
@@ -293,6 +361,6 @@ export default function QrGeneratorPage() {
           </div>
         </div>
       </section>
-    </PageContainer>
+    </Wrap>
   );
 }

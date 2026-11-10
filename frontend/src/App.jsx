@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import BottomNav from './components/layout/BottomNav';
 import Footer from './components/layout/Footer';
@@ -18,13 +18,32 @@ import DonateModal from './components/ui/DonateModal';
 import ComingSoonPage from './pages/ComingSoonPage';
 import QrGeneratorPage from './pages/QrGeneratorPage';
 import QrPricingPage from './pages/QrPricingPage';
-import AdminQrPage from './pages/AdminQrPage';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import UserQrPage from './pages/panel/UserQrPage';
+import AdminPanelPage from './pages/panel/AdminPanelPage';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { recordVisit } from './services/converterApi';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { ToastProvider } from './components/ui/Toast';
 import './i18n';
+
+// Halaman panel hanya bisa dibuka oleh peran yang sesuai. Peran lain diarahkan ke panelnya.
+function RequireRole({ role, children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="p-10 text-center text-[13px] text-tertiary">Memuat...</div>;
+  if (!user) return <Navigate to="/masuk" replace />;
+  if (user.role !== role) return <Navigate to={user.role === 'superadmin' ? '/admin' : '/dashboard/qr'} replace />;
+  return children;
+}
+
+// Menu panel user kini satu: QR Generator. Tautan lama /dashboard dan /dashboard/pesan dialihkan ke sana.
+function RedirectPesan() {
+  const { search } = useLocation();
+  return <Navigate to={`/dashboard/qr${search}`} replace />;
+}
 
 function AppContent() {
   const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
@@ -48,6 +67,9 @@ function AppContent() {
     trackVisit();
   }, []);
 
+  // Halaman panel (dashboard user dan admin) memakai tata letak sendiri, tanpa navbar dan menu bawah.
+  const isPanel = location.pathname.startsWith('/admin') || location.pathname.startsWith('/dashboard');
+
   const handleOpenBatch = () => {
     navigate('/batch');
   };
@@ -63,7 +85,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-page text-primary flex flex-col font-sans selection:bg-accent-black selection:text-white">
       {/* Navbar */}
-      <Navbar onOpenBatchModal={handleOpenBatch} onOpenDonate={handleOpenDonate} />
+      {!isPanel && <Navbar onOpenBatchModal={handleOpenBatch} onOpenDonate={handleOpenDonate} />}
 
       {/* Dynamic Pages */}
       <div key={location.pathname} className="flex-1 animate-in fade-in slide-in-from-top-4 duration-500 fill-mode-forwards">
@@ -83,12 +105,18 @@ function AppContent() {
           <Route path="/linktree" element={<ComingSoonPage toolName="Linktree Builder" />} />
           <Route path="/qr" element={<QrGeneratorPage />} />
           <Route path="/qr/harga" element={<QrPricingPage />} />
-          <Route path="/admin/qr" element={<AdminQrPage />} />
+          <Route path="/masuk" element={<LoginPage />} />
+          <Route path="/daftar" element={<RegisterPage />} />
+          <Route path="/dashboard" element={<Navigate to="/dashboard/qr" replace />} />
+          <Route path="/dashboard/qr" element={<RequireRole role="user"><UserQrPage /></RequireRole>} />
+          <Route path="/dashboard/pesan" element={<RedirectPesan />} />
+          <Route path="/admin" element={<RequireRole role="superadmin"><AdminPanelPage /></RequireRole>} />
+          <Route path="/admin/qr" element={<Navigate to="/admin" replace />} />
         </Routes>
       </div>
 
       {/* Footer */}
-      <Footer />
+      {!isPanel && <Footer />}
 
       {/* Donate Modal */}
       <DonateModal 
@@ -97,10 +125,12 @@ function AppContent() {
       />
 
       {/* Floating Bottom Navigation */}
-      <BottomNav
-        onOpenBatchModal={handleOpenBatch}
-        onScrollToStats={scrollToStats}
-      />
+      {!isPanel && (
+        <BottomNav
+          onOpenBatchModal={handleOpenBatch}
+          onScrollToStats={scrollToStats}
+        />
+      )}
     </div>
   );
 }
@@ -111,7 +141,9 @@ export default function App() {
       <ThemeProvider>
         <Router>
           <ToastProvider>
-            <AppContent />
+            <AuthProvider>
+              <AppContent />
+            </AuthProvider>
           </ToastProvider>
         </Router>
       </ThemeProvider>

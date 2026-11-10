@@ -142,3 +142,26 @@ export const adminCancelOrder = async (req, res) => {
     return fail(res, error, "Admin cancel order");
   }
 };
+
+// Admin: nonaktifkan atau aktifkan lisensi (body: { active: true | false })
+export const adminSetLicense = async (req, res) => {
+  try {
+    if (typeof req.body?.active !== "boolean") {
+      return res.status(400).json({ success: false, message: "Nilai active harus true atau false." });
+    }
+    const order = await qr.setLicenseActive(req.params.code, req.body.active);
+    res.json({ success: true, order });
+  } catch (error) {
+    return fail(res, error, "Admin set license");
+  }
+};
+
+// Admin: hapus pesanan beserta lisensi dan bukti transfernya
+export const adminDeleteOrder = async (req, res) => {
+  try {
+    await qr.deleteOrder(req.params.code);
+    res.json({ success: true });
+  } catch (error) {
+    return fail(res, error, "Admin delete order");
+  }
+};

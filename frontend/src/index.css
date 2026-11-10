@@ -91,6 +91,23 @@
   }
 }
 
+/* Paket berbayar (Premium Gold): latar, teks, dan tombol emas */
+.premium-gold {
+  background: linear-gradient(135deg, #FFF4C2 0%, #E9C35A 40%, #C99A2E 70%, #F3D77A 100%);
+  border-color: #B8912A;
+  color: #3D2B06;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.premium-gold-btn {
+  background: #3D2B06;
+  color: #FBE7A1;
+}
+
+.premium-gold-btn:hover:not(:disabled) {
+  background: #2A1D04;
+}
+
 /* Transitions as defined in section 3.16 */
 .transition-smooth {
   transition: border-color 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out;

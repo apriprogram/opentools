@@ -42,7 +42,17 @@ export const getPaymentInfo = () => ({
 
 // Kolom pesanan tanpa data gambar (proof_data), agar daftar pesanan tetap ringan.
 const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_number, nota_number, status, license_key, created_at, paid_at,
-  verify_status, verify_note, verify_amount, proof_uploaded_at, proof_attempts, (proof_data IS NOT NULL) AS has_proof`;
+  verify_status, verify_note, verify_amount, proof_uploaded_at, proof_attempts, (proof_data IS NOT NULL) AS has_proof,
+  (SELECT l.revoked FROM qr_licenses l WHERE l.order_code = qr_orders.code LIMIT 1) AS license_revoked,
+  (SELECT l.expires_at FROM qr_licenses l WHERE l.order_code = qr_orders.code LIMIT 1) AS license_expires_at`;
+
+// Status lisensi pesanan lunas: aktif, nonaktif (dimatikan admin), atau berakhir.
+const licenseStateOf = (row) => {
+  if (row.license_revoked === undefined && row.license_expires_at === undefined) return null;
+  if (row.license_revoked === null && row.license_expires_at === null) return "tidak_ada";
+  if (Number(row.license_revoked) === 1) return "nonaktif";
+  return new Date(row.license_expires_at).getTime() > Date.now() ? "aktif" : "berakhir";
+};
 
 const toOrder = (row, { withLicense = false } = {}) => ({
   code: row.code,
@@ -65,7 +75,8 @@ const toOrder = (row, { withLicense = false } = {}) => ({
   proofUploadedAt: row.proof_uploaded_at ? iso(row.proof_uploaded_at) : null,
   proofAttempts: row.proof_attempts || 0,
   maxProofAttempts: MAX_PROOF_ATTEMPTS,
-  hasProof: Boolean(row.has_proof)
+  hasProof: Boolean(row.has_proof),
+  licenseState: row.status === "paid" ? licenseStateOf(row) : null
 });
 
 export const createOrder = async ({ plan, name, email, whatsapp }) => {
@@ -112,10 +123,7 @@ export const assignNotaNumber = async (code, createdAt) => {
 };
 
 // Data nota untuk satu pesanan (dipakai untuk tampilan HTML dan PDF).
-export const getNotaData = async (code) => {
-  const rows = await query(`SELECT ${ORDER_COLUMNS} FROM qr_orders WHERE code = ? LIMIT 1`, [
-    String(code).trim().toUpperCase()
-  ]);
+const notaFromRows = async (rows) => {
   if (!rows.length) throw httpError(404, "Pesanan tidak ditemukan");
   const order = toOrder(rows[0]);
   const notaNumber = order.notaNumber || (await assignNotaNumber(order.code, order.createdAt));
@@ -125,6 +133,22 @@ export const getNotaData = async (code) => {
     planDays: PLANS[order.plan]?.days || 0,
     dana: { method: pay.method, number: pay.number, name: pay.name }
   });
+};
+
+export const getNotaData = async (code) => {
+  const rows = await query(`SELECT ${ORDER_COLUMNS} FROM qr_orders WHERE code = ? LIMIT 1`, [
+    String(code).trim().toUpperCase()
+  ]);
+  return notaFromRows(rows);
+};
+
+// Nota milik pengguna: hanya bila email akun cocok dengan email pesanan.
+export const getNotaDataForEmail = async (code, email) => {
+  const rows = await query(
+    `SELECT ${ORDER_COLUMNS} FROM qr_orders WHERE code = ? AND LOWER(email) = LOWER(?) LIMIT 1`,
+    [String(code).trim().toUpperCase(), email]
+  );
+  return notaFromRows(rows);
 };
 
 export const lookupOrder = async (code, email) => {
@@ -218,6 +242,16 @@ export const getProof = async (code) => {
   return rows[0].proof_data;
 };
 
+// Bukti transfer milik pengguna: hanya bila email akun cocok dengan email pesanan.
+export const getProofForEmail = async (code, email) => {
+  const rows = await query(
+    "SELECT proof_data FROM qr_orders WHERE code = ? AND LOWER(email) = LOWER(?) LIMIT 1",
+    [String(code).trim().toUpperCase(), email]
+  );
+  if (!rows.length || !rows[0].proof_data) throw httpError(404, "Bukti tidak ditemukan");
+  return rows[0].proof_data;
+};
+
 export const verifyLicense = async (key) => {
   const rows = await query(
     "SELECT plan, expires_at, revoked FROM qr_licenses WHERE license_key = ? LIMIT 1",
@@ -282,6 +316,64 @@ export const cancelOrder = async (code) => {
   await query("UPDATE qr_orders SET status = 'cancelled' WHERE code = ?", [code]);
   const updated = await query(`SELECT ${ORDER_COLUMNS} FROM qr_orders WHERE code = ?`, [code]);
   return toOrder(updated[0], { withLicense: true });
+};
+
+// Pesanan milik pengguna (dicocokkan dari email akun).
+export const listOrdersByEmail = async (email) => {
+  if (!email) return [];
+  const rows = await query(
+    `SELECT ${ORDER_COLUMNS} FROM qr_orders WHERE LOWER(email) = LOWER(?) ORDER BY created_at DESC LIMIT 100`,
+    [email]
+  );
+  return rows.map((r) => toOrder(r, { withLicense: true }));
+};
+
+// Lisensi milik pengguna, termasuk tanggal berakhir untuk hitung mundur.
+export const listLicensesByEmail = async (email) => {
+  if (!email) return [];
+  const rows = await query(
+    "SELECT license_key, plan, created_at, expires_at, revoked FROM qr_licenses WHERE LOWER(email) = LOWER(?) ORDER BY expires_at DESC LIMIT 50",
+    [email]
+  );
+  const now = Date.now();
+  return rows.map((l) => ({
+    licenseKey: l.license_key,
+    plan: l.plan,
+    planLabel: PLANS[l.plan]?.label || l.plan,
+    createdAt: iso(l.created_at),
+    expiresAt: iso(l.expires_at),
+    status: l.revoked ? "nonaktif" : new Date(l.expires_at).getTime() > now ? "aktif" : "berakhir",
+    active: !l.revoked && new Date(l.expires_at).getTime() > now
+  }));
+};
+
+// Admin: nonaktifkan atau aktifkan lisensi pesanan lunas. Kode dan barcode tetap sama.
+export const setLicenseActive = async (code, active) => {
+  const rows = await query("SELECT code, status FROM qr_orders WHERE code = ? LIMIT 1", [code]);
+  if (!rows.length) throw httpError(404, "Pesanan tidak ditemukan");
+  if (rows[0].status !== "paid") throw httpError(409, "Pesanan belum lunas, jadi belum ada lisensi.");
+  const result = await query("UPDATE qr_licenses SET revoked = ? WHERE order_code = ?", [active ? 0 : 1, code]);
+  if (!result.affectedRows) throw httpError(404, "Lisensi untuk pesanan ini tidak ditemukan");
+  const updated = await query(`SELECT ${ORDER_COLUMNS} FROM qr_orders WHERE code = ?`, [code]);
+  return toOrder(updated[0], { withLicense: true });
+};
+
+// Admin: hapus pesanan beserta bukti dan lisensinya. Akun pembeli ikut kehilangan datanya.
+export const deleteOrder = async (code) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [rows] = await conn.query("SELECT code FROM qr_orders WHERE code = ? FOR UPDATE", [code]);
+    if (!rows.length) throw httpError(404, "Pesanan tidak ditemukan");
+    await conn.query("DELETE FROM qr_licenses WHERE order_code = ?", [code]);
+    await conn.query("DELETE FROM qr_orders WHERE code = ?", [code]);
+    await conn.commit();
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 };
 
 export const listOrders = async (status) => {

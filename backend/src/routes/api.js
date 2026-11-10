@@ -28,12 +28,17 @@ import {
   adminListOrders,
   adminConfirmOrder,
   adminCancelOrder,
+  adminSetLicense,
+  adminDeleteOrder,
   adminGetProof,
   adminGetNota,
   adminGetNotaPdf
 } from "../controllers/qr.controller.js";
 import { requireAdmin } from "../middleware/admin.middleware.js";
 import { adminLogin } from "../controllers/admin.controller.js";
+import { register, login as accountLogin, logout as accountLogout, me as currentUser } from "../controllers/auth.controller.js";
+import { myQr, saveQr, removeQr, myOrders, myLicenses, myProof, myNota, myNotaPdf, setWhatsapp } from "../controllers/me.controller.js";
+import { requireUser } from "../middleware/auth.middleware.js";
 import { proofUploadSingle } from "../middleware/proof.middleware.js";
 
 const router = express.Router();
@@ -75,6 +80,21 @@ router.post("/qr/orders/lookup", express.json(), lookupOrder);
 router.post("/qr/orders/:code/proof", proofUploadSingle, uploadProof);
 router.post("/qr/license/verify", express.json(), verifyLicense);
 
+// Akun: daftar, masuk, keluar, dan data akun. Pengguna menyimpan QR dan melihat pesanan serta lisensinya.
+router.post("/auth/register", express.json(), register);
+router.post("/auth/login", express.json(), accountLogin);
+router.post("/auth/logout", accountLogout);
+router.get("/auth/me", requireUser, currentUser);
+router.get("/me/qr", requireUser, myQr);
+router.post("/me/qr", requireUser, express.json(), saveQr);
+router.delete("/me/qr/:id", requireUser, removeQr);
+router.get("/me/orders", requireUser, myOrders);
+router.get("/me/licenses", requireUser, myLicenses);
+router.get("/me/orders/:code/proof", requireUser, myProof);
+router.get("/me/orders/:code/nota", requireUser, myNota);
+router.get("/me/orders/:code/nota.pdf", requireUser, myNotaPdf);
+router.put("/me/whatsapp", requireUser, express.json(), setWhatsapp);
+
 // Admin: masuk dengan username + password, lalu kirim token di header x-admin-key
 router.post("/admin/login", express.json(), adminLogin);
 router.get("/admin/qr/orders", requireAdmin, adminListOrders);
@@ -83,5 +103,7 @@ router.get("/admin/qr/orders/:code/nota", requireAdmin, adminGetNota);
 router.get("/admin/qr/orders/:code/nota.pdf", requireAdmin, adminGetNotaPdf);
 router.post("/admin/qr/orders/:code/confirm", requireAdmin, adminConfirmOrder);
 router.post("/admin/qr/orders/:code/cancel", requireAdmin, adminCancelOrder);
+router.post("/admin/qr/orders/:code/license", requireAdmin, express.json(), adminSetLicense);
+router.delete("/admin/qr/orders/:code", requireAdmin, adminDeleteOrder);
 
 export default router;

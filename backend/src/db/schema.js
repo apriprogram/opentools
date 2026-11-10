@@ -49,6 +49,38 @@ const STATEMENTS = [
     expires_at DATETIME NOT NULL,
     revoked TINYINT(1) NOT NULL DEFAULT 0,
     KEY idx_qr_licenses_email (email)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  `CREATE TABLE IF NOT EXISTS users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NULL,
+    email VARCHAR(190) NULL,
+    username VARCHAR(60) NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('user','superadmin') NOT NULL DEFAULT 'user',
+    created_at DATETIME NOT NULL,
+    UNIQUE KEY uq_users_email (email),
+    UNIQUE KEY uq_users_username (username)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  `CREATE TABLE IF NOT EXISTS sessions (
+    token_hash CHAR(64) PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    created_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    KEY idx_sessions_user (user_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  `CREATE TABLE IF NOT EXISTS user_qr (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    link VARCHAR(2048) NOT NULL,
+    fg VARCHAR(9) NOT NULL,
+    bg VARCHAR(9) NOT NULL,
+    logo TINYINT(1) NOT NULL DEFAULT 1,
+    plan_expires_at DATETIME NULL,
+    created_at DATETIME NOT NULL,
+    KEY idx_user_qr_user (user_id)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
 ];
 
@@ -84,4 +116,6 @@ export async function ensureSchema() {
   for (const [column, definition] of QR_ORDER_COLUMNS) {
     await ensureColumn("qr_orders", column, definition);
   }
+  // Nomor WhatsApp pemilik akun (dipakai untuk pesanan dari dashboard).
+  await ensureColumn("users", "wa_number", "VARCHAR(20) NULL");
 }
