@@ -41,7 +41,7 @@ export default function UserQrPage() {
   const [qrList, setQrList] = useState(null);
   const [orders, setOrders] = useState(null);
   const [licenses, setLicenses] = useState([]);
-  const [logos, setLogos] = useState({ color: null, mono: null });
+  const [logoUrl, setLogoUrl] = useState(null);
   const [busyPlan, setBusyPlan] = useState('');
   const [waForPlan, setWaForPlan] = useState(null); // paket yang menunggu nomor WhatsApp (akun lama)
   const [waInput, setWaInput] = useState('');
@@ -65,9 +65,7 @@ export default function UserQrPage() {
         setPayment(res.payment || null);
       })
       .catch(() => toast({ type: 'error', title: 'Gagal memuat paket', message: 'Coba muat ulang halaman.' }));
-    Promise.all([loadLogoDataUrl('color'), loadLogoDataUrl('mono')])
-      .then(([color, mono]) => setLogos({ color, mono }))
-      .catch(() => setLogos({ color: null, mono: null }));
+    loadLogoDataUrl().then(setLogoUrl).catch(() => setLogoUrl(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -193,7 +191,7 @@ export default function UserQrPage() {
                 </Button>
               </div>
             ) : (
-              <QrCardList items={qrList} logos={logos} onChanged={loadAll} />
+              <QrCardList items={qrList} logoUrl={logoUrl} onChanged={loadAll} />
             )}
           </section>
 

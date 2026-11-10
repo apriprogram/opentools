@@ -15,24 +15,25 @@ const STATUS_TEXT = {
 };
 
 // Daftar QR milik pengguna. QR yang paket berbayarnya aktif tampil dengan gaya Premium Gold.
-export default function QrCardList({ items, logos, onChanged }) {
+export default function QrCardList({ items, logoUrl, onChanged }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((qr) => (
-        <QrCard key={qr.id} qr={qr} logos={logos} onChanged={onChanged} />
+        <QrCard key={qr.id} qr={qr} logoUrl={logoUrl} onChanged={onChanged} />
       ))}
     </div>
   );
 }
 
-function QrCard({ qr, logos, onChanged }) {
+function QrCard({ qr, logoUrl, onChanged }) {
   const { addToast: toast } = useToast();
   const premium = qr.status === 'aktif';
 
   // Paket gratis: QR hitam putih dengan logo hitam. Berlaku juga untuk QR yang lisensinya sudah berakhir atau dinonaktifkan.
   const fg = premium ? qr.fg : '#000000';
   const bg = premium ? qr.bg : '#FFFFFF';
-  const logoDataUrl = premium ? (qr.logo ? logos?.color : null) : logos?.mono;
+  // Logo hanya disembunyikan jika paket berbayar aktif dan pengguna memang mematikannya.
+  const logoDataUrl = premium && !qr.logo ? null : logoUrl;
 
   const svg = useMemo(() => {
     try {
