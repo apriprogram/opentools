@@ -3,19 +3,26 @@ import QRCode from 'qrcode';
 // Logo default QR (hasil trace dari logo yang diunggah pengguna), disimpan di public/qr-logo.svg
 export const QR_LOGO_URL = '/qr-logo.svg';
 
-let logoCache = null;
+const logoCache = { color: null, mono: null };
 
-/** Ambil logo sebagai data URI (agar tetap tampil saat SVG dirender ke PNG). */
-export async function loadLogoDataUrl() {
-  if (!logoCache) {
-    logoCache = fetch(QR_LOGO_URL)
+/**
+ * Ambil logo sebagai data URI (agar tetap tampil saat SVG dirender ke PNG).
+ * variant 'color' = logo asli (biru), dipakai paket berbayar.
+ * variant 'mono' = logo hitam, dipakai paket gratis agar sesuai QR hitam putih.
+ */
+export async function loadLogoDataUrl(variant = 'color') {
+  if (!logoCache[variant]) {
+    logoCache[variant] = fetch(QR_LOGO_URL)
       .then((res) => {
         if (!res.ok) throw new Error('Logo tidak ditemukan');
         return res.text();
       })
-      .then((text) => `data:image/svg+xml;base64,${toBase64(text)}`);
+      .then((text) => {
+        const svg = variant === 'mono' ? text.replace(/fill="#[0-9a-fA-F]{6}"/g, 'fill="#000000"') : text;
+        return `data:image/svg+xml;base64,${toBase64(svg)}`;
+      });
   }
-  return logoCache;
+  return logoCache[variant];
 }
 
 function toBase64(text) {

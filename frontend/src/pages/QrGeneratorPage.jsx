@@ -37,7 +37,7 @@ export default function QrGeneratorPage({ embedded = false }) {
   const [fg, setFg] = useState('#111111');
   const [bg, setBg] = useState('#FFFFFF');
   const [useLogo, setUseLogo] = useState(true);
-  const [logoDataUrl, setLogoDataUrl] = useState(null);
+  const [logos, setLogos] = useState({ color: null, mono: null });
   const [license, setLicense] = useState(null);
   const [licenseInput, setLicenseInput] = useState('');
   const [checkingLicense, setCheckingLicense] = useState(false);
@@ -54,7 +54,9 @@ export default function QrGeneratorPage({ embedded = false }) {
   const target = normalizeLink(link);
 
   useEffect(() => {
-    loadLogoDataUrl().then(setLogoDataUrl).catch(() => setLogoDataUrl(null));
+    Promise.all([loadLogoDataUrl('color'), loadLogoDataUrl('mono')])
+      .then(([color, mono]) => setLogos({ color, mono }))
+      .catch(() => setLogos({ color: null, mono: null }));
 
     const stored = getStoredLicenseKey();
     if (!stored) {
@@ -86,14 +88,14 @@ export default function QrGeneratorPage({ embedded = false }) {
         text: target,
         fg: colors.fg,
         bg: colors.bg,
-        logoDataUrl: colors.logo ? logoDataUrl : null,
+        logoDataUrl: colors.logo ? (isPaid ? logos.color : logos.mono) : null,
         size: 512,
       });
     } catch {
       return ''; // teks terlalu panjang untuk QR
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target, colors.fg, colors.bg, colors.logo, logoDataUrl]);
+  }, [target, colors.fg, colors.bg, colors.logo, isPaid, logos]);
 
   const tooLong = Boolean(target) && !svg;
 

@@ -15,33 +15,38 @@ const STATUS_TEXT = {
 };
 
 // Daftar QR milik pengguna. QR yang paket berbayarnya aktif tampil dengan gaya Premium Gold.
-export default function QrCardList({ items, logoUrl, onChanged }) {
+export default function QrCardList({ items, logos, onChanged }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((qr) => (
-        <QrCard key={qr.id} qr={qr} logoUrl={logoUrl} onChanged={onChanged} />
+        <QrCard key={qr.id} qr={qr} logos={logos} onChanged={onChanged} />
       ))}
     </div>
   );
 }
 
-function QrCard({ qr, logoUrl, onChanged }) {
+function QrCard({ qr, logos, onChanged }) {
   const { addToast: toast } = useToast();
   const premium = qr.status === 'aktif';
+
+  // Paket gratis: QR hitam putih dengan logo hitam. Berlaku juga untuk QR yang lisensinya sudah berakhir atau dinonaktifkan.
+  const fg = premium ? qr.fg : '#000000';
+  const bg = premium ? qr.bg : '#FFFFFF';
+  const logoDataUrl = premium ? (qr.logo ? logos?.color : null) : logos?.mono;
 
   const svg = useMemo(() => {
     try {
       return buildQrSvg({
         text: qr.link,
-        fg: qr.fg,
-        bg: qr.bg,
-        logoDataUrl: qr.logo ? logoUrl : null,
+        fg,
+        bg,
+        logoDataUrl,
         size: 512,
       });
     } catch {
       return '';
     }
-  }, [qr, logoUrl]);
+  }, [qr.link, fg, bg, logoDataUrl]);
 
   const base = `qr-${qr.id.slice(0, 8)}`;
 
@@ -78,7 +83,7 @@ function QrCard({ qr, logoUrl, onChanged }) {
       <div className="flex gap-4">
         <div
           className="h-[112px] w-[112px] shrink-0 rounded-xl border border-border p-2 [&>svg]:h-full [&>svg]:w-full"
-          style={{ background: qr.bg }}
+          style={{ background: bg }}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
         <div className="min-w-0 flex-1">
