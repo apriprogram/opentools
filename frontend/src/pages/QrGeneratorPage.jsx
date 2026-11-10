@@ -279,7 +279,7 @@ export default function QrGeneratorPage({ embedded = false }) {
               {!isPaid && (
                 <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-card-muted p-4">
                   <p className="text-[13px] text-secondary">
-                    Ingin ubah warna atau hapus logo? Paket Bulanan Rp15.000 atau Tahunan Rp100.000.
+                    Ingin ubah warna atau hapus logo? Paket Bulanan Rp30.000 atau Tahunan Rp300.000.
                   </p>
                   <Link to={user ? '/dashboard/qr?view=pilih' : '/qr/harga'} className="shrink-0">
                     <Button variant="primary" size="sm" icon={Crown}>Lihat paket</Button>

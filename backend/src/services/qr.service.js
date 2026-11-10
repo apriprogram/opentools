@@ -11,8 +11,8 @@ import { buildNotaData, notaPeriod, formatNotaNumber } from "./nota.service.js";
 
 // Paket QR Generator (pembayaran transfer, dikonfirmasi admin atau otomatis dari bukti).
 export const PLANS = {
-  monthly: { id: "monthly", label: "Bulanan", price: 15000, days: 30, note: "Aktif 30 hari" },
-  yearly: { id: "yearly", label: "Tahunan", price: 100000, days: 365, note: "Aktif 365 hari, hemat Rp80.000" }
+  monthly: { id: "monthly", label: "Bulanan", price: 30000, days: 30, note: "Aktif 30 hari" },
+  yearly: { id: "yearly", label: "Tahunan", price: 300000, days: 365, note: "Aktif 365 hari, hemat Rp60.000" }
 };
 
 const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // tanpa 0/O/1/I agar mudah dibaca
