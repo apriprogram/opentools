@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import BottomNav from './components/layout/BottomNav';
@@ -14,7 +14,6 @@ import OverviewPage from './pages/OverviewPage';
 import BatchPage from './pages/BatchPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
-import DonateModal from './components/ui/DonateModal';
 import LinktreeLandingPage from './pages/LinktreeLandingPage';
 import LinktreePublicPage from './pages/LinktreePublicPage';
 import UserLinktreePage from './pages/panel/UserLinktreePage';
@@ -49,7 +48,6 @@ function RedirectPesan() {
 }
 
 function AppContent() {
-  const [isDonateModalOpen, setIsDonateModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -83,14 +81,10 @@ function AppContent() {
     navigate('/overview');
   };
 
-  const handleOpenDonate = () => {
-    setIsDonateModalOpen(true);
-  };
-
   return (
     <div className="min-h-screen bg-page text-primary flex flex-col font-sans selection:bg-accent-black selection:text-white">
       {/* Navbar */}
-      {!isPanel && <Navbar onOpenBatchModal={handleOpenBatch} onOpenDonate={handleOpenDonate} />}
+      {!isPanel && <Navbar onOpenBatchModal={handleOpenBatch} />}
 
       {/* Dynamic Pages */}
       <div key={location.pathname} className="flex-1 animate-in fade-in slide-in-from-top-4 duration-500 fill-mode-forwards">
@@ -125,12 +119,6 @@ function AppContent() {
 
       {/* Footer */}
       {!isPanel && <Footer />}
-
-      {/* Donate Modal */}
-      <DonateModal 
-        isOpen={isDonateModalOpen} 
-        onClose={() => setIsDonateModalOpen(false)} 
-      />
 
       {/* Floating Bottom Navigation */}
       {!isPanel && (

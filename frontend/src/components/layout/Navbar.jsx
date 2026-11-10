@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeftRight, Sparkles, ChevronDown, Video, Image as ImageIcon, FileText, FileCode2, Music, Star, Moon, Sun, Globe, Heart, Menu, X, QrCode } from 'lucide-react';
-import Button from '../ui/Button';
+import { ArrowLeftRight, Sparkles, ChevronDown, Video, Image as ImageIcon, FileText, FileCode2, Music, Star, Moon, Sun, Globe, Menu, X, QrCode, LogIn, LayoutDashboard } from 'lucide-react';
 import { fetchTools, fetchCompressors } from '../../services/converterApi';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { getStoredSession } from '../../services/authApi';
 import { useTranslation } from 'react-i18next';
 
-export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
+export default function Navbar({ onOpenBatchModal }) {
   const location = useLocation();
   const [categories, setCategories] = useState([]);
   const [compressorCategories, setCompressorCategories] = useState([]);
@@ -15,6 +16,19 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
   const timeoutRef = useRef(null);
   const { theme, toggleTheme } = useTheme();
   const { t, i18n } = useTranslation();
+  const { user, loading: authLoading } = useAuth();
+
+  // Tombol akun: tamu menuju halaman masuk, pengguna yang sudah masuk menuju panelnya.
+  // Di halaman masuk atau daftar, parameter tujuan (?next, ?paket) ikut dibawa agar alurnya tidak terputus.
+  const onAuthPage = location.pathname === '/masuk' || location.pathname === '/daftar';
+  const accountPath = !user
+    ? `/masuk${onAuthPage ? location.search : ''}`
+    : user.role === 'superadmin' ? '/admin' : '/dashboard/qr';
+  // Selama sesi masih diperiksa, token tersimpan berarti label yang akan muncul adalah "Dashboard".
+  // Ruang tombol dipesan dengan lebar itu supaya header tidak bergeser saat sesi selesai diperiksa.
+  const expectUser = Boolean(user) || (authLoading && Boolean(getStoredSession()?.token));
+  const accountLabel = expectUser ? t('navbar.dashboard', 'Dashboard') : t('navbar.login', 'Masuk');
+  const AccountIcon = expectUser ? LayoutDashboard : LogIn;
 
   const toggleLanguage = () => {
     const nextLang = i18n.language.startsWith('en') ? 'id' : 'en';
@@ -79,8 +93,8 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
         {/* Center / Right Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
           
-          {/* Desktop Nav Items */}
-          <div className="hidden md:flex items-center">
+          {/* Desktop Nav Items. Muncul mulai lg: di bawah itu baris header tidak muat, jadi dipakai menu hamburger. */}
+          <div className="hidden lg:flex items-center">
             {/* Converters Trigger */}
             <div 
               className="relative h-[64px] flex items-center"
@@ -142,7 +156,7 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
 
           {/* Unified Mega Menu Dropdown */}
           <div 
-            className={`hidden md:block fixed top-[64px] left-1/2 -translate-x-1/2 w-[90vw] md:w-[700px] lg:w-[860px] bg-card border border-border rounded-b-xl shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
+            className={`hidden lg:block fixed top-[64px] left-1/2 -translate-x-1/2 w-[90vw] lg:w-[860px] bg-card border border-border rounded-b-xl shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
               (activeMenu === 'converters' || activeMenu === 'compressors') 
                 ? 'opacity-100 translate-y-0 visible pointer-events-auto' 
                 : 'opacity-0 -translate-y-8 invisible pointer-events-none'
@@ -246,27 +260,26 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
             </button>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-1.5 md:hidden rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors"
+              className="p-1.5 lg:hidden rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            pill
-            icon={Heart}
-            onClick={onOpenDonate}
-            className="hidden sm:inline-flex text-danger hover:text-danger hover:bg-danger/10 border-danger/20"
+          {/* Tombol akun. Disembunyikan sampai sesi selesai diperiksa agar labelnya tidak berkedip. */}
+          <Link
+            to={accountPath}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`hidden sm:inline-flex h-[32px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-accent-black px-[14px] text-[12px] font-medium leading-[16px] text-white transition-smooth hover:bg-accent-black-hover active:scale-[0.98] dark:bg-white dark:text-black dark:hover:bg-zinc-200 ${authLoading ? 'invisible' : ''}`}
           >
-            {t('navbar.donate', 'Donate')}
-          </Button>
+            <AccountIcon size={14} strokeWidth={1.75} />
+            {accountLabel}
+          </Link>
         </div>
       </div>
       
       {/* Mobile Menu Dropdown */}
-      <div className={`md:hidden absolute top-[64px] left-0 w-full bg-card border-b border-border shadow-lg p-4 flex flex-col gap-3 z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform origin-top ${
+      <div className={`lg:hidden absolute top-[64px] left-0 w-full bg-card border-b border-border shadow-lg p-4 flex flex-col gap-3 z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform origin-top ${
         isMobileMenuOpen ? 'opacity-100 scale-y-100 visible pointer-events-auto' : 'opacity-0 scale-y-95 invisible pointer-events-none -translate-y-8'
       }`}>
         <Link 
@@ -309,9 +322,13 @@ export default function Navbar({ onOpenBatchModal, onOpenDonate }) {
           <QrCode size={18} className="text-primary" /> QR Generator
         </Link>
 
-        <Button variant="secondary" className="w-full justify-center mt-2" onClick={() => { setIsMobileMenuOpen(false); onOpenDonate(); }}>
-          <Heart size={16} className="text-danger mr-1" /> {t('navbar.donate', 'Donate')}
-        </Button>
+        <Link
+          to={accountPath}
+          onClick={() => setIsMobileMenuOpen(false)}
+          className={`mt-2 flex h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-black text-[14px] font-medium text-white transition-smooth hover:bg-accent-black-hover dark:bg-white dark:text-black dark:hover:bg-zinc-200 ${authLoading ? 'invisible' : ''}`}
+        >
+          <AccountIcon size={16} strokeWidth={1.75} /> {accountLabel}
+        </Link>
       </div>
     </header>
   );
