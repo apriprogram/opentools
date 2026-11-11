@@ -42,7 +42,7 @@ export default function PanelLayout({ title, children }) {
   };
 
   return (
-    <div className="min-h-screen flex-1 bg-card-muted/30 md:flex">
+    <div className="panel-compact min-h-screen flex-1 bg-card-muted/30 md:flex">
       {/* Sidebar (desktop) */}
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border bg-card px-4 py-6">
         <Link to={role === 'superadmin' ? '/admin' : '/dashboard'} className="flex items-center gap-2.5 px-2">
@@ -89,13 +89,13 @@ export default function PanelLayout({ title, children }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 md:px-8">
+        <header className="flex items-center justify-between gap-2 border-b border-border bg-card px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 md:px-8">
           <div className="min-w-0">
-            <p className="text-[13px] text-tertiary">
+            <p className="truncate text-[12px] text-tertiary sm:text-[13px]">
               Panel <span className="mx-1">›</span> <span className="text-secondary">{title}</span>
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <span className="hidden text-[13px] text-secondary lg:inline">{todayLabel()}</span>
             <span className="hidden h-5 w-px bg-border sm:inline-block" />
             <Eye size={17} className="hidden text-tertiary sm:block" />
@@ -105,46 +105,57 @@ export default function PanelLayout({ title, children }) {
               onClick={toggleTheme}
               aria-label={theme === 'dark' ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
               title={theme === 'dark' ? 'Mode terang' : 'Mode gelap'}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-secondary transition-smooth hover:text-primary"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-secondary transition-smooth hover:text-primary sm:h-8 sm:w-8"
             >
-              {theme === 'dark' ? <Sun size={16} strokeWidth={1.75} /> : <Moon size={16} strokeWidth={1.75} />}
+              {theme === 'dark' ? (
+                <Sun size={16} strokeWidth={1.75} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              ) : (
+                <Moon size={16} strokeWidth={1.75} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              )}
             </button>
-            <div className="flex items-center gap-2.5 rounded-full border border-border bg-card-muted/50 py-1 pl-1 pr-3">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-black text-[12px] font-semibold text-white dark:bg-white dark:text-black">
+            <div className="flex min-w-0 items-center gap-1.5 rounded-full border border-border bg-card-muted/50 py-0.5 pl-0.5 pr-2 sm:gap-2.5 sm:py-1 sm:pl-1 sm:pr-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-black text-[11px] font-semibold text-white dark:bg-white dark:text-black sm:h-7 sm:w-7 sm:text-[12px]">
                 {(user?.name || user?.username || 'A').slice(0, 1).toUpperCase()}
               </span>
-              <div className="leading-tight">
-                <p className="text-[13px] font-medium text-primary">{user?.name || user?.username}</p>
-                <p className="text-[11px] text-tertiary">{ROLE_LABEL[role]}</p>
+              <div className="min-w-0 leading-tight">
+                <p className="max-w-[84px] truncate text-[12px] font-medium text-primary sm:max-w-[160px] sm:text-[13px]">{user?.name || user?.username}</p>
+                <p className="text-[10px] text-tertiary sm:text-[11px]">{ROLE_LABEL[role]}</p>
               </div>
             </div>
-            <button type="button" onClick={onLogout} className="text-[13px] text-danger md:hidden">
-              Keluar
+            <button
+              type="button"
+              onClick={onLogout}
+              aria-label="Keluar"
+              title="Keluar"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-danger transition-smooth hover:border-border-hover md:hidden"
+            >
+              <LogOut size={14} strokeWidth={1.75} />
             </button>
           </div>
         </header>
 
         {/* Navigasi ringkas untuk layar kecil */}
-        <nav className="flex gap-2 overflow-x-auto border-b border-border bg-card px-4 py-2 md:hidden">
+        <nav className="flex gap-1.5 overflow-x-auto border-b border-border bg-card px-3 py-1.5 sm:gap-2 sm:px-4 sm:py-2 md:hidden">
           {menu.flatMap((g) => g.items).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `shrink-0 rounded-full border px-3 py-1.5 text-[12px] ${
+                `flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] transition-smooth sm:px-3 sm:py-1.5 ${
                   isActive ? 'border-primary bg-card-muted font-medium text-primary' : 'border-border text-secondary'
                 }`
               }
             >
+              <item.icon size={13} strokeWidth={1.75} />
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <main className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
+        <main className="min-w-0 flex-1 px-3 py-4 sm:px-4 sm:py-6 md:px-8 md:py-8">{children}</main>
 
         {/* Footer panel: sama dengan footer situs */}
-        <footer className="flex flex-col gap-3 border-t border-border bg-card px-4 py-4 text-[12px] text-tertiary sm:flex-row sm:items-center sm:justify-between md:px-8">
+        <footer className="flex flex-col gap-2 border-t border-border bg-card px-3 py-3 text-[11px] text-tertiary sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-4 sm:text-[12px] md:px-8">
           <p>
             © 2026 <span className="font-medium text-secondary">Apriprogram</span>. Hak cipta dilindungi undang-undang.
           </p>

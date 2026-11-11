@@ -20,6 +20,15 @@ export default function Button({
     lg: 'h-[44px] px-[22px] text-[14px] font-medium leading-[20px]',
   };
 
+  // Di dalam panel (.panel-compact) pada layar ponsel, tombol md dan lg dikecilkan.
+  // Halaman publik tidak terpengaruh.
+  const compactStyles = {
+    sm: '',
+    md: 'max-sm:[.panel-compact_&]:h-8 max-sm:[.panel-compact_&]:px-3 max-sm:[.panel-compact_&]:text-[12px]',
+    lg: 'max-sm:[.panel-compact_&]:h-9 max-sm:[.panel-compact_&]:px-3.5 max-sm:[.panel-compact_&]:text-[13px]',
+  };
+  const iconClass = size === 'sm' ? 'shrink-0' : 'shrink-0 max-sm:[.panel-compact_&]:h-3.5 max-sm:[.panel-compact_&]:w-3.5';
+
   // Radius classes
   const radiusStyle = pill ? 'rounded-full' : 'rounded-md';
 
@@ -40,12 +49,12 @@ export default function Button({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className={`inline-flex items-center justify-center gap-2 font-sans select-none transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-black focus-visible:ring-offset-2 ${sizeStyles[size] || sizeStyles.md} ${radiusStyle} ${variantStyles[variant] || variantStyles.primary} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 font-sans select-none transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-black focus-visible:ring-offset-2 ${sizeStyles[size] || sizeStyles.md} ${compactStyles[size] ?? compactStyles.md} ${radiusStyle} ${variantStyles[variant] || variantStyles.primary} ${className}`}
       {...props}
     >
-      {Icon && iconPosition === 'left' && <Icon size={size === 'sm' ? 14 : 16} strokeWidth={1.75} />}
+      {Icon && iconPosition === 'left' && <Icon size={size === 'sm' ? 14 : 16} strokeWidth={1.75} className={iconClass} />}
       {children}
-      {Icon && iconPosition === 'right' && <Icon size={size === 'sm' ? 14 : 16} strokeWidth={1.75} />}
+      {Icon && iconPosition === 'right' && <Icon size={size === 'sm' ? 14 : 16} strokeWidth={1.75} className={iconClass} />}
     </button>
   );
 }

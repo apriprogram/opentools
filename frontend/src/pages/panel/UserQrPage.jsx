@@ -161,13 +161,13 @@ export default function UserQrPage() {
           <ArrowLeft size={14} /> Kembali ke daftar QR
         </Link>
       ) : (
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-[24px] font-semibold text-primary">{headerTitle}</h1>
-            <p className="mt-1 max-w-2xl text-[14px] text-secondary">{subtitle}</p>
+            <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">{headerTitle}</h1>
+            <p className="mt-1 max-w-2xl text-[13px] text-secondary sm:text-[14px]">{subtitle}</p>
           </div>
           {view === 'daftar' ? (
-            <Button variant="primary" icon={QrCode} onClick={() => navigate('/dashboard/qr?view=pilih')}>
+            <Button variant="primary" icon={QrCode} className="self-start whitespace-nowrap sm:self-auto" onClick={() => navigate('/dashboard/qr?view=pilih')}>
               Buat QR baru
             </Button>
           ) : (
@@ -181,7 +181,7 @@ export default function UserQrPage() {
       {view === 'daftar' && (
         <>
           <section>
-            <h2 className="mb-3 text-[15px] font-semibold text-primary">Daftar QR Anda</h2>
+            <h2 className="mb-3 text-[14px] font-semibold text-primary sm:text-[15px]">Daftar QR Anda</h2>
             {!qrList ? (
               <p className="text-[13px] text-tertiary">Memuat...</p>
             ) : qrList.length === 0 ? (
@@ -204,8 +204,8 @@ export default function UserQrPage() {
             )}
           </section>
 
-          <section className="mt-8">
-            <h2 className="mb-3 text-[15px] font-semibold text-primary">Pesanan dan lisensi</h2>
+          <section className="mt-6 sm:mt-8">
+            <h2 className="mb-3 text-[14px] font-semibold text-primary sm:text-[15px]">Pesanan dan lisensi</h2>
             <OrderTable
               orders={orders}
               expiryByKey={expiryByKey}

@@ -104,13 +104,13 @@ export default function LinktreeEditorPage() {
 
   return (
     <PanelLayout title="Linktree">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div className="min-w-0">
           <Link to="/dashboard/linktree" className="mb-2 inline-flex items-center gap-1.5 text-[13px] text-secondary hover:text-primary">
             <ArrowLeft size={14} /> Semua Linktree
           </Link>
-          <h1 className="truncate text-[24px] font-semibold text-primary">{saved.title}</h1>
-          <p className="mt-1 text-[13px] text-secondary">/l/{saved.slug} · {saved.published ? 'Diterbitkan' : 'Draf'}</p>
+          <h1 className="truncate text-[20px] font-semibold text-primary sm:text-[24px]">{saved.title}</h1>
+          <p className="mt-1 text-[12px] text-secondary sm:text-[13px]">/l/{saved.slug} · {saved.published ? 'Diterbitkan' : 'Draf'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {saved.published && (

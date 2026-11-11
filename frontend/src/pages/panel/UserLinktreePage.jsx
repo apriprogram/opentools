@@ -62,20 +62,20 @@ export default function UserLinktreePage() {
 
   return (
     <PanelLayout title="Linktree">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[24px] font-semibold text-primary">Linktree</h1>
-          <p className="mt-1 max-w-2xl text-[14px] text-secondary">
+          <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">Linktree</h1>
+          <p className="mt-1 max-w-2xl text-[13px] text-secondary sm:text-[14px]">
             Buat halaman berisi semua tautan Anda. Satu akun bisa membuat banyak Linktree.
           </p>
         </div>
-        <Button variant="primary" icon={Plus} onClick={() => setShowForm((v) => !v)}>
+        <Button variant="primary" icon={Plus} className="self-start whitespace-nowrap sm:self-auto" onClick={() => setShowForm((v) => !v)}>
           Buat Linktree baru
         </Button>
       </div>
 
       {showForm && (
-        <form onSubmit={submit} className="mb-8 max-w-xl rounded-2xl border border-border bg-card p-5">
+        <form onSubmit={submit} className="mb-6 max-w-xl rounded-2xl border border-border bg-card p-4 sm:mb-8 sm:p-5">
           <p className="text-[15px] font-semibold text-primary">Linktree baru</p>
           <div className="mt-4 grid gap-4">
             <div>
@@ -133,7 +133,7 @@ export default function UserLinktreePage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((tree) => (
-            <div key={tree.id} className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5">
+            <div key={tree.id} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:gap-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-[15px] font-semibold text-primary">{tree.title}</p>

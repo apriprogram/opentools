@@ -1,8 +1,11 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
+
+const MAX_TOASTS = 4;
+const LEAVE_MS = 200;
 
 const ICONS = {
   success: CheckCircle2,
@@ -11,52 +14,43 @@ const ICONS = {
   info: Info,
 };
 
-const STYLES = {
-  success: {
-    bar: 'bg-emerald-500',
-    icon: 'text-emerald-400',
-    border: 'border-emerald-500/20',
-  },
-  error: {
-    bar: 'bg-red-500',
-    icon: 'text-red-400',
-    border: 'border-red-500/20',
-  },
-  warning: {
-    bar: 'bg-amber-400',
-    icon: 'text-amber-400',
-    border: 'border-amber-400/20',
-  },
-  info: {
-    bar: 'bg-blue-500',
-    icon: 'text-blue-400',
-    border: 'border-blue-500/20',
-  },
+// Warna ikon per jenis notifikasi. Kartunya sendiri tetap netral.
+const TONES = {
+  success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  error: 'bg-red-500/10 text-red-600 dark:text-red-400',
+  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
 };
 
-function ToastItem({ id, type = 'info', title, message, onRemove }) {
+function ToastItem({ id, type = 'info', title, message, leaving, onRemove }) {
   const Icon = ICONS[type] || Info;
-  const style = STYLES[type] || STYLES.info;
+  const tone = TONES[type] || TONES.info;
 
   return (
     <div
-      className={`group relative flex items-start gap-3 w-full max-w-sm bg-card border ${style.border} rounded-xl shadow-2xl px-4 py-3 overflow-hidden animate-in slide-in-from-right-5 fade-in duration-300`}
+      role={type === 'error' ? 'alert' : 'status'}
+      className={`pointer-events-auto flex w-full max-w-[380px] items-start gap-3 rounded-2xl border border-border bg-card p-3 shadow-menu dark:shadow-menu-dark motion-reduce:animate-none ${
+        leaving
+          ? 'animate-out fade-out slide-out-to-top-2 duration-200 fill-mode-forwards'
+          : 'animate-in fade-in slide-in-from-top-3 duration-300'
+      }`}
     >
-      {/* Left color bar */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.bar} rounded-l-xl`} />
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${tone}`}>
+        <Icon size={17} strokeWidth={1.75} aria-hidden="true" />
+      </span>
 
-      <Icon size={20} className={`${style.icon} shrink-0 mt-0.5`} />
-
-      <div className="flex-1 min-w-0">
-        {title && <p className="text-sm font-semibold text-primary leading-tight">{title}</p>}
-        {message && <p className="text-xs text-secondary mt-0.5 leading-relaxed">{message}</p>}
+      <div className="min-w-0 flex-1 py-0.5">
+        {title && <p className="text-[13px] font-semibold leading-snug text-primary">{title}</p>}
+        {message && <p className="mt-0.5 text-[12px] leading-relaxed text-secondary [overflow-wrap:anywhere]">{message}</p>}
       </div>
 
       <button
+        type="button"
+        aria-label="Tutup notifikasi"
         onClick={() => onRemove(id)}
-        className="shrink-0 text-secondary hover:text-primary transition-colors p-0.5 opacity-0 group-hover:opacity-100"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-tertiary transition-smooth hover:bg-card-muted hover:text-primary"
       >
-        <X size={14} />
+        <X size={14} strokeWidth={1.75} />
       </button>
     </div>
   );
@@ -64,29 +58,47 @@ function ToastItem({ id, type = 'info', title, message, onRemove }) {
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
+  const timers = useRef(new Map());
 
-  const addToast = useCallback(({ type = 'info', title, message, duration = 3500 }) => {
-    const id = Date.now() + Math.random();
-    setToasts(prev => [...prev, { id, type, title, message }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, duration);
-    return id;
+  // Tandai notifikasi sedang keluar (animasi), lalu hapus setelah animasinya selesai.
+  const removeToast = useCallback((id) => {
+    clearTimeout(timers.current.get(id));
+    setToasts((prev) => prev.map((t) => (t.id === id ? { ...t, leaving: true } : t)));
+    timers.current.set(
+      id,
+      setTimeout(() => {
+        timers.current.delete(id);
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, LEAVE_MS)
+    );
   }, []);
 
-  const removeToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+  const addToast = useCallback(
+    ({ type = 'info', title, message, duration = 3500 }) => {
+      const id = Date.now() + Math.random();
+      setToasts((prev) => [...prev, { id, type, title, message }].slice(-MAX_TOASTS));
+      timers.current.set(id, setTimeout(() => removeToast(id), duration));
+      return id;
+    },
+    [removeToast]
+  );
+
+  useEffect(() => {
+    const pending = timers.current;
+    return () => pending.forEach((timer) => clearTimeout(timer));
   }, []);
 
   return (
     <ToastContext.Provider value={{ addToast, removeToast }}>
       {children}
       {createPortal(
-        <div className="fixed bottom-24 right-4 z-[99999] flex flex-col gap-2 items-end pointer-events-none">
-          {toasts.map(t => (
-            <div key={t.id} className="pointer-events-auto">
-              <ToastItem {...t} onRemove={removeToast} />
-            </div>
+        // Notifikasi tampil di atas tengah. Yang terbaru ada di paling atas.
+        <div
+          aria-live="polite"
+          className="pointer-events-none fixed inset-x-0 top-3 z-[99999] flex flex-col-reverse items-center gap-2 px-3 sm:top-4"
+        >
+          {toasts.map((t) => (
+            <ToastItem key={t.id} {...t} onRemove={removeToast} />
           ))}
         </div>,
         document.body

@@ -1,81 +1,119 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Download, Eye, FileText, Receipt } from 'lucide-react';
-import Button from '../ui/Button';
 import Countdown from '../ui/Countdown';
 import LicenseQr from './LicenseQr';
 import { ProofThumb } from './ProofModal';
 import { proofLabel, rupiah, tanggal } from './OrderParts';
-
-const TH = 'px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-tertiary';
-const TD = 'px-3 py-3 align-top text-[13px] text-secondary';
+import ActionMenu from './table/ActionMenu';
+import TableToolbar from './table/TableToolbar';
+import TablePagination from './table/TablePagination';
+import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION } from './table/useTableControls';
 
 const LICENSE_TEXT = { aktif: 'Aktif', nonaktif: 'Nonaktif', berakhir: 'Berakhir' };
 const LICENSE_CLS = { aktif: 'text-success', nonaktif: 'text-danger', berakhir: 'text-danger' };
 
+// Filter, urutan, dan teks pencarian tabel. Didefinisikan di luar komponen supaya stabil.
+const FILTERS = [
+  { id: 'all', label: 'Semua status' },
+  { id: 'pending', label: 'Menunggu pembayaran', test: (o) => o.status === 'pending' },
+  { id: 'paid', label: 'Lunas', test: (o) => o.status === 'paid' },
+  { id: 'cancelled', label: 'Batal', test: (o) => o.status === 'cancelled' },
+];
+const newestFirst = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+const SORTS = [
+  { id: 'newest', label: 'Terbaru', compare: newestFirst },
+  { id: 'oldest', label: 'Terlama', compare: (a, b) => newestFirst(b, a) },
+  { id: 'amount_desc', label: 'Nominal terbesar', compare: (a, b) => b.amount - a.amount },
+  { id: 'amount_asc', label: 'Nominal terkecil', compare: (a, b) => a.amount - b.amount },
+];
+const searchText = (o) => [o.code, o.planLabel, o.notaNumber, o.qrLink, o.licenseKey].filter(Boolean).join(' ');
+
 // Tabel pesanan: status bayar, bukti, lisensi (barcode dan link), dan nota.
+// Dilengkapi cari, filter, urutkan, jumlah per halaman, dan halaman. Aksi tiap baris ada di menu titik tiga.
 export default function OrderTable({ orders, expiryByKey = {}, onProof, onNota, onPdf }) {
+  const table = useTableControls(orders, { searchText, filters: FILTERS, sorts: SORTS });
+  const hasOrders = Boolean(orders && orders.length);
+
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-      <table className="w-full min-w-[820px] border-collapse">
-        <thead className="bg-card-muted/50">
-          <tr>
-            <th className={TH}>Pesanan</th>
-            <th className={TH}>Nominal</th>
-            <th className={TH}>Pembayaran</th>
-            <th className={TH}>Lisensi</th>
-            <th className={`${TH} text-right`}>Aksi</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {!orders ? (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <TableToolbar table={table} filters={FILTERS} sorts={SORTS} searchPlaceholder="Cari kode pesanan, paket, nota, atau link QR" />
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[820px] border-collapse">
+          <thead className="bg-card-muted">
             <tr>
-              <td colSpan={5} className="px-3 py-6 text-center text-[13px] text-tertiary">Memuat...</td>
+              <th className={TH}>No</th>
+              <th className={`${TH} min-w-[180px]`}>Pesanan</th>
+              <th className={TH}>Nominal</th>
+              <th className={`${TH} min-w-[170px]`}>Pembayaran</th>
+              <th className={TH}>Lisensi</th>
+              <th className={TH_ACTION}>Aksi</th>
             </tr>
-          ) : orders.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="px-3 py-6 text-center text-[13px] text-tertiary">
-                Belum ada pesanan. Pilih Buat QR baru, lalu pilih paket Premium Gold.
-              </td>
-            </tr>
-          ) : (
-            orders.map((o) => (
-              <OrderRow
-                key={o.code}
-                order={o}
-                expiresAt={expiryByKey[o.licenseKey] || null}
-                onProof={onProof}
-                onNota={onNota}
-                onPdf={onPdf}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {!orders ? (
+              <tr>
+                <td colSpan={6} className="px-3 py-8 text-center text-[13px] text-tertiary">Memuat...</td>
+              </tr>
+            ) : table.pageRows.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-3 py-8 text-center text-[13px] text-tertiary">
+                  {hasOrders
+                    ? 'Tidak ada pesanan yang cocok dengan pencarian atau filter.'
+                    : 'Belum ada pesanan. Pilih Buat QR baru, lalu pilih paket Premium Gold.'}
+                </td>
+              </tr>
+            ) : (
+              table.pageRows.map((o, i) => (
+                <OrderRow
+                  key={o.code}
+                  number={table.start + i + 1}
+                  order={o}
+                  expiresAt={expiryByKey[o.licenseKey] || null}
+                  onProof={onProof}
+                  onNota={onNota}
+                  onPdf={onPdf}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <TablePagination table={table} label="pesanan" />
     </div>
   );
 }
 
-function OrderRow({ order: o, expiresAt, onProof, onNota, onPdf }) {
+function OrderRow({ number, order: o, expiresAt, onProof, onNota, onPdf }) {
   const paid = o.status === 'paid';
   const cancelled = o.status === 'cancelled';
   const uploaded = o.proofUploadedAt
     ? new Date(o.proofUploadedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
     : null;
 
+  const menuItems = [
+    o.status === 'pending' && { label: 'Bayar', icon: Receipt, to: `/dashboard/qr?kode=${o.code}` },
+    o.hasProof && { label: 'Lihat bukti', icon: Eye, onClick: () => onProof(o.code) },
+    { label: 'Lihat nota', icon: FileText, onClick: () => onNota(o.code) },
+    { label: 'Unduh nota PDF', icon: Download, onClick: () => onPdf(o.code) },
+  ];
+
   return (
-    <tr>
+    <tr className="group transition-smooth hover:bg-card-muted">
+      <td className={TD_NUM}>{number}</td>
+
       <td className={TD}>
-        <span className="block text-[14px] font-semibold text-primary">{o.planLabel}</span>
+        <span className="block text-[13px] font-semibold text-primary sm:text-[14px]">{o.planLabel}</span>
         <span className="premium-gold mt-1 inline-block whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]">
           Premium Gold
         </span>
-        <span className="mt-1 block font-mono text-[12px] text-tertiary">{o.code}</span>
+        <span className="mt-1 block font-mono text-[11px] text-tertiary sm:text-[12px]">{o.code}</span>
         {o.qrLink && (
-          <span className="block max-w-[220px] truncate text-[12px] text-tertiary" title={o.qrLink}>QR: {o.qrLink}</span>
+          <span className="block max-w-[220px] truncate text-[11px] text-tertiary sm:text-[12px]" title={o.qrLink}>QR: {o.qrLink}</span>
         )}
-        <span className="block text-[12px] text-tertiary">Dibuat {tanggal(o.createdAt)}</span>
-        {o.notaNumber && <span className="block text-[12px] text-tertiary">Nota {o.notaNumber}</span>}
+        <span className="block text-[11px] text-tertiary sm:text-[12px]">Dibuat {tanggal(o.createdAt)}</span>
+        {o.notaNumber && <span className="block text-[11px] text-tertiary sm:text-[12px]">Nota {o.notaNumber}</span>}
       </td>
 
       <td className={TD}>
@@ -95,7 +133,7 @@ function OrderRow({ order: o, expiresAt, onProof, onNota, onPdf }) {
         ) : (
           <span className="font-medium text-primary">Menunggu pembayaran</span>
         )}
-        <span className="mt-1 block text-[12px] text-tertiary" title={o.verifyNote || ''}>{proofLabel(o)}</span>
+        <span className="mt-1 block text-[11px] text-tertiary sm:text-[12px]" title={o.verifyNote || ''}>{proofLabel(o)}</span>
         {uploaded && <span className="block text-[11px] text-tertiary">Diunggah {uploaded}</span>}
         {paid && o.paidAt && <span className="block text-[11px] text-tertiary">Dibayar {tanggal(o.paidAt)}</span>}
       </td>
@@ -107,7 +145,7 @@ function OrderRow({ order: o, expiresAt, onProof, onNota, onPdf }) {
               {LICENSE_TEXT[o.licenseState] || 'Lisensi'}
             </span>
             {o.licenseState === 'aktif' && expiresAt && (
-              <Countdown expiresAt={expiresAt} className="block text-[13px] font-medium text-primary" />
+              <Countdown expiresAt={expiresAt} className="block text-[12px] font-medium text-primary sm:text-[13px]" />
             )}
             <LicenseQr licenseKey={o.licenseKey} />
           </div>
@@ -116,18 +154,9 @@ function OrderRow({ order: o, expiresAt, onProof, onNota, onPdf }) {
         )}
       </td>
 
-      <td className={`${TD} text-right`}>
-        <div className="inline-flex flex-wrap justify-end gap-2">
-          {o.status === 'pending' && (
-            <Link to={`/dashboard/qr?kode=${o.code}`}>
-              <Button size="sm" variant="secondary" icon={Receipt}>Bayar</Button>
-            </Link>
-          )}
-          {o.hasProof && (
-            <Button size="sm" variant="ghost" icon={Eye} onClick={() => onProof(o.code)}>Lihat bukti</Button>
-          )}
-          <Button size="sm" variant="secondary" icon={FileText} onClick={() => onNota(o.code)}>Nota</Button>
-          <Button size="sm" variant="ghost" icon={Download} onClick={() => onPdf(o.code)}>PDF</Button>
+      <td className={TD_ACTION}>
+        <div className="flex justify-end">
+          <ActionMenu items={menuItems} label={`Aksi untuk pesanan ${o.code}`} />
         </div>
       </td>
     </tr>

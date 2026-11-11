@@ -50,6 +50,9 @@ export default {
       boxShadow: {
         'subtle-modal': '0 4px 16px rgba(17, 17, 20, 0.06)',
         'subtle-dropdown': '0 2px 8px rgba(17, 17, 20, 0.08)',
+        // Menu aksi titik tiga: melayang di atas tabel, jadi shadow-nya lebih terlihat.
+        'menu': '0 14px 32px -8px rgba(17, 17, 20, 0.22), 0 4px 10px -4px rgba(17, 17, 20, 0.12)',
+        'menu-dark': '0 16px 40px -8px rgba(0, 0, 0, 0.75), 0 4px 12px -4px rgba(0, 0, 0, 0.55)',
         'none': 'none',
       },
       fontFamily: {
