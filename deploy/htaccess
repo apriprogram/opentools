@@ -1,3 +1,7 @@
+# Templat .htaccess untuk folder situs di cPanel (opentools.garudanexa.com).
+# File ini TIDAK ikut deploy otomatis. Salin manual sebagai ".htaccess" hanya saat menyiapkan server baru.
+# Alasannya: cPanel (Setup Node.js App) menambahkan blok Passenger dan variabel lingkungan ke .htaccess
+# di server. Kalau deploy menimpa file itu, sambungan ke aplikasi Node hilang dan semua /api jadi 404.
 <IfModule mod_rewrite.c>
   Options -MultiViews
   RewriteEngine On

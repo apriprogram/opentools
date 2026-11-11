@@ -2,6 +2,12 @@
 # Deploy otomatis dari cPanel Git Version Control ke opentools.garudanexa.com.
 # Frontend sudah di-build dan tersimpan di frontend/dist (di-commit).
 # Setelah deploy, Node.js App di-restart lewat tmp/restart.txt.
+#
+# PENTING: deploy ini sengaja TIDAK menyalin .htaccess ke folder situs.
+# cPanel (Setup Node.js App) menyimpan sambungan ke aplikasi Node dan variabel lingkungannya
+# di dalam .htaccess folder situs. Kalau file itu tertimpa, semua /api membalas 404 sampai
+# aplikasi di-STOP lalu di-START lagi. Karena itu frontend/dist tidak boleh berisi .htaccess.
+# Templat aturannya ada di deploy/htaccess, dipasang manual hanya saat menyiapkan server baru.
 deployment:
   tasks:
     - export DEPLOYPATH=/home/garudanexa/opentools.garudanexa.com
