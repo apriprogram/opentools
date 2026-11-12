@@ -62,8 +62,8 @@ export async function saveMyQr({ link, fg, bg, logo }) {
 }
 
 // Ubah warna dan logo QR (hanya QR dengan paket Premium yang aktif).
-export async function updateMyQr(id, { fg, bg, logo }) {
-  const res = await api.put(`/me/qr/${encodeURIComponent(id)}`, { fg, bg, logo }, { headers: authHeaders() });
+export async function updateMyQr(id, { link, fg, bg, logo }) {
+  const res = await api.put(`/me/qr/${encodeURIComponent(id)}`, { link, fg, bg, logo }, { headers: authHeaders() });
   return res.data.qr;
 }
 

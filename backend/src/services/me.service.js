@@ -66,9 +66,9 @@ const httpError = (status, message) => {
   return err;
 };
 
-// Ubah tampilan QR (warna QR, warna latar, dan logo). Link tidak berubah.
+// Ubah QR: link tujuan (opsional), warna QR, warna latar, dan logo.
 // Hanya untuk QR yang paket Premium-nya masih aktif. QR gratis tetap hitam putih dengan logo.
-export const updateUserQrDesign = async (user, id, { fg, bg, logo }) => {
+export const updateUserQrDesign = async (user, id, { link, fg, bg, logo }) => {
   const rows = await query(
     "SELECT id, link, fg, bg, logo, created_at FROM user_qr WHERE id = ? AND user_id = ? LIMIT 1",
     [String(id), user.id]
@@ -77,10 +77,18 @@ export const updateUserQrDesign = async (user, id, { fg, bg, logo }) => {
   const licenses = await query("SELECT user_qr_id, expires_at, revoked FROM qr_licenses WHERE user_qr_id = ?", [rows[0].id]);
   const state = qrStatus(licenses, new Date());
   if (state.status !== "aktif") {
-    throw httpError(403, "Warna dan logo hanya bisa diubah untuk QR dengan paket Premium Gold yang masih aktif.");
+    throw httpError(403, "Link, warna, dan logo hanya bisa diubah untuk QR dengan paket Premium Gold yang masih aktif.");
   }
-  await query("UPDATE user_qr SET fg = ?, bg = ?, logo = ? WHERE id = ? AND user_id = ?", [fg, bg, logo ? 1 : 0, rows[0].id, user.id]);
-  return { ...toQr({ ...rows[0], fg, bg, logo: logo ? 1 : 0 }), ...state };
+  const nextLink = link || rows[0].link;
+  await query("UPDATE user_qr SET link = ?, fg = ?, bg = ?, logo = ? WHERE id = ? AND user_id = ?", [
+    nextLink,
+    fg,
+    bg,
+    logo ? 1 : 0,
+    rows[0].id,
+    user.id
+  ]);
+  return { ...toQr({ ...rows[0], link: nextLink, fg, bg, logo: logo ? 1 : 0 }), ...state };
 };
 
 export const deleteUserQr = async (userId, id) => {

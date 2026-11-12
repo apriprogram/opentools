@@ -39,9 +39,17 @@ export const saveQr = async (req, res) => {
   }
 };
 
-// Ubah warna dan logo QR milik sendiri (hanya QR Premium yang aktif).
+// Ubah link, warna, dan logo QR milik sendiri (hanya QR Premium yang aktif). Link boleh tidak dikirim (tidak berubah).
 export const updateQr = async (req, res) => {
   try {
+    const hasLink = req.body?.link !== undefined && req.body?.link !== null;
+    const link = hasLink ? String(req.body.link).trim() : undefined;
+    if (hasLink && (!link || link.length > LINK_MAX)) {
+      return res.status(400).json({ success: false, message: "Link wajib diisi (maksimal 2048 karakter)." });
+    }
+    if (hasLink && /\s/.test(link)) {
+      return res.status(400).json({ success: false, message: "Link tidak boleh mengandung spasi." });
+    }
     const fg = String(req.body?.fg || "");
     const bg = String(req.body?.bg || "");
     if (!COLOR_RE.test(fg) || !COLOR_RE.test(bg)) {
@@ -50,7 +58,7 @@ export const updateQr = async (req, res) => {
     if (fg.toLowerCase() === bg.toLowerCase()) {
       return res.status(400).json({ success: false, message: "Warna QR dan warna latar tidak boleh sama." });
     }
-    const saved = await me.updateUserQrDesign(req.user, req.params.id, { fg, bg, logo: req.body?.logo !== false });
+    const saved = await me.updateUserQrDesign(req.user, req.params.id, { link, fg, bg, logo: req.body?.logo !== false });
     return res.json({ success: true, qr: saved });
   } catch (error) {
     return fail(res, error);

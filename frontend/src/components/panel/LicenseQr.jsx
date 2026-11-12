@@ -120,7 +120,8 @@ export default function LicenseQr({ licenseKey, design = null, code = '' }) {
   );
 }
 
-function QrModal({ svg, link, title, caption, background, onClose, onPng, onSvg, onCopy, copied }) {
+// Modal QR ukuran besar dengan tombol unduh dan salin link. Dipakai juga oleh kartu di daftar QR.
+export function QrModal({ svg, link, title, caption, background, onClose, onPng, onSvg, onCopy, copied }) {
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
 
@@ -142,7 +143,7 @@ function QrModal({ svg, link, title, caption, background, onClose, onPng, onSvg,
       aria-modal="true"
       aria-label={title}
     >
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[calc(100dvh-32px)] w-full max-w-md overflow-y-auto rounded-2xl border border-border bg-card p-5" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <p className="text-[14px] font-semibold text-primary">{title}</p>
           <button
@@ -156,7 +157,7 @@ function QrModal({ svg, link, title, caption, background, onClose, onPng, onSvg,
         </div>
 
         <div
-          className="mx-auto aspect-square w-full max-w-[320px] rounded-xl border border-border p-4 [&>svg]:h-full [&>svg]:w-full"
+          className="mx-auto aspect-square w-full max-w-[360px] rounded-xl border border-border p-3 [&>svg]:h-full [&>svg]:w-full"
           style={{ backgroundColor: background }}
           dangerouslySetInnerHTML={{ __html: svg }}
         />

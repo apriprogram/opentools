@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Crown, Download, Palette, Trash2 } from 'lucide-react';
+import { Crown, Download, PencilLine, Trash2 } from 'lucide-react';
 import QrEditModal from './QrEditModal';
+import { QrModal } from './LicenseQr';
 import Button from '../ui/Button';
 import Countdown from '../ui/Countdown';
 import { useToast } from '../ui/Toast';
@@ -29,6 +30,8 @@ export default function QrCardList({ items, logoUrl, onChanged, onUpgrade }) {
 function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
   const { addToast: toast } = useToast();
   const [editing, setEditing] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
+  const [copied, setCopied] = useState(false);
   const premium = qr.status === 'aktif';
 
   // Paket gratis: QR hitam putih dengan logo hitam. Berlaku juga untuk QR yang lisensinya sudah berakhir atau dinonaktifkan.
@@ -66,6 +69,16 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
     downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), `${base}.svg`);
   };
 
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(qr.link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ type: 'error', title: 'Gagal menyalin', message: 'Salin link secara manual.' });
+    }
+  };
+
   const remove = async () => {
     if (!window.confirm('Hapus QR ini dari akun Anda?')) return;
     try {
@@ -84,8 +97,14 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
   return (
     <div className={`flex flex-col gap-4 rounded-2xl border p-5 ${premium ? 'premium-gold' : 'border-border bg-card'}`}>
       <div className="flex gap-4">
-        <div
-          className="h-[112px] w-[112px] shrink-0 rounded-xl border border-border p-2 [&>svg]:h-full [&>svg]:w-full"
+        {/* Klik gambar QR untuk melihatnya dalam ukuran besar */}
+        <button
+          type="button"
+          onClick={() => setZoomed(true)}
+          disabled={!svg}
+          aria-label="Perbesar QR"
+          title="Klik untuk memperbesar"
+          className="h-[112px] w-[112px] shrink-0 cursor-zoom-in rounded-xl border border-border p-2 transition-smooth hover:border-blue-500 focus-visible:border-blue-500 focus-visible:outline-none disabled:cursor-default [&>svg]:h-full [&>svg]:w-full"
           style={{ background: bg }}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
@@ -110,9 +129,9 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
       <div className="mt-auto flex flex-wrap gap-2">
         <Button size="sm" variant="primary" icon={Download} onClick={downloadPng} disabled={!svg}>PNG</Button>
         <Button size="sm" variant="secondary" icon={Download} onClick={downloadSvg} disabled={!svg}>SVG</Button>
-        {/* Warna dan logo hanya bisa diedit ulang untuk QR Premium yang aktif. QR gratis tetap hitam putih. */}
+        {/* Link, warna, dan logo hanya bisa diedit ulang untuk QR Premium yang aktif. QR gratis tetap hitam putih. */}
         {premium && (
-          <Button size="sm" variant="secondary" icon={Palette} onClick={() => setEditing(true)}>Edit warna</Button>
+          <Button size="sm" variant="secondary" icon={PencilLine} onClick={() => setEditing(true)}>Edit QR</Button>
         )}
         {qr.status !== 'nonaktif' && (
           <Button size="sm" variant={qr.status === 'gratis' ? 'primary' : 'secondary'} icon={Crown} onClick={() => onUpgrade(qr)}>
@@ -121,6 +140,21 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
         )}
         <Button size="sm" variant="ghost" icon={Trash2} onClick={remove}>Hapus</Button>
       </div>
+
+      {zoomed && (
+        <QrModal
+          svg={svg}
+          link={qr.link}
+          title="QR kamu"
+          caption={STATUS_TEXT[qr.status] || 'Paket gratis'}
+          background={bg}
+          onClose={() => setZoomed(false)}
+          onPng={downloadPng}
+          onSvg={downloadSvg}
+          onCopy={copyLink}
+          copied={copied}
+        />
+      )}
 
       {editing && (
         <QrEditModal

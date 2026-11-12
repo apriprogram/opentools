@@ -35,7 +35,7 @@ export const normalizeWhatsapp = (input) => {
 
 export const getPaymentInfo = () => ({
   method: "Transfer DANA",
-  number: process.env.PAY_DANA_NUMBER || "082181361433",
+  number: process.env.PAY_DANA_NUMBER || "085188009152",
   name: process.env.PAY_DANA_NAME || "",
   whatsapp: process.env.PAY_WHATSAPP || "6282181361433"
 });
@@ -124,7 +124,8 @@ const toOrder = (row, { withLicense = false } = {}) => ({
   maxProofAttempts: MAX_PROOF_ATTEMPTS,
   hasProof: Boolean(row.has_proof),
   qrId: row.user_qr_id || null,
-  qrLink: parseQrPayload(row.qr_payload)?.link || null,
+  // Pesanan lunas: link yang sekarang tersimpan di QR (bisa sudah diganti pemiliknya).
+  qrLink: (row.status === "paid" && row.live_link) || parseQrPayload(row.qr_payload)?.link || null,
   qrDesign: qrDesignOf(row),
   licenseState: row.status === "paid" ? licenseStateOf(row) : null,
   licenseExpiresAt: withLicense && row.status === "paid" && row.license_expires_at ? iso(row.license_expires_at) : null
