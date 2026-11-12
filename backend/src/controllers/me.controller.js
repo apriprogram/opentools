@@ -6,6 +6,8 @@ import { bearerToken } from "../middleware/auth.middleware.js";
 
 const LINK_MAX = 2048;
 const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+// Warna latar boleh juga "transparent" (QR tanpa bidang latar).
+const BG_RE = /^(#[0-9a-fA-F]{6}|transparent)$/;
 
 const fail = (res, error) => {
   if (error.status) return res.status(error.status).json({ success: false, message: error.message });
@@ -29,7 +31,7 @@ export const saveQr = async (req, res) => {
     }
     const fg = String(req.body?.fg || "#000000");
     const bg = String(req.body?.bg || "#FFFFFF");
-    if (!COLOR_RE.test(fg) || !COLOR_RE.test(bg)) {
+    if (!COLOR_RE.test(fg) || !BG_RE.test(bg)) {
       return res.status(400).json({ success: false, message: "Format warna tidak valid." });
     }
     if (fg.toLowerCase() === bg.toLowerCase()) {
@@ -52,7 +54,7 @@ export const updateQr = async (req, res) => {
     }
     const fg = String(req.body?.fg || "");
     const bg = String(req.body?.bg || "");
-    if (!COLOR_RE.test(fg) || !COLOR_RE.test(bg)) {
+    if (!COLOR_RE.test(fg) || !BG_RE.test(bg)) {
       return res.status(400).json({ success: false, message: "Format warna tidak valid." });
     }
     if (fg.toLowerCase() === bg.toLowerCase()) {

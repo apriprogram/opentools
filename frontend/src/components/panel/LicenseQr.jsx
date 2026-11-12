@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Copy, CheckCheck, ExternalLink, Download, X } from 'lucide-react';
 import Button from '../ui/Button';
 import { useToast } from '../ui/Toast';
-import { buildQrSvg, qrContent, svgToPngBlob, downloadBlob } from '../../lib/qrCode';
+import { buildQrSvg, qrBackdropStyle, qrContent, svgToPngBlob, downloadBlob } from '../../lib/qrCode';
 
 // Link aktivasi lisensi: membuka halaman QR Generator dan memeriksa kode lisensi di browser itu.
 export const licenseLink = (licenseKey) => {
@@ -73,7 +73,7 @@ export default function LicenseQr({ licenseKey, design = null, code = '' }) {
           aria-label={own ? 'Perbesar QR' : 'Perbesar barcode lisensi'}
           title="Klik untuk memperbesar"
           className="h-16 w-16 shrink-0 cursor-zoom-in rounded-md border border-border p-1 transition-smooth hover:border-border-focus [&>svg]:h-full [&>svg]:w-full"
-          style={{ backgroundColor: own ? design.bg : '#FFFFFF' }}
+          style={qrBackdropStyle(own ? design.bg : '#FFFFFF', 8)}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
         <div className="min-w-0">
@@ -161,7 +161,7 @@ export function QrModal({ svg, link, title, caption, background, onClose, onPng,
 
         <div
           className="mx-auto aspect-square w-full max-w-[360px] rounded-xl border border-border p-3 [&>svg]:h-full [&>svg]:w-full"
-          style={{ backgroundColor: background }}
+          style={qrBackdropStyle(background)}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
 

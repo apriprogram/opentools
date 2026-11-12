@@ -6,7 +6,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getStoredSession } from '../../services/authApi';
 import { useTranslation } from 'react-i18next';
-import BrandLogo from '../ui/BrandLogo';
+import SiteLogo from '../ui/SiteLogo';
 
 export default function Navbar({ onOpenBatchModal }) {
   const location = useLocation();
@@ -77,15 +77,15 @@ export default function Navbar({ onOpenBatchModal }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/75 dark:bg-[#18181b]/75 backdrop-blur-xl border-b border-border transition-smooth select-none">
-      <div className="w-full px-4 sm:px-6 md:px-8 h-[64px] flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full border-b border-white/60 bg-white/55 backdrop-blur-2xl backdrop-saturate-150 transition-smooth select-none dark:border-white/10 dark:bg-zinc-950/45">
+      <div className="w-full px-3 sm:px-6 md:px-8 h-[48px] sm:h-[64px] flex items-center justify-between">
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-[24px] w-[36px] items-center justify-center">
-            <BrandLogo className="h-full w-full text-primary" title="Logo Garudanexa" />
+        <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group">
+          <div className="flex h-[20px] w-[20px] sm:h-[26px] sm:w-[26px] items-center justify-center">
+            <SiteLogo className="h-full w-full text-[#034AFC] dark:text-[#5B86FF]" title="Logo OpenTools" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[15px] font-semibold text-primary tracking-tight leading-[18px]">
+            <span className="text-[13px] sm:text-[15px] font-semibold text-primary tracking-tight leading-[18px]">
               {t('navbar.title', 'OPENTOOLS')}
             </span>
           </div>
@@ -102,14 +102,17 @@ export default function Navbar({ onOpenBatchModal }) {
               onMouseEnter={() => handleMouseEnter('converters')}
               onMouseLeave={handleMouseLeave}
             >
-              <button 
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[14px] font-medium transition-smooth ${
-                  activeMenu === 'converters' ? 'text-primary' : 'text-primary'
+              {/* Diklik: buka halaman daftarnya. Disorot: tampilkan menu pintasan. */}
+              <Link
+                to="/converters"
+                onClick={() => setActiveMenu(null)}
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1.5 text-[13px] font-medium transition-smooth xl:gap-1.5 xl:px-3 xl:text-[14px] ${
+                  location.pathname === '/converters' ? 'text-primary bg-card-muted' : 'text-primary'
                 } hover:bg-card-muted`}
               >
                 {t('navbar.all_converters', 'All Converters')}
                 <ChevronDown size={14} className={`transition-transform duration-200 ${activeMenu === 'converters' ? 'rotate-180' : ''}`} />
-              </button>
+              </Link>
             </div>
 
             {/* Compressors Trigger */}
@@ -118,21 +121,24 @@ export default function Navbar({ onOpenBatchModal }) {
               onMouseEnter={() => handleMouseEnter('compressors')}
               onMouseLeave={handleMouseLeave}
             >
-              <button 
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[14px] font-medium transition-smooth ${
-                  activeMenu === 'compressors' ? 'text-primary' : 'text-primary'
+              {/* Diklik: buka halaman daftarnya. Disorot: tampilkan menu pintasan. */}
+              <Link
+                to="/compressors"
+                onClick={() => setActiveMenu(null)}
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1.5 text-[13px] font-medium transition-smooth xl:gap-1.5 xl:px-3 xl:text-[14px] ${
+                  location.pathname === '/compressors' ? 'text-primary bg-card-muted' : 'text-primary'
                 } hover:bg-card-muted`}
               >
                 {t('navbar.all_compressors', 'All Compressors')}
                 <ChevronDown size={14} className={`transition-transform duration-200 ${activeMenu === 'compressors' ? 'rotate-180' : ''}`} />
-              </button>
+              </Link>
             </div>
 
             {/* Twibbon Link */}
             <div className="relative h-[64px] flex items-center">
               <Link 
                 to="/campaigns"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[14px] font-medium transition-smooth ${
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1.5 text-[13px] font-medium transition-smooth xl:gap-1.5 xl:px-3 xl:text-[14px] ${
                   location.pathname.startsWith('/campaigns') || location.pathname.startsWith('/c/') || location.pathname.startsWith('/twibbon')
                     ? 'text-primary bg-card-muted'
                     : 'text-primary hover:bg-card-muted'
@@ -146,11 +152,23 @@ export default function Navbar({ onOpenBatchModal }) {
             <div className="relative h-[64px] flex items-center">
               <Link
                 to="/qr"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[14px] font-medium transition-smooth ${
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1.5 text-[13px] font-medium transition-smooth xl:gap-1.5 xl:px-3 xl:text-[14px] ${
                   location.pathname.startsWith('/qr') ? 'text-primary bg-card-muted' : 'text-primary hover:bg-card-muted'
                 }`}
               >
                 QR Generator
+              </Link>
+            </div>
+
+            {/* Linktree Link */}
+            <div className="relative h-[64px] flex items-center">
+              <Link
+                to="/linktree"
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1.5 text-[13px] font-medium transition-smooth xl:gap-1.5 xl:px-3 xl:text-[14px] ${
+                  location.pathname.startsWith('/linktree') ? 'text-primary bg-card-muted' : 'text-primary hover:bg-card-muted'
+                }`}
+              >
+                Linktree
               </Link>
             </div>
           </div>
@@ -240,24 +258,24 @@ export default function Navbar({ onOpenBatchModal }) {
           <div className="flex items-center gap-1 mx-1 md:mx-2 border-l border-border pl-1 md:pl-2">
             <button
               onClick={toggleLanguage}
-              className="p-1.5 rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors flex items-center gap-1.5"
+              className="p-1 sm:p-1.5 rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors flex items-center gap-1 sm:gap-1.5"
               title="Change Language"
             >
-              <Globe size={16} />
-              <span className="text-[12px] font-medium uppercase">{i18n.language?.substring(0, 2) || 'en'}</span>
+              <Globe size={16} className="max-sm:h-[14px] max-sm:w-[14px]" />
+              <span className="text-[11px] sm:text-[12px] font-medium uppercase">{i18n.language?.substring(0, 2) || 'en'}</span>
             </button>
             <button
               onClick={toggleTheme}
-              className="p-1.5 rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors"
+              className="p-1 sm:p-1.5 rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors"
               title="Toggle Dark Mode"
             >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === 'dark' ? <Sun size={18} className="max-sm:h-4 max-sm:w-4" /> : <Moon size={18} className="max-sm:h-4 max-sm:w-4" />}
             </button>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-1.5 lg:hidden rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors"
+              className="p-1 sm:p-1.5 lg:hidden rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors"
             >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {isMobileMenuOpen ? <X size={20} className="max-sm:h-[18px] max-sm:w-[18px]" /> : <Menu size={20} className="max-sm:h-[18px] max-sm:w-[18px]" />}
             </button>
           </div>
 
@@ -274,13 +292,13 @@ export default function Navbar({ onOpenBatchModal }) {
       </div>
       
       {/* Mobile Menu Dropdown */}
-      <div className={`lg:hidden absolute top-[64px] left-0 w-full bg-card border-b border-border shadow-lg p-4 flex flex-col gap-3 z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform origin-top ${
+      <div className={`lg:hidden absolute top-[48px] sm:top-[64px] left-0 w-full bg-card border-b border-border shadow-lg p-3 sm:p-4 flex flex-col gap-2 sm:gap-3 z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform origin-top ${
         isMobileMenuOpen ? 'opacity-100 scale-y-100 visible pointer-events-auto' : 'opacity-0 scale-y-95 invisible pointer-events-none -translate-y-8'
       }`}>
         <Link 
           to="/converters" 
           onClick={() => setIsMobileMenuOpen(false)}
-          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
+          className="text-[13px] sm:text-[14px] text-primary p-2.5 sm:p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
           <ArrowLeftRight size={18} className="text-primary" /> {t('navbar.all_converters', 'All Converters')}
         </Link>
@@ -288,7 +306,7 @@ export default function Navbar({ onOpenBatchModal }) {
         <Link 
           to="/compressors" 
           onClick={() => setIsMobileMenuOpen(false)}
-          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
+          className="text-[13px] sm:text-[14px] text-primary p-2.5 sm:p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
           <Sparkles size={18} className="text-primary" /> {t('navbar.all_compressors', 'All Compressors')}
         </Link>
@@ -296,7 +314,7 @@ export default function Navbar({ onOpenBatchModal }) {
         <Link 
           to="/campaigns" 
           onClick={() => setIsMobileMenuOpen(false)}
-          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
+          className="text-[13px] sm:text-[14px] text-primary p-2.5 sm:p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
           <ImageIcon size={18} className="text-primary" /> Twibbon Campaigns
         </Link>
@@ -304,7 +322,7 @@ export default function Navbar({ onOpenBatchModal }) {
         <Link 
           to="/linktree" 
           onClick={() => setIsMobileMenuOpen(false)}
-          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
+          className="text-[13px] sm:text-[14px] text-primary p-2.5 sm:p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
           <Globe size={18} className="text-primary" /> Linktree Builder
         </Link>
@@ -312,7 +330,7 @@ export default function Navbar({ onOpenBatchModal }) {
         <Link
           to="/qr"
           onClick={() => setIsMobileMenuOpen(false)}
-          className="text-[14px] text-primary p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
+          className="text-[13px] sm:text-[14px] text-primary p-2.5 sm:p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
           <QrCode size={18} className="text-primary" /> QR Generator
         </Link>
@@ -320,7 +338,7 @@ export default function Navbar({ onOpenBatchModal }) {
         <Link
           to={accountPath}
           onClick={() => setIsMobileMenuOpen(false)}
-          className={`mt-2 flex h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-black text-[14px] font-medium text-white transition-smooth hover:bg-accent-black-hover dark:bg-white dark:text-black dark:hover:bg-zinc-200 ${authLoading ? 'invisible' : ''}`}
+          className={`mt-1 sm:mt-2 flex h-[40px] sm:h-[44px] w-full items-center justify-center gap-2 rounded-md bg-accent-black text-[14px] font-medium text-white transition-smooth hover:bg-accent-black-hover dark:bg-white dark:text-black dark:hover:bg-zinc-200 ${authLoading ? 'invisible' : ''}`}
         >
           <AccountIcon size={16} strokeWidth={1.75} /> {accountLabel}
         </Link>

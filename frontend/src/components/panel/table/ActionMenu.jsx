@@ -20,7 +20,7 @@ export function IconAction({ icon: Icon, label, onClick, disabled = false }) {
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-border text-secondary transition-smooth hover:border-blue-500 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-50 sm:h-8 sm:w-8 sm:rounded-md"
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-secondary transition-smooth hover:border-blue-500 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-50 sm:h-8 sm:w-8 sm:rounded-md"
     >
       <Icon size={16} strokeWidth={1.75} aria-hidden="true" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
     </button>

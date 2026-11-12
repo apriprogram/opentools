@@ -3,7 +3,7 @@ import { Link2, PencilLine, RotateCcw, Save } from 'lucide-react';
 import Button from '../ui/Button';
 import { useToast } from '../ui/Toast';
 import DetailModal from './DetailModal';
-import { buildQrSvg, contrastRatio, embeddedLink, normalizeLink, qrContent } from '../../lib/qrCode';
+import { buildQrSvg, contrastRatio, embeddedLink, isTransparentBg, normalizeLink, qrBackdropStyle, qrContent } from '../../lib/qrCode';
 import { tanggal } from './OrderParts';
 import { updateMyQr } from '../../services/authApi';
 
@@ -57,8 +57,10 @@ export default function QrEditModal({ qr, onClose, onSaved }) {
   const linkInside = embeddedLink(link);
   const hasSpace = !linkError && /\s/.test(target);
 
-  const sameColor = fg.toLowerCase() === bg.toLowerCase();
-  const lowContrast = !sameColor && contrastRatio(fg, bg) < 3;
+  // Latar transparan tidak dibandingkan dengan warna QR.
+  const clearBg = isTransparentBg(bg);
+  const sameColor = !clearBg && fg.toLowerCase() === bg.toLowerCase();
+  const lowContrast = !clearBg && !sameColor && contrastRatio(fg, bg) < 3;
   const changed =
     linkChanged || fg.toLowerCase() !== String(qr.fg).toLowerCase() || bg.toLowerCase() !== String(qr.bg).toLowerCase() || logo !== qr.logo;
 
@@ -144,14 +146,14 @@ export default function QrEditModal({ qr, onClose, onSaved }) {
           role="img"
           aria-label="Pratinjau QR"
           className="h-44 w-44 shrink-0 self-center rounded-md border border-border p-2 sm:h-52 sm:w-52 sm:self-start [&>svg]:h-full [&>svg]:w-full"
-          style={{ background: bg }}
+          style={qrBackdropStyle(bg)}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
 
         <div className="min-w-0 flex-1 space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <ColorField id="qr-edit-fg" label="Warna QR" value={fg} onChange={setFg} />
-            <ColorField id="qr-edit-bg" label="Warna latar" value={bg} onChange={setBg} />
+            <ColorField id="qr-edit-bg" label="Warna latar" value={bg} onChange={setBg} allowTransparent />
           </div>
 
           <label className="flex cursor-pointer select-none items-center gap-2.5 rounded-md border border-border px-2.5 py-2.5 text-[12px] text-primary sm:text-[13px]">
@@ -162,6 +164,11 @@ export default function QrEditModal({ qr, onClose, onSaved }) {
           {sameColor && (
             <p className="rounded-md bg-red-500/10 px-2.5 py-2 text-[12px] text-red-700 dark:text-red-400">
               Warna QR dan warna latar sama, jadi QR tidak bisa dipindai. Pilih dua warna yang berbeda.
+            </p>
+          )}
+          {clearBg && (
+            <p className="rounded-md bg-blue-500/10 px-2.5 py-2 text-[12px] leading-relaxed text-blue-700 dark:text-blue-300">
+              Latar transparan: QR diunduh tanpa bidang latar. Tempel di atas bidang polos yang warnanya jauh berbeda dari warna QR.
             </p>
           )}
           {lowContrast && (

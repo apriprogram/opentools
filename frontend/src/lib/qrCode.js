@@ -3,14 +3,20 @@ import QRCode from 'qrcode';
 // Logo untuk tampilan (sidebar panel dan lainnya).
 export const QR_LOGO_URL = '/qr-logo.svg';
 
-// Bentuk logo di tengah QR: satu path vektor, jadi warnanya bisa mengikuti warna QR.
+// Logo OpenTools (garis silang): dipakai di tengah QR dan di navbar. Satu path vektor, jadi warnanya
+// bisa mengikuti warna QR atau warna teks.
+export const QR_MARK_VIEWBOX = '0 0 132 132';
+export const QR_MARK_PATH =
+  'M39 7l7 -7 19 19 20 -19 7 7 -19 20 31 31 19 -19 8 7 -20 19 21 21 -8 7 -20 -20 -24 23 -7 -7 24 -24 -32 -31 0 0 -7 -7 0 0 -19 -20zm12 27l-24 24 -20 -19 -7 7 20 20 -20 19 7 8 20 -20 31 31 -20 20 7 7 20 -20 21 21 7 -8 -20 -20 -8 -8 -31 -31 24 -24 -7 -7z';
+
+// Logo Garudanexa (sayap): dipakai di footer, halaman masuk, dan Linktree.
 export const LOGO_VIEWBOX = '0 0 423 257';
 export const LOGO_PATH =
   'M231 185l27 -23c8,-7 13,-13 15,-19 3,-6 3,-11 3,-17l-3 -31 0 0 139 -93c7,-5 11,-1 11,5l0 16c0,12 -5,19 -13,25l-52 34 55 -8c8,-1 10,0 10,5l0 15c0,8 -8,17 -16,18l-64 8 50 25c5,2 3,7 0,10l-13 11c-5,4 -15,3 -19,1l-38 -19 20 39c2,4 0,5 -4,5l-25 0c-3,0 -7,0 -9,-5l-7 -14c-5,5 -10,11 -16,17l-48 41c-9,8 -20,17 -22,26 -3,-9 -14,-18 -23,-26l-48 -41c-6,-6 -11,-12 -15,-17l-8 14c-2,5 -6,5 -9,5l-25 0c-4,0 -6,-1 -4,-5l21 -39 -38 19c-5,2 -15,3 -19,-1l-14 -11c-3,-3 -5,-8 0,-10l51 -25 -64 -8c-9,-1 -17,-10 -17,-18l0 -15c0,-5 2,-6 11,-5l54 8 -52 -34c-8,-6 -13,-13 -13,-25l0 -16c0,-6 4,-10 11,-5l139 93 0 0 -3 31c0,6 0,11 3,17 3,6 7,12 15,19l27 23c12,10 20,19 20,26 0,-7 8,-16 19,-26z';
 
-/** Logo sebagai SVG mandiri dengan warna tertentu. */
+/** Logo tengah QR sebagai SVG mandiri dengan warna tertentu. */
 export function logoSvg(color = '#000000') {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${LOGO_VIEWBOX}"><path d="${LOGO_PATH}" fill="${color}"/></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${QR_MARK_VIEWBOX}"><path d="${QR_MARK_PATH}" fill="${color}"/></svg>`;
 }
 
 /**
@@ -72,11 +78,26 @@ export function contrastRatio(hexA, hexB) {
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
+// Nilai warna latar untuk QR tanpa latar (tembus pandang). PNG dan SVG yang diunduh tidak punya bidang latar.
+export const TRANSPARENT_BG = 'transparent';
+export const isTransparentBg = (bg) => String(bg || '').toLowerCase() === TRANSPARENT_BG;
+
+// Gaya kotak pratinjau QR: warna latarnya, atau pola kotak-kotak sebagai tanda latar transparan.
+export const qrBackdropStyle = (bg, tile = 16) =>
+  isTransparentBg(bg)
+    ? {
+        backgroundColor: '#FFFFFF',
+        backgroundImage: 'conic-gradient(#D4D4D8 25%, #FFFFFF 0 50%, #D4D4D8 0 75%, #FFFFFF 0)',
+        backgroundSize: `${tile}px ${tile}px`,
+      }
+    : { backgroundColor: bg };
+
 /**
  * Bangun SVG QR code.
  * opts: { text, fg, bg, logo (opsional), logoDataUrl (opsional), size (px, default 512) }
  * Logo tampil jika logo bernilai true, atau jika logoDataUrl diisi (cara lama).
  * Logo ditaruh di tengah di atas kotak berwarna latar, dan warnanya mengikuti warna QR (fg).
+ * bg 'transparent': tanpa bidang latar, dan titik QR di belakang logo dikosongkan.
  * Level koreksi H dipakai agar QR tetap bisa dipindai.
  */
 export function buildQrSvg({ text, fg = '#000000', bg = '#FFFFFF', logo: showLogo, logoDataUrl = null, size = 512 }) {
@@ -84,32 +105,43 @@ export function buildQrSvg({ text, fg = '#000000', bg = '#FFFFFF', logo: showLog
   const n = qr.modules.size;
   const quiet = 4;
   const total = n + quiet * 2;
-  const cell = size / total;
+  const clear = isTransparentBg(bg);
+  const withLogo = showLogo ?? Boolean(logoDataUrl);
+  // Kotak kosong di tengah QR 24% dari lebar QR (dalam satuan modul). Logo di dalamnya lebih kecil (15%),
+  // jadi ada ruang kosong di sekeliling logo.
+  const boxSize = total * 0.24;
+  const logoSize = total * 0.15;
+  const pad = 0.6;
+  const x = (total - logoSize) / 2;
+  const y = (total - logoSize) / 2;
+  const boxStart = (total - boxSize) / 2 - pad;
+  const boxEnd = boxStart + boxSize + pad * 2;
+  // Latar transparan tidak punya kotak penutup di belakang logo, jadi titik QR di area logo tidak digambar.
+  const underLogo = (mx, my) => clear && withLogo && mx + 1 > boxStart && mx < boxEnd && my + 1 > boxStart && my < boxEnd;
 
   let path = '';
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
-      if (qr.modules.get(r, c)) {
+      if (qr.modules.get(r, c) && !underLogo(c + quiet, r + quiet)) {
         path += `M${c + quiet} ${r + quiet}h1v1h-1z`;
       }
     }
   }
 
   let logo = '';
-  if (showLogo ?? Boolean(logoDataUrl)) {
-    const logoSize = total * 0.24; // 24% dari lebar QR (dalam satuan modul)
-    const pad = 0.6;
-    const x = (total - logoSize) / 2;
-    const y = (total - logoSize) / 2;
+  if (withLogo) {
+    const backing = clear
+      ? ''
+      : `<rect x="${boxStart.toFixed(3)}" y="${boxStart.toFixed(3)}" width="${(boxEnd - boxStart).toFixed(3)}" height="${(boxEnd - boxStart).toFixed(3)}" rx="1.2" fill="${bg}"/>`;
     logo = `
-  <rect x="${(x - pad).toFixed(3)}" y="${(y - pad).toFixed(3)}" width="${(logoSize + pad * 2).toFixed(3)}" height="${(logoSize + pad * 2).toFixed(3)}" rx="1.2" fill="${bg}"/>
-  <svg x="${x.toFixed(3)}" y="${y.toFixed(3)}" width="${logoSize.toFixed(3)}" height="${logoSize.toFixed(3)}" viewBox="${LOGO_VIEWBOX}" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision"><path d="${LOGO_PATH}" fill="${fg}"/></svg>`;
+  ${backing}
+  <svg x="${x.toFixed(3)}" y="${y.toFixed(3)}" width="${logoSize.toFixed(3)}" height="${logoSize.toFixed(3)}" viewBox="${QR_MARK_VIEWBOX}" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision"><path d="${QR_MARK_PATH}" fill="${fg}"/></svg>`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${size}" height="${size}" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges">
-  <rect width="${total}" height="${total}" fill="${bg}"/>
+  ${clear ? '' : `<rect width="${total}" height="${total}" fill="${bg}"/>`}
   <path d="${path}" fill="${fg}"/>${logo}
-</svg>`.replace(/\s+/g, ' ').replace('> <', '><');
+</svg>`.replace(/\s+/g, ' ').replace(/> </g, '><');
 }
 
 export function svgToDataUrl(svg) {

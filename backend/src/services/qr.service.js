@@ -66,6 +66,8 @@ const licenseStateOf = (row) => {
 };
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+// Warna latar boleh juga "transparent" (QR tanpa bidang latar).
+const BG_RE = /^(#[0-9a-fA-F]{6}|transparent)$/;
 
 const parseQrPayload = (text) => {
   if (!text) return null;
@@ -82,7 +84,7 @@ export const parseQrDesign = (design) => {
   if (!link || link.length > 2048) throw httpError(400, "Link QR wajib diisi (maksimal 2048 karakter).");
   const fg = String(design?.fg || "#000000");
   const bg = String(design?.bg || "#FFFFFF");
-  if (!HEX_RE.test(fg) || !HEX_RE.test(bg)) throw httpError(400, "Format warna QR tidak valid.");
+  if (!HEX_RE.test(fg) || !BG_RE.test(bg)) throw httpError(400, "Format warna QR tidak valid.");
   return { link, fg, bg, logo: design?.logo !== false };
 };
 
@@ -94,7 +96,7 @@ const qrDesignOf = (row) => {
     return {
       link: String(row.live_link),
       fg: HEX_RE.test(row.live_fg) ? row.live_fg : "#000000",
-      bg: HEX_RE.test(row.live_bg) ? row.live_bg : "#FFFFFF",
+      bg: BG_RE.test(row.live_bg) ? row.live_bg : "#FFFFFF",
       logo: Number(row.live_logo) !== 0,
       // Kode pindai: gambar QR berisi alamat /api/q/<kode>, bukan link langsung.
       code: row.live_code || null,
@@ -106,7 +108,7 @@ const qrDesignOf = (row) => {
   return {
     link: String(p.link),
     fg: HEX_RE.test(p.fg) ? p.fg : "#000000",
-    bg: HEX_RE.test(p.bg) ? p.bg : "#FFFFFF",
+    bg: BG_RE.test(p.bg) ? p.bg : "#FFFFFF",
     logo: p.logo !== false
   };
 };

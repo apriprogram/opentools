@@ -112,3 +112,34 @@ Aplikasi mendukung Mode Terang (Light) dan Mode Gelap (Dark). Warna diatur melal
 2. **JANGAN gunakan gradasi warna pelangi.** Gradasi hanya diizinkan untuk efek pantulan transparan (misal `from-transparent to-card/70`) pada tumpukan gambar.
 3. **JANGAN gunakan outline ganda (double ring) saat hover.** Cukup ganti warna border (misal ke `border-blue-500`) tanpa menambahkan ring tambahan jika berpotensi membuat tampilan border terlihat menumpuk (seperti error "dua outline biru").
 4. **HINDARI padding/margin berlebihan pada mode mobile.** Desain harus ringkas agar tetap bisa dilihat seluruhnya di layar HP kecil.
+
+---
+
+## 9. Gaya Kaca untuk Halaman Publik (berlaku sejak 12 November 2026)
+
+Bagian ini menggantikan aturan "datar dan mengandalkan garis tepi" **khusus halaman publik** (beranda, konverter, kompresor, QR, Twibbon, Linktree, masuk, daftar). Panel admin dan panel pengguna tetap memakai latar polos supaya tabel mudah dibaca; panel hanya ikut bentuk tombol dan sudut kartu.
+
+### Latar
+- Kelas `site-ambient` di pembungkus aplikasi: gradasi lembut biru keunguan (kiri atas), jingga hangat (kanan), ungu (bawah). Ada versi terang dan gelap di `frontend/src/index.css`.
+
+### Permukaan
+- `glass`: kaca buram untuk bilah, pil, dock, dan kolom pencarian (tembus pandang, blur, garis tepi terang, sorot di tepi atas).
+- `glass-on-color`: kaca di atas kartu berwarna, untuk tombol ikon bulat dan label kecil.
+- Kartu berpola umum (`border` + `bg-card` + sudut bulat) di dalam `main` halaman publik otomatis menjadi tembus pandang. **Tanpa blur**, karena satu halaman bisa berisi puluhan kartu dan blur sebanyak itu berat di ponsel.
+
+### Kartu berwarna (beranda)
+- `tone-card` ditambah satu warna: `tone-dusk`, `tone-blue`, `tone-magenta`, `tone-graphite`, `tone-green`, `tone-slate`, `tone-violet`.
+- Teks di atasnya putih; deskripsi `text-white/80`. Sudut 32 px (28 px di ponsel).
+- Warna baru harus cukup gelap di bagian bawah kartu supaya teks putih tetap terbaca.
+
+### Sudut dan tombol
+- `rounded-2xl` sekarang 24 px di seluruh aplikasi.
+- Semua tombol berbentuk pil. Tombol utama padat, tombol sekunder kaca. Tombol ikon berbentuk bulat.
+
+### Huruf
+- Judul halaman publik (`h1`) tipis (bobot 300) dan rapat. Judul kartu bobot 500.
+
+### Yang tetap berlaku
+- Warna aksen tetap `blue-500`. Ikon tetap lucide dengan garis 1.75.
+- Animasi tetap halus dan mematuhi `prefers-reduced-motion`.
+- Tidak boleh ada gulir ke samping di lebar 360 px dan 390 px.

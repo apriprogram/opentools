@@ -3,11 +3,13 @@ import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, Images, QrCode, Link2, ClipboardList, Database, ImagePlus, LogOut, Eye, Menu, Moon, Settings, Sun, Undo2, UserCog, Users, X } from 'lucide-react';
 import Avatar from '../ui/Avatar';
+import SiteLogo from '../ui/SiteLogo';
 import { NotificationBell, ProfileMenu } from './HeaderMenus';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 // Kerangka panel gaya admin: sidebar dengan bagian, header dengan tanggal dan profil, lalu konten.
+// Sidebar dan header berupa bilah kaca yang melayang dan tetap di tempat; hanya konten yang bergulir.
 // Dipakai untuk peran user dan super admin. Menu berbeda menurut peran.
 // Di ponsel sidebar disembunyikan dan dibuka lewat tombol hamburger.
 const USER_ITEMS = [
@@ -110,9 +112,9 @@ export default function PanelLayout({ title, children }) {
     <>
     <div className="flex items-center justify-between gap-2">
       <Link to={role === 'superadmin' ? '/admin' : '/dashboard'} className="flex min-w-0 items-center gap-2.5 px-2">
-        <img src="/qr-logo.svg" alt="" className="h-6 w-auto md:h-7" />
+        <SiteLogo className="h-6 w-6 shrink-0 text-[#034AFC] dark:text-[#5B86FF] md:h-7 md:w-7" />
         <div className="min-w-0 leading-tight">
-          <p className="text-[14px] font-semibold text-primary md:text-[15px]">OpenTools</p>
+          <p className="text-[14px] font-semibold tracking-tight text-primary md:text-[15px]">OpenTools</p>
           <p className="text-[11px] text-tertiary md:text-[12px]">Panel {ROLE_LABEL[role]}</p>
         </div>
       </Link>
@@ -126,10 +128,10 @@ export default function PanelLayout({ title, children }) {
       </button>
     </div>
 
-    <nav className="mt-6 flex-1 space-y-6 overflow-y-auto md:mt-8">
+    <nav className="mt-6 min-h-0 flex-1 space-y-6 overflow-y-auto md:mt-7">
       {menu.map((group) => (
         <div key={group.section}>
-          <p className="px-2 text-[11px] font-semibold uppercase tracking-wider text-tertiary">{group.section}</p>
+          <p className="px-3.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-tertiary md:text-[11px]">{group.section}</p>
           <div className="mt-2 space-y-1">
             {group.items.map((item) =>
               item.action === 'logout' ? (
@@ -137,7 +139,7 @@ export default function PanelLayout({ title, children }) {
                   key={item.label}
                   type="button"
                   onClick={onLogout}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] text-danger transition-smooth hover:bg-card-muted/60 md:text-[14px]"
+                  className="flex items-center gap-2.5 rounded-full px-3.5 py-2 text-[13px] transition-smooth md:py-2.5 md:text-[14px] w-full text-left text-danger hover:bg-red-500/10"
                 >
                   <item.icon size={17} strokeWidth={1.75} />
                   {item.label}
@@ -149,8 +151,10 @@ export default function PanelLayout({ title, children }) {
                 end={item.end}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-smooth md:text-[14px] ${
-                    isActive ? 'bg-card-muted font-medium text-primary' : 'text-secondary hover:bg-card-muted/60 hover:text-primary'
+                  `flex items-center gap-2.5 rounded-full px-3.5 py-2 text-[13px] transition-smooth md:py-2.5 md:text-[14px] ${
+                    isActive
+                      ? 'bg-blue-500 font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_10px_20px_-12px_rgba(37,99,235,0.9)]'
+                      : 'text-secondary hover:bg-black/[0.05] hover:text-primary dark:hover:bg-white/10'
                   }`
                 }
               >
@@ -165,7 +169,7 @@ export default function PanelLayout({ title, children }) {
     </nav>
 
     {/* Ponsel: nama akun tampil di sini, karena header hanya menampilkan foto profil. */}
-    <div className="mt-4 flex items-center gap-2.5 rounded-lg border border-border px-3 py-2 md:hidden">
+    <div className="mt-4 flex items-center gap-2.5 rounded-2xl border border-border px-3 py-2 md:hidden">
       <Avatar user={user} className="h-8 w-8 text-[12px]" />
       <div className="min-w-0 leading-tight">
         <p className="truncate text-[13px] font-medium text-primary">{displayName}</p>
@@ -178,7 +182,7 @@ export default function PanelLayout({ title, children }) {
       <button
         type="button"
         onClick={onLogout}
-        className="mt-2 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-danger transition-smooth hover:bg-card-muted/60 md:mt-6 md:text-[14px]"
+        className="flex items-center gap-2.5 rounded-full px-3.5 py-2 text-[13px] transition-smooth md:py-2.5 md:text-[14px] mt-2 text-danger hover:bg-red-500/10 md:mt-4"
       >
         <LogOut size={17} strokeWidth={1.75} />
         Keluar
@@ -188,10 +192,10 @@ export default function PanelLayout({ title, children }) {
   );
 
   return (
-    <div className="panel-compact min-h-screen flex-1 bg-card-muted/30 md:flex">
-      {/* Sidebar layar besar: selalu tampil di sisi kiri. */}
-      <aside aria-label="Menu panel" className="hidden w-64 shrink-0 flex-col border-r border-border bg-card px-4 py-6 md:flex">
-        {sidebar}
+    <div className="panel-compact min-h-screen flex-1 md:flex">
+      {/* Sidebar layar besar: bilah kaca yang melayang di sisi kiri dan tetap di tempat saat halaman digulir. */}
+      <aside aria-label="Menu panel" className="hidden shrink-0 self-start p-3 pr-0 md:sticky md:top-0 md:flex md:h-screen md:w-[268px]">
+        <div className="glass flex min-h-0 w-full flex-col rounded-[28px] px-3 py-5">{sidebar}</div>
       </aside>
 
       {/* Ponsel: sidebar jadi laci yang masuk dari kiri. Digambar lewat portal ke body,
@@ -208,7 +212,7 @@ export default function PanelLayout({ title, children }) {
           <aside
             id="panel-sidebar"
             aria-label="Menu panel"
-            className={`fixed inset-y-0 left-0 z-[60] flex w-[264px] max-w-[82vw] flex-col border-r border-border bg-card px-3 py-4 transition-[transform,visibility] duration-200 ease-out motion-reduce:transition-none ${
+            className={`fixed inset-y-0 left-0 z-[60] flex w-[264px] max-w-[82vw] flex-col rounded-r-[28px] border-r border-border bg-card px-3 py-4 transition-[transform,visibility] duration-200 ease-out motion-reduce:transition-none ${
               menuOpen ? 'visible translate-x-0' : 'invisible -translate-x-full'
             }`}
           >
@@ -219,9 +223,11 @@ export default function PanelLayout({ title, children }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* Bilah atas: tetap di tempat saat konten digulir. */}
+        <div className="sticky top-0 z-30 px-2 pt-2 sm:px-3 sm:pt-3 md:px-4">
         {/* Super admin sedang masuk sebagai pengguna: tanda yang selalu terlihat, dengan jalan kembali */}
         {user?.impersonated && (
-          <div role="status" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 bg-amber-500 px-3 py-2 text-[12px] text-black sm:px-4 sm:text-[13px] md:px-8">
+          <div role="status" className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 rounded-[20px] bg-amber-500 px-3 py-2 text-[12px] text-black shadow-[0_10px_24px_-16px_rgba(180,83,9,0.9)] sm:px-4 sm:text-[13px]">
             <p className="flex min-w-0 items-center gap-2">
               <UserCog size={15} strokeWidth={2} aria-hidden="true" className="shrink-0" />
               <span className="min-w-0 [overflow-wrap:anywhere]">
@@ -240,7 +246,7 @@ export default function PanelLayout({ title, children }) {
           </div>
         )}
         {/* Header */}
-        <header className="flex items-center justify-between gap-2 border-b border-border bg-card px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 md:px-8">
+        <header className="glass flex items-center justify-between gap-2 rounded-full px-2 py-1.5 sm:gap-3 sm:py-2 sm:pl-4 sm:pr-2">
           <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
@@ -248,13 +254,13 @@ export default function PanelLayout({ title, children }) {
               aria-label="Buka menu"
               aria-expanded={menuOpen}
               aria-controls="panel-sidebar"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-primary transition-smooth hover:border-border-hover md:hidden"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-primary transition-smooth hover:border-border-hover md:hidden"
             >
               <Menu size={16} strokeWidth={1.75} />
             </button>
             <Link to={role === 'superadmin' ? '/admin' : '/dashboard'} className="flex items-center gap-2 md:hidden">
-              <img src="/qr-logo.svg" alt="" className="h-5 w-auto" />
-              <span className="text-[13px] font-semibold text-primary">OpenTools</span>
+              <SiteLogo className="h-5 w-5 shrink-0 text-[#034AFC] dark:text-[#5B86FF]" />
+              <span className="text-[13px] font-semibold tracking-tight text-primary">OpenTools</span>
             </Link>
             <p className="hidden truncate text-[13px] text-tertiary md:block">
               Panel <span className="mx-1">›</span> <span className="text-secondary">{title}</span>
@@ -292,13 +298,14 @@ export default function PanelLayout({ title, children }) {
             <ProfileMenu onLogout={onLogout} />
           </div>
         </header>
+        </div>
 
-        <main className="min-w-0 flex-1 px-3 py-4 sm:px-4 sm:py-6 md:px-8 md:py-8">
+        <main className="min-w-0 flex-1 px-3 py-4 sm:px-5 sm:py-6 md:px-8 md:py-7">
           <CrumbContext.Provider value={title}>{children}</CrumbContext.Provider>
         </main>
 
         {/* Footer panel: sama dengan footer situs */}
-        <footer className="flex flex-col gap-2 border-t border-border bg-card px-3 py-3 text-[11px] text-tertiary sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-4 sm:text-[12px] md:px-8">
+        <footer className="flex flex-col gap-2 px-3 pb-4 pt-2 text-[11px] text-tertiary sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5 sm:pb-5 sm:text-[12px] md:px-8">
           <p>
             © {new Date().getFullYear()} <span className="font-medium text-secondary">PT. Garuda Nexa Bahtera</span>. Hak cipta dilindungi undang-undang.
           </p>

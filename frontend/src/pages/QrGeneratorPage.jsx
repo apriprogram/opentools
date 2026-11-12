@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, Lock, Crown, Link2, AlertTriangle, QrCode, Save, ReceiptText } from 'lucide-react';
+import { Check, Download, Lock, Crown, Link2, AlertTriangle, QrCode, Save, ReceiptText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { saveMyQr } from '../services/authApi';
 import { verifyQrLicense } from '../services/qrApi';
 import PageContainer from '../components/layout/PageContainer';
 import Button from '../components/ui/Button';
+import ColorField from '../components/ui/ColorField';
+import Switch from '../components/ui/Switch';
 import { useToast } from '../components/ui/Toast';
 import {
   loadLogoDataUrl,
@@ -14,10 +16,16 @@ import {
   qrContent,
   buildQrSvg,
   contrastRatio,
+  isTransparentBg,
+  qrBackdropStyle,
   svgToPngBlob,
   downloadBlob,
 } from '../lib/qrCode';
 
+// Pilihan warna cepat. Warna QR sebaiknya gelap dan latar terang supaya mudah dipindai.
+const FG_PRESETS = ['#111111', '#1D4ED8', '#6D28D9', '#BE185D', '#B91C1C', '#C2410C', '#15803D', '#0F766E'];
+// Tujuh warna latar: bersama pilihan transparan jadi tepat satu baris.
+const BG_PRESETS = ['#FFFFFF', '#FEF3C7', '#FCE7F3', '#DBEAFE', '#DCFCE7', '#EDE9FE', '#FFEDD5'];
 const FREE_FG = '#000000';
 const FREE_BG = '#FFFFFF';
 const rupiah = (n) => `Rp${Number(n).toLocaleString('id-ID')}`;
@@ -27,7 +35,7 @@ function EmbeddedWrap({ children }) {
   return <div className="w-full">{children}</div>;
 }
 
-// Generator QR. Tanpa orderPlan: mode gratis (hitam putih dengan logo hitam), bisa disimpan ke akun.
+// Generator QR. Tanpa orderPlan: mode gratis (warna bebas, logo selalu tampil), bisa disimpan ke akun.
 // Dengan orderPlan: mode pemesanan Premium untuk satu QR. Warna dan logo bisa diatur, lalu lanjut bayar.
 // renewQr: QR yang sudah ada (jadikan Premium atau perpanjang), desainnya dipakai sebagai awal.
 // freePremium: warna dan logo bisa diatur tanpa pesanan (dipakai super admin di menu Tools Admin).
@@ -48,12 +56,14 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
   const isPaid = Boolean(orderPlan);
   // Warna dan logo bebas diatur: saat memesan paket, atau untuk admin tanpa pesanan.
   const custom = isPaid || freePremium;
-  // Mode gratis: warna tetap hitam-putih dan logo hitam selalu tampil.
+  // Warna QR dan latar bebas dipilih di semua paket. Di paket gratis logo selalu tampil.
   const colors = {
-    fg: custom ? fg : FREE_FG,
-    bg: custom ? bg : FREE_BG,
+    fg,
+    bg,
     logo: custom ? useLogo : true,
   };
+  // Latar transparan: QR diunduh tanpa bidang latar, jadi warnanya tidak dibandingkan dengan warna QR.
+  const clearBg = isTransparentBg(bg);
   const target = normalizeLink(link);
   // Link yang tersalin bersama kata lain: saat dipindai hasilnya teks biasa, bukan link yang langsung terbuka.
   const linkInside = embeddedLink(link);
@@ -101,6 +111,10 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
 
   const saveToAccount = async () => {
     if (!target) return;
+    if (!clearBg && colors.fg.toLowerCase() === colors.bg.toLowerCase()) {
+      toast({ type: 'error', title: 'Warna belum bisa dipakai', message: 'Warna QR dan warna latar tidak boleh sama.' });
+      return;
+    }
     setSaving(true);
     try {
       const saved = await saveMyQr({ link: target, fg: colors.fg, bg: colors.bg, logo: colors.logo });
@@ -121,8 +135,9 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
     onOrder?.({ link: target, fg: colors.fg, bg: colors.bg, logo: colors.logo });
   };
 
-  const contrast = contrastRatio(colors.fg, colors.bg);
-  const lowContrast = contrast < 3;
+  const contrast = clearBg ? 0 : contrastRatio(colors.fg, colors.bg);
+  const sameColor = !clearBg && colors.fg.toLowerCase() === colors.bg.toLowerCase();
+  const lowContrast = !clearBg && !sameColor && contrast < 3;
 
   const downloadPng = async () => {
     if (!svg) return;
@@ -153,7 +168,7 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
               ? 'Untuk satu QR code. Atur link, warna, dan logo, lalu lanjut bayar.'
               : freePremium
                 ? 'Atur link, warna, dan logo, lalu simpan. QR buatan admin memakai fitur Premium tanpa biaya.'
-              : 'Ubah link menjadi QR Code. Gratis dengan logo hitam dan warna hitam putih.'}
+              : 'Ubah link menjadi QR Code. Gratis, warna bisa dipilih sendiri, dengan logo di tengah.'}
           </p>
         </div>
 
@@ -206,47 +221,53 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[13px] text-secondary mb-2">Warna QR</p>
-                  {custom ? (
-                    <div className="flex items-center gap-3">
-                      <label className="flex items-center gap-2 text-[13px] text-primary">
-                        <input type="color" value={fg} onChange={(e) => setFg(e.target.value)} className="h-9 w-9 rounded border border-border bg-transparent cursor-pointer" />
-                        Warna QR
-                      </label>
-                      <label className="flex items-center gap-2 text-[13px] text-primary">
-                        <input type="color" value={bg} onChange={(e) => setBg(e.target.value)} className="h-9 w-9 rounded border border-border bg-transparent cursor-pointer" />
-                        Latar
-                      </label>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 text-[13px] text-tertiary">
-                      <span className="h-6 w-6 rounded border border-border" style={{ background: FREE_FG }} />
-                      <span className="h-6 w-6 rounded border border-border" style={{ background: FREE_BG }} />
-                      <span className="flex items-center gap-1"><Lock size={13} /> Hitam-putih di paket gratis</span>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-[13px] text-secondary mb-2">Logo di tengah</p>
-                  {custom ? (
-                    <label className="flex items-center gap-2 text-[13px] text-primary cursor-pointer select-none">
-                      <input type="checkbox" checked={useLogo} onChange={(e) => setUseLogo(e.target.checked)} className="h-4 w-4 accent-black" />
-                      Tampilkan logo
-                    </label>
-                  ) : (
-                    <div className="flex items-center gap-2 text-[13px] text-tertiary">
-                      <input type="checkbox" checked disabled className="h-4 w-4" />
-                      <span className="flex items-center gap-1"><Lock size={13} /> Logo wajib di paket gratis</span>
-                    </div>
-                  )}
-                </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <ColorField id="qr-fg" label="Warna QR" value={fg} onChange={setFg} presets={FG_PRESETS} />
+                <ColorField id="qr-bg" label="Warna latar" value={bg} onChange={setBg} presets={BG_PRESETS} allowTransparent />
               </div>
 
-              {custom && lowContrast && (
-                <p className="flex items-start gap-2 text-[12px] text-amber-500 mt-4">
+              {/* Logo di tengah: bisa dimatikan di paket Premium, selalu tampil di paket gratis. */}
+              <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${colors.logo ? 'bg-blue-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]' : 'border border-border text-transparent'}`}
+                  >
+                    <Check size={15} strokeWidth={2.5} />
+                  </span>
+                  <div className="min-w-0 leading-tight">
+                    <p className="text-[13px] font-medium text-primary">Logo di tengah</p>
+                    <p className="mt-0.5 flex items-center gap-1 text-[12px] text-secondary">
+                      {custom ? (
+                        colors.logo ? 'Logo tampil di tengah QR.' : 'QR tampil tanpa logo.'
+                      ) : (
+                        <>
+                          <Lock size={12} strokeWidth={1.75} aria-hidden="true" className="shrink-0" /> Wajib di paket gratis
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                {custom && (
+                  <Switch size="md" checked={useLogo} onChange={setUseLogo} label="Tampilkan logo di tengah QR" title={useLogo ? 'Klik untuk menyembunyikan logo' : 'Klik untuk menampilkan logo'} />
+                )}
+              </div>
+
+              {sameColor && (
+                <p className="mt-3 flex items-start gap-2 rounded-md bg-red-500/10 px-2.5 py-2 text-[12px] text-red-700 dark:text-red-400">
+                  <AlertTriangle size={14} className="mt-[1px] shrink-0" />
+                  Warna QR dan warna latar sama, jadi QR tidak bisa dipindai. Pilih dua warna yang berbeda.
+                </p>
+              )}
+
+              {clearBg && (
+                <p className="mt-3 rounded-md bg-blue-500/10 px-2.5 py-2 text-[12px] leading-relaxed text-blue-700 dark:text-blue-300">
+                  Latar transparan: PNG dan SVG diunduh tanpa bidang latar. Tempel QR di atas bidang polos yang warnanya jauh berbeda dari warna QR, supaya tetap mudah dipindai.
+                </p>
+              )}
+
+              {lowContrast && (
+                <p className="mt-3 flex items-start gap-2 rounded-md bg-amber-500/10 px-2.5 py-2 text-[12px] text-amber-700 dark:text-amber-400">
                   <AlertTriangle size={14} className="mt-[1px] shrink-0" />
                   Kontras warna rendah ({contrast.toFixed(1)}:1). QR mungkin sulit dipindai. Pilih warna yang lebih gelap untuk QR dan lebih terang untuk latar.
                 </p>
@@ -255,7 +276,7 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
               {!custom && (
                 <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-card-muted p-4">
                   <p className="text-[13px] text-secondary">
-                    Ingin ubah warna atau hapus logo? Paket Bulanan Rp30.000 atau Tahunan Rp300.000 untuk satu QR.
+                    Ingin QR tanpa logo, dan warna serta link yang bisa diganti kapan saja? Paket Bulanan Rp30.000 atau Tahunan Rp300.000 untuk satu QR.
                   </p>
                   <Link to={user ? '/dashboard/qr?view=pilih' : '/qr/harga'} className="shrink-0">
                     <Button variant="primary" size="sm" icon={Crown}>Lihat paket</Button>
@@ -280,7 +301,7 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
           {/* Pratinjau */}
           <div className="lg:col-span-5">
             <div className="rounded-2xl border border-border bg-card p-5 lg:sticky lg:top-24">
-              <div className="aspect-square w-full rounded-xl border border-border flex items-center justify-center overflow-hidden" style={{ background: colors.bg }}>
+              <div className="aspect-square w-full rounded-xl border border-border flex items-center justify-center overflow-hidden" style={previewSrc ? qrBackdropStyle(colors.bg) : { backgroundColor: clearBg ? '#FFFFFF' : colors.bg }}>
                 {previewSrc ? (
                   <img src={previewSrc} alt="Pratinjau QR Code" className="w-full h-full object-contain p-3" />
                 ) : (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BarChart2, Plus, ArrowLeftRight, Minimize, ImagePlus, QrCode } from 'lucide-react';
+import { Home, BarChart2, Plus, ArrowLeftRight, Link2, Minimize, ImagePlus, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
@@ -8,15 +8,15 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
   const { t } = useTranslation();
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-      <div className="h-[56px] px-2 bg-card border border-border rounded-full flex items-center gap-1 sm:gap-2 shadow-subtle-modal">
+    <nav className="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-40">
+      <div className="glass h-[46px] sm:h-[56px] px-1.5 sm:px-2 rounded-full flex items-center gap-0.5 sm:gap-2">
         {/* Home Tab */}
         <Link
           to="/"
-          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[34px] sm:h-[40px] px-2.5 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth [&>svg]:max-sm:h-4 [&>svg]:max-sm:w-4 ${
             location.pathname === '/'
-              ? 'bg-card-muted text-primary font-medium'
-              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+              ? 'bg-blue-500 text-white font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]'
+              : 'text-secondary hover:text-primary hover:bg-white/50 dark:hover:bg-white/10'
           }`}
           title="Explore"
         >
@@ -27,10 +27,10 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* Converter Tab */}
         <Link
           to="/converters"
-          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[34px] sm:h-[40px] px-2.5 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth [&>svg]:max-sm:h-4 [&>svg]:max-sm:w-4 ${
             location.pathname === '/converters'
-              ? 'bg-card-muted text-primary font-medium'
-              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+              ? 'bg-blue-500 text-white font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]'
+              : 'text-secondary hover:text-primary hover:bg-white/50 dark:hover:bg-white/10'
           }`}
           title={t('home.converters_title', 'Converters')}
         >
@@ -41,10 +41,10 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* Compressor Tab */}
         <Link
           to="/compressors"
-          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[34px] sm:h-[40px] px-2.5 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth [&>svg]:max-sm:h-4 [&>svg]:max-sm:w-4 ${
             location.pathname === '/compressors'
-              ? 'bg-card-muted text-primary font-medium'
-              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+              ? 'bg-blue-500 text-white font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]'
+              : 'text-secondary hover:text-primary hover:bg-white/50 dark:hover:bg-white/10'
           }`}
           title={t('home.compressors_title', 'Compressors')}
         >
@@ -55,10 +55,10 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* Twibbon Tab */}
         <Link
           to="/campaigns"
-          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[34px] sm:h-[40px] px-2.5 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth [&>svg]:max-sm:h-4 [&>svg]:max-sm:w-4 ${
             location.pathname.startsWith('/campaigns') || location.pathname.startsWith('/c/') || location.pathname.startsWith('/twibbon')
-              ? 'bg-card-muted text-primary font-medium'
-              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+              ? 'bg-blue-500 text-white font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]'
+              : 'text-secondary hover:text-primary hover:bg-white/50 dark:hover:bg-white/10'
           }`}
           title="Twibbon"
         >
@@ -69,10 +69,10 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         {/* QR Generator Tab */}
         <Link
           to="/qr"
-          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[34px] sm:h-[40px] px-2.5 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth [&>svg]:max-sm:h-4 [&>svg]:max-sm:w-4 ${
             location.pathname.startsWith('/qr')
-              ? 'bg-card-muted text-primary font-medium'
-              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+              ? 'bg-blue-500 text-white font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]'
+              : 'text-secondary hover:text-primary hover:bg-white/50 dark:hover:bg-white/10'
           }`}
           title="QR Generator"
         >
@@ -80,13 +80,27 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
           <span className="hidden sm:inline text-[12px] whitespace-nowrap">QR</span>
         </Link>
 
+        {/* Linktree Tab */}
+        <Link
+          to="/linktree"
+          className={`h-[34px] sm:h-[40px] px-2.5 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth [&>svg]:max-sm:h-4 [&>svg]:max-sm:w-4 ${
+            location.pathname.startsWith('/linktree')
+              ? 'bg-blue-500 text-white font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]'
+              : 'text-secondary hover:text-primary hover:bg-white/50 dark:hover:bg-white/10'
+          }`}
+          title="Linktree"
+        >
+          <Link2 size={18} strokeWidth={1.75} />
+          <span className="hidden sm:inline text-[12px] whitespace-nowrap">Linktree</span>
+        </Link>
+
         {/* Stats Tab */}
         <Link
           to="/overview"
-          className={`h-[40px] px-3 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth ${
+          className={`h-[34px] sm:h-[40px] px-2.5 sm:px-3.5 rounded-full flex items-center gap-1.5 transition-smooth [&>svg]:max-sm:h-4 [&>svg]:max-sm:w-4 ${
             location.pathname === '/overview'
-              ? 'bg-card-muted text-primary font-medium'
-              : 'text-tertiary hover:text-primary hover:bg-card-muted/60'
+              ? 'bg-blue-500 text-white font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]'
+              : 'text-secondary hover:text-primary hover:bg-white/50 dark:hover:bg-white/10'
           }`}
           title="Statistics"
         >
@@ -95,12 +109,12 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
         </Link>
 
         {/* Separator */}
-        <div className="w-[1px] h-5 bg-border mx-0.5" />
+        <div className="w-[1px] h-4 sm:h-5 bg-border mx-0.5" />
 
         {/* Batch Plus Button (44x44px solid black circle, white plus icon) */}
         <Link
           to="/batch"
-          className="w-[40px] h-[40px] rounded-full bg-accent-black dark:bg-white hover:bg-accent-black-hover dark:hover:bg-zinc-200 text-white dark:text-black flex items-center justify-center transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent-black dark:focus-visible:ring-white"
+          className="w-[34px] h-[34px] sm:w-[40px] sm:h-[40px] rounded-full [&>svg]:max-sm:h-[18px] [&>svg]:max-sm:w-[18px] bg-accent-black dark:bg-white hover:bg-accent-black-hover dark:hover:bg-zinc-200 text-white dark:text-black flex items-center justify-center transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent-black dark:focus-visible:ring-white"
           title="Import Multiple Files"
         >
           <Plus size={20} strokeWidth={2} />

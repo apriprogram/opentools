@@ -30,18 +30,19 @@ export default function Button({
   const iconClass = size === 'sm' ? 'shrink-0' : 'shrink-0 max-sm:[.panel-compact_&]:h-3.5 max-sm:[.panel-compact_&]:w-3.5';
 
   // Radius classes
-  const radiusStyle = pill ? 'rounded-full' : 'rounded-md';
+  // Semua tombol berbentuk pil. Prop pill dipertahankan supaya pemanggil lama tidak perlu diubah.
+  const radiusStyle = pill ? 'rounded-full' : 'rounded-full';
 
   // Variant classes
   const variantStyles = {
     primary:
-      'bg-accent-black dark:bg-white text-white dark:text-black hover:bg-accent-black-hover dark:hover:bg-zinc-200 active:scale-[0.98] disabled:bg-[#D4D4D8] dark:disabled:bg-zinc-800 disabled:text-white/80 dark:disabled:text-black/80 disabled:cursor-not-allowed disabled:active:scale-100',
+      'bg-accent-black dark:bg-white text-white dark:text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_8px_20px_-12px_rgba(15,23,42,0.55)] hover:bg-accent-black-hover dark:hover:bg-zinc-200 active:scale-[0.98] disabled:shadow-none disabled:bg-[#D4D4D8] dark:disabled:bg-zinc-800 disabled:text-white/80 dark:disabled:text-black/80 disabled:cursor-not-allowed disabled:active:scale-100',
     secondary:
-      'bg-card dark:bg-[#18181b] border border-border text-primary hover:border-border-hover hover:bg-card-muted active:bg-[#ECECED] dark:active:bg-zinc-800 disabled:text-tertiary disabled:border-border disabled:cursor-not-allowed',
+      'border border-black/[0.08] bg-white/70 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl hover:bg-white active:scale-[0.98] dark:border-white/[0.14] dark:bg-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] dark:hover:bg-white/[0.16] disabled:text-tertiary disabled:cursor-not-allowed disabled:active:scale-100',
     ghost:
       'bg-transparent text-primary hover:bg-card-muted active:bg-[#ECECED] disabled:text-tertiary disabled:cursor-not-allowed',
     danger:
-      'bg-danger text-white hover:bg-[#B91C1C] active:scale-[0.98] disabled:bg-[#FCA5A5] disabled:cursor-not-allowed',
+      'bg-danger text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] hover:bg-[#B91C1C] active:scale-[0.98] disabled:bg-[#FCA5A5] disabled:cursor-not-allowed',
   };
 
   return (
@@ -49,7 +50,7 @@ export default function Button({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className={`inline-flex items-center justify-center gap-2 font-sans select-none transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-black focus-visible:ring-offset-2 ${sizeStyles[size] || sizeStyles.md} ${compactStyles[size] ?? compactStyles.md} ${radiusStyle} ${variantStyles[variant] || variantStyles.primary} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap font-sans select-none transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-black focus-visible:ring-offset-2 ${sizeStyles[size] || sizeStyles.md} ${compactStyles[size] ?? compactStyles.md} ${radiusStyle} ${variantStyles[variant] || variantStyles.primary} ${className}`}
       {...props}
     >
       {Icon && iconPosition === 'left' && <Icon size={size === 'sm' ? 14 : 16} strokeWidth={1.75} className={iconClass} />}

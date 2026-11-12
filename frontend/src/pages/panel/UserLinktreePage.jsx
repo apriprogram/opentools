@@ -133,7 +133,7 @@ export default function UserLinktreePage() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid gap-4 sm:gap-5 xl:grid-cols-2">
           {list.map((tree) => (
             <LinktreeCard key={tree.id} tree={tree} onDelete={remove} />
           ))}

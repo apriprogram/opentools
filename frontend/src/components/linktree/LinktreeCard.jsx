@@ -3,19 +3,18 @@ import { Link } from 'react-router-dom';
 import { CheckCheck, Copy, Eye, Pencil, Trash2 } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { PublishChip } from '../panel/Chips';
-import LinktreeView from './LinktreeView';
+import LinktreeView, { pageBackground } from './LinktreeView';
+import PhoneMockup from './PhoneMockup';
 import { fetchLinktree } from '../../services/linktreeApi';
 
-// Ukuran miniatur. Halaman digambar selebar ponsel (360px) lalu dikecilkan.
-const PAGE_WIDTH = 360;
-const THUMB_WIDTH = 132;
-const THUMB_HEIGHT = 232;
-const SCALE = THUMB_WIDTH / PAGE_WIDTH;
+// Isi layar mockup dikecilkan supaya halaman tergambar selebar ponsel sungguhan (sekitar 360px).
+const SCREEN_ZOOM = 0.76;
 
 const tanggal = (d) => (d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-');
 
-// Miniatur halaman Linktree: tema, foto, dan tautan aslinya, hanya untuk dilihat.
-function LinktreeThumb({ id, title }) {
+// Pratinjau halaman Linktree di dalam ponsel 3D: tema, foto, dan tautan aslinya, hanya untuk dilihat.
+// Ponsel miring mengikuti kursor; isinya tidak bisa diklik karena seluruh ponsel adalah tautan ke editor.
+function LinktreePhone({ id, title }) {
   const [tree, setTree] = useState(null);
   const [failed, setFailed] = useState(false);
 
@@ -29,50 +28,49 @@ function LinktreeThumb({ id, title }) {
     };
   }, [id]);
 
+  const theme = tree?.theme || {};
+
   return (
-    <div
-      aria-hidden="true"
-      className="relative shrink-0 overflow-hidden rounded-md border border-border bg-card-muted"
-      style={{ width: THUMB_WIDTH, height: THUMB_HEIGHT }}
+    <PhoneMockup
+      ink={tree ? theme.text || '#111111' : '#FFFFFF'}
+      label={`Pratinjau ${title}`}
+      float={false}
+      className="shrink-0 px-5 pb-9 pt-5 [zoom:0.46] sm:[zoom:0.56]"
     >
       {tree ? (
-        <div
-          className="pointer-events-none absolute left-0 top-0 select-none"
-          style={{ width: PAGE_WIDTH, height: THUMB_HEIGHT / SCALE, transform: `scale(${SCALE})`, transformOrigin: 'top left' }}
-        >
-          <LinktreeView tree={tree} preview />
+        <div className="pointer-events-none min-h-full select-none pt-8" style={{ ...pageBackground(theme), zoom: SCREEN_ZOOM }}>
+          <LinktreeView tree={tree} preview plain />
         </div>
       ) : (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-3 text-center">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-[15px] font-semibold text-secondary">
+        <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-zinc-900 px-6 text-center text-white">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full border border-white/40 text-[24px] font-semibold">
             {(title || '?').trim().slice(0, 1).toUpperCase() || '?'}
           </span>
-          <span className="text-[11px] text-tertiary">{failed ? 'Pratinjau tidak bisa dimuat' : 'Memuat pratinjau...'}</span>
+          <span className="text-[18px] text-white/70">{failed ? 'Pratinjau tidak bisa dimuat' : 'Memuat pratinjau...'}</span>
         </div>
       )}
-    </div>
+    </PhoneMockup>
   );
 }
 
 function Stat({ label, value }) {
   return (
-    <div className="min-w-0 rounded-sm bg-card-muted px-1 py-1.5 sm:py-2">
-      <p className="text-[14px] font-semibold tabular-nums leading-tight text-primary sm:text-[16px]">{Number(value || 0).toLocaleString('id-ID')}</p>
-      <p className="truncate text-[10px] text-tertiary sm:text-[11px]">{label}</p>
+    <div className="min-w-0 rounded-md bg-card-muted px-1 py-2 sm:rounded-lg sm:py-3">
+      <p className="text-[14px] font-semibold tabular-nums leading-tight text-primary sm:text-[18px]">{Number(value || 0).toLocaleString('id-ID')}</p>
+      <p className="mt-0.5 truncate text-[10px] text-tertiary sm:text-[12px]">{label}</p>
     </div>
   );
 }
 
 // Tombol ikon di kartu. Keterangannya tampil saat disorot (title) dan dibaca pembaca layar (aria-label).
-const ICON_BTN = 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:h-9 sm:w-9';
+const ICON_BTN = 'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:h-10 sm:w-10';
 const ICON_TONE = {
-  primary: 'border-accent-black bg-accent-black text-card hover:opacity-90',
   neutral: 'border-border text-secondary hover:border-blue-500 hover:text-blue-500',
   danger: 'border-border text-secondary hover:border-red-500 hover:text-red-500',
 };
 const iconBtn = (tone) => `${ICON_BTN} ${ICON_TONE[tone]}`;
 
-// Kartu satu Linktree di panel user: miniatur halaman, status, statistik, dan aksi.
+// Kartu satu Linktree di panel user: pratinjau di ponsel 3D, status, statistik, dan aksi.
 export default function LinktreeCard({ tree, onDelete }) {
   const { addToast: toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -101,31 +99,40 @@ export default function LinktreeCard({ tree, onDelete }) {
   };
 
   return (
-    <div className="flex gap-3 rounded-2xl border border-border bg-card p-3 transition-smooth hover:border-blue-500 sm:gap-4 sm:p-4">
-      <Link to={editPath} title={`Edit ${tree.title}`} aria-label={`Edit ${tree.title}`} className="shrink-0 rounded-md transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
-        <LinktreeThumb id={tree.id} title={tree.title} />
+    <div className="flex items-stretch gap-2 rounded-2xl border border-border bg-card p-3 sm:gap-5 sm:p-6">
+      <Link
+        to={editPath}
+        title={`Edit ${tree.title}`}
+        aria-label={`Edit ${tree.title}`}
+        className="flex shrink-0 items-center rounded-2xl bg-card-muted transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      >
+        <LinktreePhone id={tree.id} title={tree.title} />
       </Link>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col py-1 sm:py-2">
         <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1.5">
           <div className="min-w-0">
-            <p className="truncate text-[14px] font-semibold text-primary sm:text-[15px]" title={tree.title}>{tree.title}</p>
-            <p className="truncate font-mono text-[11px] text-tertiary sm:text-[12px]">/l/{tree.slug}</p>
+            <p className="truncate text-[15px] font-semibold tracking-tight text-primary sm:text-[19px]" title={tree.title}>{tree.title}</p>
+            <p className="mt-0.5 truncate font-mono text-[11px] text-tertiary sm:text-[12px]">/l/{tree.slug}</p>
           </div>
           <PublishChip published={tree.published} />
         </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-1.5 text-center">
+        <div className="mt-3 grid grid-cols-3 gap-1.5 text-center sm:mt-5 sm:gap-2.5">
           <Stat label="Tautan" value={tree.linkCount} />
           <Stat label="Klik" value={tree.clicks} />
           <Stat label="Kunjungan" value={tree.views} />
         </div>
 
-        <p className="mt-2 text-[11px] text-tertiary">Diubah {tanggal(tree.updatedAt || tree.createdAt)}</p>
+        <p className="mt-2.5 text-[11px] text-tertiary sm:mt-4 sm:text-[12px]">Diubah {tanggal(tree.updatedAt || tree.createdAt)}</p>
 
-        <div className="mt-auto flex flex-wrap gap-1.5 pt-3 sm:gap-2">
-          <Link to={editPath} title="Edit Linktree" aria-label={`Edit ${tree.title}`} className={iconBtn('primary')}>
-            <Pencil size={15} strokeWidth={1.75} aria-hidden="true" />
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 sm:gap-2 sm:pt-5">
+          <Link
+            to={editPath}
+            aria-label={`Edit ${tree.title}`}
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-accent-black px-3 text-[12px] font-medium text-card shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] transition-smooth hover:bg-accent-black-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:h-10 sm:gap-2 sm:px-4 sm:text-[13px]"
+          >
+            <Pencil size={14} strokeWidth={1.75} aria-hidden="true" /> Edit
           </Link>
           {/* Lihat halaman Linktree. Draf belum publik, jadi dibuka sebagai pratinjau khusus pemilik. */}
           <a

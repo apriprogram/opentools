@@ -84,6 +84,9 @@ function AppContent() {
   const isPanel =
     location.pathname.startsWith('/admin') || location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/l/');
 
+  // Dashboard pengguna dan panel admin memakai latar bersuasana seperti halaman publik.
+  const isDashboard = location.pathname.startsWith('/admin') || location.pathname.startsWith('/dashboard');
+
   const handleOpenBatch = () => {
     navigate('/batch');
   };
@@ -93,7 +96,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-page text-primary flex flex-col font-sans selection:bg-accent-black selection:text-white">
+    <div className={`min-h-screen text-primary flex flex-col font-sans selection:bg-accent-black selection:text-white ${isDashboard ? 'panel-ambient' : isPanel ? 'bg-page' : 'site-ambient'}`}>
       {/* Navbar */}
       {/* Tab yang masih memakai versi lama dimuat ulang setelah ada deploy */}
       <VersionWatcher />

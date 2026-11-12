@@ -4,8 +4,8 @@ import { Check, Crown, QrCode, Receipt } from 'lucide-react';
 import Button from '../ui/Button';
 import { rupiah } from './OrderParts';
 
-const FREE_FEATURES = ['QR tanpa batas jumlah', 'Logo OpenTools di tengah', 'Warna hitam-putih', 'Unduh PNG dan SVG'];
-const PREMIUM_FEATURES = ['Semua fitur gratis', 'Ganti warna QR dan latar', 'Logo bisa dihilangkan', 'Untuk 1 QR code'];
+const FREE_FEATURES = ['QR tanpa batas jumlah', 'Warna QR dan latar bisa dipilih', 'Logo di tengah (wajib)', 'Unduh PNG dan SVG'];
+const PREMIUM_FEATURES = ['Semua fitur gratis', 'Logo bisa dihilangkan', 'Warna dan link bisa diganti kapan saja', 'Untuk 1 QR code'];
 const INPUT =
   'h-[42px] w-full rounded-md border border-border bg-card px-3 text-[14px] text-primary placeholder:text-tertiary focus:outline-none focus:border-border-focus transition-smooth';
 

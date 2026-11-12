@@ -276,7 +276,7 @@ export default function LinktreeEditorPage() {
         </div>
 
         <div className="hidden lg:col-span-5 lg:block">
-          <div className="sticky top-6">
+          <div className="sticky top-20">
             <p className="mb-2 text-[12px] font-medium text-secondary">Pratinjau langsung</p>
             <DevicePreview tree={draft} height={previewHeight} onExpand={() => setPreviewOpen(true)} />
           </div>

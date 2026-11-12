@@ -77,7 +77,7 @@ const STATEMENTS = [
     user_id INT UNSIGNED NOT NULL,
     link VARCHAR(2048) NOT NULL,
     fg VARCHAR(9) NOT NULL,
-    bg VARCHAR(9) NOT NULL,
+    bg VARCHAR(16) NOT NULL,
     logo TINYINT(1) NOT NULL DEFAULT 1,
     plan_expires_at DATETIME NULL,
     created_at DATETIME NOT NULL,
@@ -188,6 +188,18 @@ async function backfillScanCodes() {
   }
 }
 
+// Lebarkan kolom VARCHAR yang sudah ada jika panjangnya masih kurang dari yang dibutuhkan.
+async function ensureVarcharLength(table, column, minLength, definition) {
+  const [rows] = await pool.query(
+    `SELECT CHARACTER_MAXIMUM_LENGTH AS len FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+    [table, column]
+  );
+  if (rows.length && Number(rows[0].len) < minLength) {
+    await pool.query(`ALTER TABLE \`${table}\` MODIFY COLUMN \`${column}\` ${definition}`);
+  }
+}
+
 // Ubah tipe kolom yang sudah ada jika masih memakai tipe lama (misalnya TEXT menjadi MEDIUMTEXT).
 async function ensureColumnType(table, column, wantedType, definition) {
   const [rows] = await pool.query(
@@ -219,6 +231,8 @@ export async function ensureSchema() {
   // dan tema kembali ke bawaan. MEDIUMTEXT muat sampai 16 MB.
   await ensureColumnType("linktrees", "theme", "mediumtext", "MEDIUMTEXT NULL");
   // QR dinamis: kode pindai (alamat /api/q/<kode>), status nonaktif dari pemilik, dan waktu QR mulai dinamis.
+  // Warna latar QR bisa berisi "transparent" (11 huruf), jadi kolomnya dilebarkan dari 9 huruf.
+  await ensureVarcharLength("user_qr", "bg", 16, "VARCHAR(16) NOT NULL");
   await ensureColumn("user_qr", "code", "VARCHAR(12) NULL");
   await ensureColumn("user_qr", "disabled", "TINYINT(1) NOT NULL DEFAULT 0");
   await ensureColumn("user_qr", "dynamic_at", "DATETIME NULL");

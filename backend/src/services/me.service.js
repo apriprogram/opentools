@@ -65,11 +65,11 @@ export const listUserQr = async (user) => {
   }));
 };
 
-// QR dari generator selalu gratis (hitam putih dengan logo). Paket berbayar dibuat lewat pesanan, satu pesanan untuk satu QR.
-// Pengecualian: super admin boleh langsung memakai warna sendiri dan mematikan logo.
+// QR dari generator selalu gratis: warna QR dan latar boleh dipilih, logo selalu tampil.
+// Paket berbayar dibuat lewat pesanan, satu pesanan untuk satu QR. Super admin boleh langsung mematikan logo.
 export const createUserQr = async (user, { link, fg, bg, logo }) => {
   const custom = isAdminFree(user);
-  const design = custom ? { fg: fg || FREE_FG, bg: bg || FREE_BG, logo: logo === false ? 0 : 1 } : { fg: FREE_FG, bg: FREE_BG, logo: 1 };
+  const design = { fg: fg || FREE_FG, bg: bg || FREE_BG, logo: custom && logo === false ? 0 : 1 };
   const id = crypto.randomUUID();
   const code = newScanCode();
   const createdAt = new Date();

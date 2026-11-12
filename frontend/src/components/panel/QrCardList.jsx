@@ -5,7 +5,7 @@ import { QrModal } from './LicenseQr';
 import Button from '../ui/Button';
 import Countdown from '../ui/Countdown';
 import { useToast } from '../ui/Toast';
-import { buildQrSvg, qrContent, svgToPngBlob, downloadBlob } from '../../lib/qrCode';
+import { buildQrSvg, qrBackdropStyle, qrContent, svgToPngBlob, downloadBlob } from '../../lib/qrCode';
 import { toggleQrActive } from './qrActions';
 import { deleteMyQr } from '../../services/authApi';
 import { tanggal } from './OrderParts';
@@ -36,9 +36,9 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade, adminFree }) {
   const [copied, setCopied] = useState(false);
   const premium = qr.status === 'aktif';
 
-  // Paket gratis: QR hitam putih dengan logo hitam. Berlaku juga untuk QR yang lisensinya sudah berakhir atau dinonaktifkan.
-  const fg = premium ? qr.fg : '#000000';
-  const bg = premium ? qr.bg : '#FFFFFF';
+  // Warna QR dan latar dipakai di semua paket. Yang membedakan paket gratis: logo selalu tampil.
+  const fg = qr.fg || '#000000';
+  const bg = qr.bg || '#FFFFFF';
   // Logo hanya disembunyikan jika paket berbayar aktif dan pengguna memang mematikannya.
   const logoDataUrl = premium && !qr.logo ? null : logoUrl;
 
@@ -114,7 +114,7 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade, adminFree }) {
           aria-label="Perbesar QR"
           title="Klik untuk memperbesar"
           className="h-[112px] w-[112px] shrink-0 cursor-zoom-in rounded-xl border border-border p-2 transition-smooth hover:border-blue-500 focus-visible:border-blue-500 focus-visible:outline-none disabled:cursor-default [&>svg]:h-full [&>svg]:w-full"
-          style={{ background: bg }}
+          style={qrBackdropStyle(bg, 10)}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
         <div className="min-w-0 flex-1">
@@ -143,7 +143,7 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade, adminFree }) {
       <div className="mt-auto flex flex-wrap gap-2">
         <Button size="sm" variant="primary" icon={Download} onClick={downloadPng} disabled={!svg}>PNG</Button>
         <Button size="sm" variant="secondary" icon={Download} onClick={downloadSvg} disabled={!svg}>SVG</Button>
-        {/* Link, warna, dan logo hanya bisa diedit ulang untuk QR Premium yang aktif. QR gratis tetap hitam putih. */}
+        {/* Link, warna, dan logo hanya bisa diedit ulang untuk QR Premium yang aktif. Warna QR gratis dipilih saat dibuat. */}
         {premium && (
           <Button size="sm" variant="secondary" icon={PencilLine} onClick={() => setEditing(true)}>Edit QR</Button>
         )}

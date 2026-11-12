@@ -10,8 +10,14 @@ import { fetchQrPlans } from '../services/qrApi';
 const rupiah = (n) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 
-const FREE_FEATURES = ['QR Code tanpa batas jumlah', 'Logo OpenTools di tengah', 'Warna hitam-putih', 'Unduh PNG & SVG'];
-const PAID_FEATURES = ['Semua fitur gratis', 'Ganti warna QR dan latar', 'Logo bisa dihilangkan', 'Untuk satu QR code'];
+const FREE_FEATURES = ['QR Code tanpa batas jumlah', 'Warna QR dan latar bisa dipilih', 'Logo di tengah (wajib)', 'Unduh PNG & SVG'];
+const PAID_FEATURES = ['Semua fitur gratis', 'Logo bisa dihilangkan', 'Warna dan link bisa diganti kapan saja', 'Untuk satu QR code'];
+
+// Warna tiap paket berbayar: garis tepi kartu dan tanda centangnya. Bulanan biru, Tahunan emas.
+const PLAN_TONE = {
+  monthly: { card: 'plan-outline-blue', check: 'text-blue-500' },
+  yearly: { card: 'plan-outline-gold', check: 'text-[#B8912A] dark:text-[#E9C35A]' },
+};
 
 // Halaman harga hanya menampilkan paket. Pemesanan, pembayaran, dan bukti dilakukan di dashboard akun.
 export default function QrPricingPage() {
@@ -80,12 +86,12 @@ export default function QrPricingPage() {
           {plans.map((p) => (
             <div
               key={p.id}
-              className={`flex flex-col rounded-2xl border bg-card p-5 ${p.id === 'yearly' ? 'border-primary/40' : 'border-border'}`}
+              className={`flex flex-col rounded-2xl border border-border bg-card p-5 ${PLAN_TONE[p.id]?.card || ''}`}
             >
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-[15px] font-semibold text-primary">{p.label}</h2>
                 {p.id === 'yearly' && (
-                  <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-primary">Hemat</span>
+                  <span className="premium-gold rounded-full border px-2 py-0.5 text-[11px] font-semibold">Hemat</span>
                 )}
               </div>
               <p className="text-[26px] font-semibold leading-[30px] text-primary">
@@ -95,7 +101,7 @@ export default function QrPricingPage() {
               <ul className="mt-4 flex-1 space-y-2">
                 {PAID_FEATURES.map((f) => (
                   <li key={f} className="flex items-start gap-2 text-[13px] text-secondary">
-                    <Check size={15} strokeWidth={2} className="mt-[2px] shrink-0 text-primary" /> {f}
+                    <Check size={15} strokeWidth={2} className={`mt-[2px] shrink-0 ${PLAN_TONE[p.id]?.check || 'text-primary'}`} /> {f}
                   </li>
                 ))}
               </ul>

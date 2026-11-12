@@ -209,3 +209,321 @@
 .transition-smooth {
   transition: border-color 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out;
 }
+
+/* ── Gaya kaca (halaman publik) ──
+   Latar bersuasana senja: biru keunguan di kiri atas, jingga hangat di kanan, ungu di bawah.
+   Di atasnya, kartu dan tombol memakai kaca buram: warna tembus pandang, garis tepi terang tipis,
+   dan sorot halus di tepi atas. */
+.site-ambient {
+  background-color: #E9ECF3;
+  background-image:
+    radial-gradient(58rem 38rem at 0% 0%, rgba(118, 138, 255, 0.34), transparent 62%),
+    radial-gradient(48rem 34rem at 100% 10%, rgba(255, 168, 122, 0.34), transparent 62%),
+    radial-gradient(56rem 40rem at 50% 108%, rgba(168, 138, 255, 0.26), transparent 64%);
+  background-attachment: fixed;
+}
+.dark .site-ambient {
+  background-color: #07080C;
+  background-image:
+    radial-gradient(58rem 38rem at 0% 0%, rgba(74, 90, 196, 0.42), transparent 62%),
+    radial-gradient(48rem 34rem at 100% 8%, rgba(212, 108, 58, 0.28), transparent 62%),
+    radial-gradient(56rem 40rem at 50% 108%, rgba(118, 70, 190, 0.3), transparent 64%);
+}
+
+/* Permukaan kaca untuk bilah, pil, dan kolom isian. */
+.glass {
+  background-color: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 30px -18px rgba(15, 23, 42, 0.35);
+}
+.dark .glass {
+  background-color: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 30px -18px rgba(0, 0, 0, 0.7);
+}
+
+/* Kaca di atas kartu berwarna: tombol ikon bulat dan label kecil. */
+.glass-on-color {
+  border: 0;
+  background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.14) 45%, rgba(255, 255, 255, 0.08) 100%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  box-shadow:
+    inset 1px 1px 0.5px rgba(255, 255, 255, 0.62),
+    inset -1px -1px 0.5px rgba(255, 255, 255, 0.16),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.2),
+    0 8px 18px -10px rgba(0, 0, 0, 0.32);
+  color: #ffffff;
+}
+
+/* Kartu berwarna di beranda: gradasi lembut dengan sorot terang di tepi atas. */
+.tone-card {
+  position: relative;
+  isolation: isolate;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 22px 44px -26px rgba(15, 23, 42, 0.6);
+}
+.tone-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(120% 70% at 20% 0%, rgba(255, 255, 255, 0.26), transparent 60%);
+  pointer-events: none;
+}
+.tone-dusk { background-image: linear-gradient(168deg, #55638F 0%, #8A7AA0 46%, #B8674A 100%); }
+.tone-blue { background-image: linear-gradient(160deg, #6FA8F5 0%, #3B82F6 58%, #2563EB 100%); }
+.tone-magenta { background-image: linear-gradient(160deg, #A12A66 0%, #8E1B55 48%, #5A1136 100%); }
+.tone-graphite { background-image: linear-gradient(160deg, #565A62 0%, #2E3036 58%, #18191C 100%); }
+.tone-green { background-image: linear-gradient(160deg, #5FAE7B 0%, #2F7D55 55%, #1F5A3F 100%); }
+.tone-slate { background-image: linear-gradient(160deg, #8A93A8 0%, #5B6478 58%, #3D4456 100%); }
+.tone-violet { background-image: linear-gradient(160deg, #8B7BD8 0%, #6B5BC2 55%, #43358F 100%); }
+
+/* ── Halaman publik lain (konverter, QR, Twibbon, Linktree, masuk, daftar, dan lainnya) ──
+   Kartu, pil, dan kolom isian yang memakai pola umum (border + bg-card) dijadikan kaca tembus pandang,
+   supaya semua halaman publik senada dengan beranda tanpa mengubah tiap halaman satu per satu.
+   Sengaja tanpa blur: satu halaman bisa berisi puluhan kartu, dan blur sebanyak itu berat di ponsel.
+   Latar di belakangnya sudah berupa gradasi halus, jadi tembus pandang saja sudah cukup. */
+.site-ambient main :is(.rounded-2xl, .rounded-xl, .rounded-lg, .rounded-full).border.bg-card {
+  background-color: rgba(255, 255, 255, 0.62);
+  border-color: rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 12px 30px -20px rgba(15, 23, 42, 0.35);
+}
+.dark .site-ambient main :is(.rounded-2xl, .rounded-xl, .rounded-lg, .rounded-full).border.bg-card {
+  background-color: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 30px -20px rgba(0, 0, 0, 0.7);
+}
+/* Kartu yang bisa diklik tetap memberi tanda saat disorot. */
+.site-ambient main :is(a, button):is(.rounded-2xl, .rounded-xl, .rounded-lg, .rounded-full).border.bg-card:hover {
+  border-color: #3B82F6;
+  background-color: rgba(255, 255, 255, 0.82);
+}
+.dark .site-ambient main :is(a, button):is(.rounded-2xl, .rounded-xl, .rounded-lg, .rounded-full).border.bg-card:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+/* Kartu paket QR: garis tepi berwarna. Biru untuk Bulanan, emas untuk Tahunan.
+   Ditulis setelah aturan kaca di atas dan lebih spesifik, supaya warna garisnya tidak tertimpa di mode terang maupun gelap. */
+.site-ambient main .plan-outline-blue.rounded-2xl.border.bg-card {
+  border-width: 2px;
+  border-color: #3B82F6;
+}
+.site-ambient main .plan-outline-gold.rounded-2xl.border.bg-card {
+  border-width: 2px;
+  border-color: #C99A2E;
+}
+.dark .site-ambient main .plan-outline-gold.rounded-2xl.border.bg-card {
+  border-color: #E9C35A;
+}
+/* Permukaan redup di dalam kartu (kotak ikon, panel kecil). */
+.site-ambient main .bg-card-muted {
+  background-color: rgba(255, 255, 255, 0.46);
+}
+.dark .site-ambient main .bg-card-muted {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+/* Kolom isian. */
+.site-ambient main :is(input, textarea, select).bg-card {
+  background-color: rgba(255, 255, 255, 0.66);
+  border-color: rgba(255, 255, 255, 0.82);
+}
+.dark .site-ambient main :is(input, textarea, select).bg-card {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.site-ambient main :is(input, textarea, select).bg-card:focus {
+  border-color: #3B82F6;
+}
+/* Judul halaman: tipis dan rapat, seperti judul di beranda. */
+.site-ambient main h1 {
+  font-weight: 300;
+  letter-spacing: -0.025em;
+}
+
+/* ── Mockup ponsel 3D (halaman Linktree) ──
+   --rx/--ry: kemiringan, --gx: posisi pantulan cahaya, --sx: geser bayangan. Diubah lewat JS saat kursor bergerak. */
+.phone-scene {
+  perspective: 1500px;
+  --rx: 5deg;
+  --ry: -18deg;
+  --gx: 22%;
+  --sx: 18px;
+}
+.phone-float {
+  transform-style: preserve-3d;
+  animation: phone-float 6s ease-in-out infinite;
+}
+.phone-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.phone-scene[data-tracking='true'] .phone-3d {
+  transition: transform 90ms linear;
+}
+.phone-edge,
+.phone-body {
+  border-radius: 52px;
+}
+.phone-edge {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #2c2d32 0%, #8b8c93 14%, #55565c 50%, #9a9ba2 86%, #2c2d32 100%);
+}
+.phone-key {
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #a6a7ae, #4a4b51);
+  transform: translateZ(-6px);
+}
+.phone-body {
+  position: relative;
+  padding: 8px;
+  background: linear-gradient(145deg, #e3e4e8 0%, #9b9ca3 16%, #4d4e54 46%, #b0b1b8 74%, #5f6066 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45), inset 0 0 0 2.5px rgba(0, 0, 0, 0.3);
+}
+.phone-screen {
+  position: relative;
+  overflow: hidden;
+  border-radius: 44px;
+  background: #000000;
+  box-shadow: 0 0 0 3px #000000;
+}
+.phone-scroll {
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+}
+.phone-scroll::-webkit-scrollbar {
+  display: none;
+}
+.phone-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    112deg,
+    transparent calc(var(--gx) - 26%),
+    rgba(255, 255, 255, 0.2) var(--gx),
+    transparent calc(var(--gx) + 26%)
+  );
+  transition: background 200ms linear;
+}
+.phone-shadow {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 230px;
+  height: 34px;
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, rgba(15, 23, 42, 0.42), transparent);
+  filter: blur(8px);
+  transform: translateX(calc(-50% + var(--sx)));
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.dark .phone-shadow {
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.75), transparent);
+}
+/* Isi layar mockup memakai gaya Linktree aslinya, bukan gaya judul halaman publik. */
+.site-ambient main .phone-screen h1 {
+  font-weight: 600;
+  letter-spacing: normal;
+}
+@keyframes phone-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .phone-float {
+    animation: none;
+  }
+  .phone-3d,
+  .phone-shadow {
+    transition: none;
+  }
+}
+
+/* ── Panel (dashboard pengguna dan super admin) ──
+   Latar senada dengan halaman publik tetapi lebih tenang, karena isinya data dan tabel.
+   Sidebar dan header memakai .glass; kartu konten tetap pekat supaya tabel dan kolom yang menempel tetap rapi. */
+.panel-ambient {
+  background-color: #ECEEF4;
+  background-image:
+    radial-gradient(54rem 36rem at 0% 0%, rgba(118, 138, 255, 0.26), transparent 62%),
+    radial-gradient(44rem 30rem at 100% 0%, rgba(255, 168, 122, 0.2), transparent 62%),
+    radial-gradient(52rem 36rem at 60% 110%, rgba(168, 138, 255, 0.18), transparent 64%);
+  background-attachment: fixed;
+}
+.dark .panel-ambient {
+  background-color: #08090D;
+  background-image:
+    radial-gradient(54rem 36rem at 0% 0%, rgba(74, 90, 196, 0.34), transparent 62%),
+    radial-gradient(44rem 30rem at 100% 0%, rgba(212, 108, 58, 0.18), transparent 62%),
+    radial-gradient(52rem 36rem at 60% 110%, rgba(118, 70, 190, 0.22), transparent 64%);
+}
+/* Kartu konten: garis tepi sangat tipis dan bayangan lembut, supaya terangkat dari latar. */
+.panel-ambient main .rounded-2xl.border.bg-card:not([class*='shadow-']) {
+  border-color: rgba(15, 23, 42, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 16px 36px -24px rgba(15, 23, 42, 0.3);
+}
+.dark .panel-ambient main .rounded-2xl.border.bg-card:not([class*='shadow-']) {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 36px -24px rgba(0, 0, 0, 0.85);
+}
+/* Judul halaman: tipis dan rapat, seperti judul di halaman publik. */
+.panel-ambient main h1 {
+  font-weight: 300;
+  letter-spacing: -0.025em;
+}
+
+/* ── Ilustrasi di dalam kartu berwarna ──
+   Ilustrasi beranda seluruhnya memakai token warna, jadi cukup token itu yang diganti di dalam panggung kartu:
+   kotak "kertas" menjadi kaca putih tembus pandang dengan garis dan teks putih, sedangkan kotak "tinta"
+   (hasilnya) menjadi putih padat dengan isi berwarna tua dari warna kartu itu sendiri.
+   Dengan begitu tiap ilustrasi otomatis senada dengan kartunya. */
+.tone-dusk { --tone-ink: #4A557F; }
+.tone-blue { --tone-ink: #1D4ED8; }
+.tone-magenta { --tone-ink: #7A1548; }
+.tone-graphite { --tone-ink: #1F2125; }
+.tone-green { --tone-ink: #1F5A3F; }
+.tone-slate { --tone-ink: #3D4456; }
+.tone-violet { --tone-ink: #43358F; }
+
+.tone-card .tone-stage {
+  --bg-card: rgba(255, 255, 255, 0.2);
+  --bg-card-muted: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.38);
+  --border-hover: rgba(255, 255, 255, 0.62);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.88);
+  --text-tertiary: rgba(255, 255, 255, 0.68);
+  --accent-black: #ffffff;
+  --accent-black-hover: #ffffff;
+}
+.tone-card .tone-stage .bg-accent-black {
+  --bg-card: var(--tone-ink);
+  --text-primary: #ffffff;
+  box-shadow: 0 12px 24px -16px rgba(0, 0, 0, 0.6);
+}
+/* Sorotan biru bawaan ilustrasi tidak dipakai di atas kartu berwarna. */
+.tone-card:hover .tone-stage .bg-accent-black {
+  background-color: #ffffff;
+}
+.tone-card:hover .tone-stage .group-hover\:text-blue-500 {
+  color: var(--text-primary);
+}
+.tone-card:hover .tone-stage .group-hover\:border-blue-500 {
+  border-color: var(--border);
+}

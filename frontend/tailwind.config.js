@@ -45,6 +45,7 @@ export default {
         'md': '12px',
         'lg': '16px',
         'xl': '24px',
+        '2xl': '24px',
         'full': '9999px',
       },
       boxShadow: {
