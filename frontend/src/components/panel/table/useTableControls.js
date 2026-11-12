@@ -3,18 +3,25 @@ import { useEffect, useMemo, useState } from 'react';
 export const PER_PAGE_OPTIONS = [5, 10, 25, 50];
 
 // Gaya sel tabel panel. Di ponsel font dan padding lebih kecil.
-const CELL = 'px-2.5 py-2.5 align-top text-[12px] sm:px-3 sm:py-3 sm:text-[13px]';
+// Isi sel rata tengah secara tegak, supaya baris yang tingginya berbeda tetap rapi.
+const CELL = 'px-3 py-3 align-middle text-[12px] sm:px-4 sm:py-3.5 sm:text-[13px]';
 const HEAD =
-  'whitespace-nowrap px-2.5 py-2 text-[10px] font-semibold uppercase tracking-wider text-tertiary sm:px-3 sm:py-2.5 sm:text-[11px]';
+  'whitespace-nowrap px-3 py-2.5 align-middle text-[10px] font-semibold uppercase tracking-[0.08em] text-tertiary sm:px-4 sm:py-3 sm:text-[11px]';
 export const TH = `${HEAD} text-left`;
 export const TD = `${CELL} text-secondary`;
-export const TD_NUM = `${CELL} w-10 tabular-nums text-tertiary`;
+export const TD_NUM = `${CELL} w-12 tabular-nums text-tertiary`;
+
+// Kepala tabel dan baris data. Warna sorot baris ditulis langsung (bukan token dengan /opacity), karena
+// kolom aksi yang menempel butuh warna pekat yang sama persis supaya tidak terlihat belang.
+// Kelas ditulis utuh supaya terbaca Tailwind.
+export const THEAD = 'border-b border-border bg-card-muted';
+export const TR = 'group transition-colors duration-150 hover:bg-[#F6F8FD] dark:hover:bg-[#1E2029]';
 
 // Kolom aksi menempel di sisi kanan, jadi tombolnya tetap terlihat saat tabel digulir ke samping.
-// Garis kirinya digambar dengan pseudo-element, karena border sel sticky tidak ikut bergeser.
-const STICKY = 'sticky right-0 z-[1] before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-border';
+// Pemisahnya bayangan lembut ke kiri, bukan garis tegas.
+const STICKY = 'sticky right-0 z-[1] shadow-[-14px_0_14px_-14px_rgba(15,23,42,0.22)] dark:shadow-[-14px_0_14px_-14px_rgba(0,0,0,0.8)]';
 export const TH_ACTION = `${HEAD} ${STICKY} bg-card-muted text-right`;
-export const TD_ACTION = `${CELL} ${STICKY} bg-card transition-smooth group-hover:bg-card-muted`;
+export const TD_ACTION = `${CELL} ${STICKY} bg-card transition-colors duration-150 group-hover:bg-[#F6F8FD] dark:group-hover:bg-[#1E2029]`;
 
 // Kontrol tabel di sisi browser: cari, filter, urutkan, jumlah per halaman, dan halaman.
 // filters: [{ id, label, test? }]  sorts: [{ id, label, compare }]  searchText: (row) => string

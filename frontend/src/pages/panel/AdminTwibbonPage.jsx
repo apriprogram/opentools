@@ -10,7 +10,7 @@ import { useToast } from '../../components/ui/Toast';
 import ActionMenu, { IconAction } from '../../components/panel/table/ActionMenu';
 import TableToolbar from '../../components/panel/table/TableToolbar';
 import TablePagination from '../../components/panel/table/TablePagination';
-import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION } from '../../components/panel/table/useTableControls';
+import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION, THEAD, TR } from '../../components/panel/table/useTableControls';
 import { adminFetchTwibbons, deleteTwibbon, getCampaignBySlug } from '../../services/twibbonApi';
 
 // Super admin melihat semua Twibbon yang dibuat pengguna, dan bisa menghapus yang tidak pantas.
@@ -184,7 +184,7 @@ export default function AdminTwibbonPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] border-collapse">
-            <thead className="bg-card-muted">
+            <thead className={THEAD}>
               <tr>
                 <th className={TH}>No</th>
                 <th className={`${TH} min-w-[190px]`}>Twibbon</th>
@@ -204,7 +204,7 @@ export default function AdminTwibbonPage() {
                 </tr>
               )}
               {table.pageRows.map((t, i) => (
-                <tr key={t.id} className="group transition-smooth hover:bg-card-muted">
+                <tr key={t.id} className={TR}>
                   <td className={TD_NUM}>{table.start + i + 1}</td>
                   <td className={TD}>
                     <button

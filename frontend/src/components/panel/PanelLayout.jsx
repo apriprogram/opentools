@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, Images, QrCode, Link2, ClipboardList, Database, ImagePlus, LogOut, Eye, Menu, Moon, Settings, Sun, Undo2, UserCog, Users, X } from 'lucide-react';
+import { BarChart3, ChevronDown, Images, QrCode, Link2, ClipboardList, Database, ImagePlus, LogOut, Eye, Menu, Moon, Settings, Sun, Undo2, UserCog, Users, X } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import SiteLogo from '../ui/SiteLogo';
 import { NotificationBell, ProfileMenu } from './HeaderMenus';
@@ -32,7 +32,8 @@ const MENUS = {
       ],
     },
     // Tools Admin: QR, Linktree, dan Twibbon milik admin sendiri. QR buatan admin memakai fitur Premium tanpa biaya.
-    { section: 'Tools Admin', items: USER_ITEMS },
+    // collapsible: judul bagian berupa tombol untuk menyembunyikan dan menampilkan menunya.
+    { section: 'Tools Admin', items: USER_ITEMS, collapsible: true },
     {
       section: 'Pengaturan',
       items: [
@@ -46,6 +47,17 @@ const MENUS = {
 };
 
 const ROLE_LABEL = { user: 'User', superadmin: 'Super Admin' };
+
+// Bagian menu yang sedang disembunyikan disimpan di browser, supaya tetap tertutup setelah pindah halaman.
+const COLLAPSED_KEY = 'ot_sidebar_collapsed';
+const readCollapsed = () => {
+  try {
+    const value = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+};
 
 const todayLabel = () =>
   new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -73,6 +85,19 @@ export default function PanelLayout({ title, children }) {
   const role = user?.role === 'superadmin' ? 'superadmin' : 'user';
   const menu = MENUS[role];
   const displayName = user?.name || user?.username || '';
+  const [collapsed, setCollapsed] = useState(readCollapsed);
+
+  const toggleSection = (section) => {
+    setCollapsed((current) => {
+      const next = current.includes(section) ? current.filter((s) => s !== section) : [...current, section];
+      try {
+        localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next));
+      } catch {
+        // Penyimpanan browser tidak tersedia: tetap jalan, hanya tidak diingat.
+      }
+      return next;
+    });
+  };
 
   // Saat super admin sedang masuk sebagai pengguna, keluar berarti kembali ke akun admin.
   const onLogout = async () => {
@@ -129,10 +154,46 @@ export default function PanelLayout({ title, children }) {
     </div>
 
     <nav className="mt-6 min-h-0 flex-1 space-y-6 overflow-y-auto md:mt-7">
-      {menu.map((group) => (
+      {menu.map((group) => {
+        // Bagian yang berisi halaman yang sedang dibuka selalu terbuka, supaya menu aktifnya tetap terlihat.
+        const holdsActive = group.items.some((item) => item.to && location.pathname.startsWith(item.to));
+        const open = !group.collapsible || holdsActive || !collapsed.includes(group.section);
+        const listId = `menu-${group.section.toLowerCase().replace(/\s+/g, '-')}`;
+        return (
         <div key={group.section}>
-          <p className="px-3.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-tertiary md:text-[11px]">{group.section}</p>
-          <div className="mt-2 space-y-1">
+          {group.collapsible ? (
+            <button
+              type="button"
+              onClick={() => toggleSection(group.section)}
+              aria-expanded={open}
+              aria-controls={listId}
+              disabled={holdsActive}
+              title={holdsActive ? 'Halaman yang sedang dibuka ada di bagian ini' : open ? 'Sembunyikan menu' : 'Tampilkan menu'}
+              className="flex w-full items-center justify-between gap-2 rounded-full px-3.5 py-1 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-tertiary transition-smooth hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-default disabled:hover:text-tertiary md:text-[11px]"
+            >
+              {group.section}
+              <ChevronDown
+                size={14}
+                strokeWidth={2}
+                aria-hidden="true"
+                className={`shrink-0 transition-transform duration-200 motion-reduce:transition-none ${open ? '' : '-rotate-90'}`}
+              />
+            </button>
+          ) : (
+            <p className="px-3.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-tertiary md:text-[11px]">{group.section}</p>
+          )}
+          {/* Buka tutup bergerak halus: tinggi baris grid berubah dari 0fr ke 1fr, isinya memudar dan bergeser sedikit.
+              Saat tertutup, isinya inert supaya tidak bisa difokus atau diklik. */}
+          <div
+            id={listId}
+            aria-hidden={!open}
+            {...(open ? {} : { inert: '' })}
+            className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+              open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+            }`}
+          >
+          <div className={`min-h-0 overflow-hidden transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${open ? 'translate-y-0' : '-translate-y-1.5'}`}>
+          <div className="space-y-1 pt-2">
             {group.items.map((item) =>
               item.action === 'logout' ? (
                 <button
@@ -153,7 +214,7 @@ export default function PanelLayout({ title, children }) {
                 className={({ isActive }) =>
                   `flex items-center gap-2.5 rounded-full px-3.5 py-2 text-[13px] transition-smooth md:py-2.5 md:text-[14px] ${
                     isActive
-                      ? 'bg-blue-500 font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_10px_20px_-12px_rgba(37,99,235,0.9)]'
+                      ? 'bg-blue-500 font-medium text-white'
                       : 'text-secondary hover:bg-black/[0.05] hover:text-primary dark:hover:bg-white/10'
                   }`
                 }
@@ -164,8 +225,11 @@ export default function PanelLayout({ title, children }) {
               )
             )}
           </div>
+          </div>
+          </div>
         </div>
-      ))}
+        );
+      })}
     </nav>
 
     {/* Ponsel: nama akun tampil di sini, karena header hanya menampilkan foto profil. */}

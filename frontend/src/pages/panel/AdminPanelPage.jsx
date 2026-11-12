@@ -10,7 +10,7 @@ import { useToast } from '../../components/ui/Toast';
 import ActionMenu, { IconAction } from '../../components/panel/table/ActionMenu';
 import TableToolbar from '../../components/panel/table/TableToolbar';
 import TablePagination from '../../components/panel/table/TablePagination';
-import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION } from '../../components/panel/table/useTableControls';
+import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION, THEAD, TR } from '../../components/panel/table/useTableControls';
 import {
   adminFetchQrOrders,
   adminConfirmQrOrder,
@@ -205,7 +205,7 @@ export default function AdminPanelPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[880px] border-collapse">
-            <thead className="bg-card-muted">
+            <thead className={THEAD}>
               <tr>
                 <th className={TH}>No</th>
                 <th className={`${TH} min-w-[130px]`}>Pesanan</th>
@@ -225,7 +225,7 @@ export default function AdminPanelPage() {
                 </tr>
               )}
               {table.pageRows.map((o, i) => (
-                <tr key={o.code} className="group transition-smooth hover:bg-card-muted">
+                <tr key={o.code} className={TR}>
                   <td className={TD_NUM}>{table.start + i + 1}</td>
                   <td className={TD}>
                     <button

@@ -105,7 +105,7 @@ function ChartCard({ title, subtitle, total, data, format, formatTick, wholeNumb
       {asTable ? (
         <div className="max-h-[220px] overflow-y-auto rounded-md border border-border">
           <table className="w-full border-collapse text-[12px] sm:text-[13px]">
-            <thead className="sticky top-0 bg-card-muted text-left text-[11px] uppercase tracking-wider text-tertiary">
+            <thead className="sticky top-0 border-b border-border bg-card-muted text-left text-[11px] uppercase tracking-[0.08em] text-tertiary">
               <tr>
                 <th className="px-3 py-2 font-semibold">Periode</th>
                 <th className="px-3 py-2 text-right font-semibold">{valueHeader}</th>

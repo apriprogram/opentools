@@ -10,7 +10,7 @@ import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import TableToolbar from '../../components/panel/table/TableToolbar';
 import TablePagination from '../../components/panel/table/TablePagination';
-import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION } from '../../components/panel/table/useTableControls';
+import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION, THEAD, TR } from '../../components/panel/table/useTableControls';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminDeleteUser, adminFetchUsers, adminImpersonateUser } from '../../services/authApi';
 
@@ -221,7 +221,7 @@ export default function AdminUsersPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] border-collapse">
-            <thead className="bg-card-muted">
+            <thead className={THEAD}>
               <tr>
                 <th className={TH}>No</th>
                 <th className={`${TH} min-w-[210px]`}>Pengguna</th>
@@ -241,7 +241,7 @@ export default function AdminUsersPage() {
                 </tr>
               )}
               {table.pageRows.map((u, i) => (
-                <tr key={u.id} className="group transition-smooth hover:bg-card-muted">
+                <tr key={u.id} className={TR}>
                   <td className={TD_NUM}>{table.start + i + 1}</td>
                   <td className={TD}>
                     <div className="flex items-center gap-2.5">

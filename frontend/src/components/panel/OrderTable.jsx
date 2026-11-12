@@ -8,7 +8,7 @@ import ActionMenu from './table/ActionMenu';
 import TableToolbar from './table/TableToolbar';
 import TablePagination from './table/TablePagination';
 import { LicenseChip, OrderStatusChip } from './Chips';
-import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION } from './table/useTableControls';
+import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION, THEAD, TR } from './table/useTableControls';
 
 // Filter, urutan, dan teks pencarian tabel. Didefinisikan di luar komponen supaya stabil.
 const FILTERS = [
@@ -40,7 +40,7 @@ export default function OrderTable({ orders, expiryByKey = {}, qrList = [], onPr
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[820px] border-collapse">
-          <thead className="bg-card-muted">
+          <thead className={THEAD}>
             <tr>
               <th className={TH}>No</th>
               <th className={`${TH} min-w-[180px]`}>Pesanan</th>
@@ -112,7 +112,7 @@ function OrderRow({ number, order: o, expiresAt, qr, onProof, onNota, onPdf, onE
   ];
 
   return (
-    <tr className="group transition-smooth hover:bg-card-muted">
+    <tr className={TR}>
       <td className={TD_NUM}>{number}</td>
 
       <td className={TD}>
