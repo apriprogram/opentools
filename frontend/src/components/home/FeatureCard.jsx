@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 
@@ -6,6 +6,9 @@ import { ArrowUpRight } from 'lucide-react';
 // Tiap kartu punya warna sendiri (tone) berupa gradasi lembut, dengan teks putih dan elemen kaca di atasnya.
 // Di ponsel selalu bertumpuk (panggung di atas). Varian lebar menjadi mendatar di layar yang lebih besar.
 // Seluruh kartu adalah satu tautan, jadi tidak ada tautan atau tombol di dalamnya.
+//
+// Ilustrasi 3D: benda padat yang berdiri miring dan diam. Saat kursor bergerak di atas kartu, ilustrasinya
+// miring mengikuti kursor (kartunya sendiri tetap diam). Gayanya ada di index.css (.illus-*).
 //
 // Catatan: jangan menambah outline-none di sini. index.css sudah menggambar fokus keyboard untuk <a>.
 
@@ -21,7 +24,7 @@ const VARIANTS = {
   // Tegak di semua ukuran.
   default: {
     link: '',
-    stage: 'h-32 sm:h-44',
+    stage: 'h-36 sm:h-56',
     body: 'p-3 sm:p-5',
     title: 'text-[13px] leading-5 sm:text-[16px] sm:leading-6',
     desc: '',
@@ -29,8 +32,10 @@ const VARIANTS = {
   },
   // Mendatar mulai 640px (kartu utama).
   wideSm: {
-    link: 'sm:min-h-[232px] sm:flex-row-reverse',
-    stage: 'h-32 sm:h-auto sm:w-1/2 sm:border-b-0 sm:border-l',
+    link: 'sm:min-h-[264px] sm:flex-row-reverse',
+    // Panggungnya lebar, jadi ilustrasinya diperbesar.
+    scene: 'sm:[&>.illus-tilt]:[scale:1.2]',
+    stage: 'h-36 sm:h-auto sm:w-1/2 sm:border-b-0 sm:border-l',
     body: 'p-3 sm:justify-center sm:p-6',
     title: 'text-[15px] leading-[22px] sm:text-[20px] sm:leading-7',
     desc: 'sm:max-w-[40ch] sm:text-[14px] sm:leading-[22px]',
@@ -39,7 +44,8 @@ const VARIANTS = {
   // Mendatar mulai 1024px. Di tablet tetap tegak karena hanya menempati setengah lebar.
   wideLg: {
     link: 'lg:flex-row-reverse',
-    stage: 'h-32 sm:h-44 lg:h-auto lg:w-1/2 lg:border-b-0 lg:border-l',
+    scene: 'lg:[&>.illus-tilt]:[scale:1.2]',
+    stage: 'h-36 sm:h-56 lg:h-auto lg:w-1/2 lg:border-b-0 lg:border-l',
     body: 'p-3 sm:p-5 lg:justify-center lg:p-6',
     title: 'text-[13px] leading-5 sm:text-[16px] sm:leading-6 lg:text-[20px] lg:leading-7',
     desc: 'lg:max-w-[40ch] lg:text-[14px] lg:leading-[22px]',
@@ -49,13 +55,55 @@ const VARIANTS = {
 
 export default function FeatureCard({ id, to, icon: Icon, title, desc, chips = [], variant = 'default', tone = 'slate', children }) {
   const v = VARIANTS[variant] || VARIANTS.default;
+  const cardRef = useRef(null);
+  const frame = useRef(0);
+
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+
+  // Kursor di atas kartu: ilustrasi miring mengikuti posisinya. Hanya untuk mouse, dan tidak saat gerak dikurangi.
+  const onMove = (e) => {
+    const card = cardRef.current;
+    if (!card || e.pointerType !== 'mouse') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const box = card.getBoundingClientRect();
+    const px = Math.min(0.5, Math.max(-0.5, (e.clientX - box.left) / box.width - 0.5));
+    const py = Math.min(0.5, Math.max(-0.5, (e.clientY - box.top) / box.height - 0.5));
+    cancelAnimationFrame(frame.current);
+    frame.current = requestAnimationFrame(() => {
+      card.dataset.tracking = 'true';
+      card.style.setProperty('--iry', `${(px * 44).toFixed(2)}deg`);
+      card.style.setProperty('--irx', `${(-py * 32).toFixed(2)}deg`);
+    });
+  };
+
+  const onLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    cancelAnimationFrame(frame.current);
+    card.dataset.tracking = 'false';
+    card.style.removeProperty('--iry');
+    card.style.removeProperty('--irx');
+  };
 
   return (
-    <Link to={to} aria-labelledby={`${id}-title`} aria-describedby={`${id}-desc`} className={`${LINK} tone-${tone} ${v.link}`}>
+    <Link
+      ref={cardRef}
+      to={to}
+      aria-labelledby={`${id}-title`}
+      aria-describedby={`${id}-desc`}
+      onPointerMove={onMove}
+      onPointerLeave={onLeave}
+      className={`${LINK} tone-${tone} ${v.link}`}
+    >
       {/* Panggung ilustrasi: dekoratif, jadi disembunyikan dari pembaca layar. */}
       <div aria-hidden="true" className={`${STAGE} ${v.stage}`}>
         {/* Di ponsel ilustrasi dikecilkan supaya muat di panggung yang lebih pendek. */}
-        <div className="flex h-full w-full items-center justify-center max-sm:scale-[0.8]">{children}</div>
+        <div className={`illus-scene flex h-full w-full items-center justify-center max-sm:scale-[0.8] ${v.scene || ''}`}>
+          <div className="illus-tilt">
+            <span className="illus-ground" />
+            {children}
+          </div>
+        </div>
       </div>
 
       <div className={`flex min-w-0 flex-1 flex-col ${v.body}`}>
