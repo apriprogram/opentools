@@ -54,7 +54,7 @@ const TelegramIcon = brandIcon('telegram');
 const GLASS =
   'rounded-[28px] border border-white/70 bg-white/70 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.45)] backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-900/65';
 const GLASS_PILL =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/70 bg-white/70 px-4 text-[13px] font-medium text-primary backdrop-blur-xl transition-[transform,background-color] duration-150 hover:bg-white active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none motion-reduce:active:scale-100 dark:border-white/10 dark:bg-zinc-900/65 dark:hover:bg-zinc-800';
+  'inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/70 bg-white/70 px-4 text-[13px] font-medium text-primary transition-[transform,background-color] duration-150 hover:bg-white active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none motion-reduce:active:scale-100 dark:border-white/10 dark:bg-zinc-900/65 dark:hover:bg-zinc-800';
 const PRIMARY_PILL =
   'inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-blue-500 px-5 text-[15px] font-semibold text-white shadow-[0_10px_24px_-10px_rgba(59,130,246,0.9)] transition-[transform,background-color] duration-150 hover:bg-blue-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none motion-reduce:active:scale-100';
 const TOOL_BTN =

@@ -56,23 +56,32 @@ const VARIANTS = {
 export default function FeatureCard({ id, to, icon: Icon, title, desc, chips = [], variant = 'default', tone = 'slate', children }) {
   const v = VARIANTS[variant] || VARIANTS.default;
   const cardRef = useRef(null);
+  const tiltRef = useRef(null);
   const frame = useRef(0);
+  const box = useRef(null);
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
+  // Ukuran kartu diukur sekali saat kursor masuk, bukan di setiap gerakan.
+  const onEnter = () => {
+    box.current = cardRef.current?.getBoundingClientRect() || null;
+  };
+
   // Kursor di atas kartu: ilustrasi miring mengikuti posisinya. Hanya untuk mouse, dan tidak saat gerak dikurangi.
+  // Kemiringan ditulis langsung ke transform elemen ilustrasi. Memakai variabel CSS di kartu akan membuat
+  // browser menghitung ulang gaya semua isi kartu di setiap gerakan kursor.
   const onMove = (e) => {
     const card = cardRef.current;
-    if (!card || e.pointerType !== 'mouse') return;
+    const tilt = tiltRef.current;
+    if (!card || !tilt || e.pointerType !== 'mouse') return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const box = card.getBoundingClientRect();
-    const px = Math.min(0.5, Math.max(-0.5, (e.clientX - box.left) / box.width - 0.5));
-    const py = Math.min(0.5, Math.max(-0.5, (e.clientY - box.top) / box.height - 0.5));
+    const area = box.current || (box.current = card.getBoundingClientRect());
+    const px = Math.min(0.5, Math.max(-0.5, (e.clientX - area.left) / area.width - 0.5));
+    const py = Math.min(0.5, Math.max(-0.5, (e.clientY - area.top) / area.height - 0.5));
     cancelAnimationFrame(frame.current);
     frame.current = requestAnimationFrame(() => {
-      card.dataset.tracking = 'true';
-      card.style.setProperty('--iry', `${(px * 44).toFixed(2)}deg`);
-      card.style.setProperty('--irx', `${(-py * 32).toFixed(2)}deg`);
+      if (card.dataset.tracking !== 'true') card.dataset.tracking = 'true';
+      tilt.style.transform = `rotateX(${(-py * 32).toFixed(2)}deg) rotateY(${(px * 44).toFixed(2)}deg)`;
     });
   };
 
@@ -80,9 +89,9 @@ export default function FeatureCard({ id, to, icon: Icon, title, desc, chips = [
     const card = cardRef.current;
     if (!card) return;
     cancelAnimationFrame(frame.current);
+    box.current = null;
     card.dataset.tracking = 'false';
-    card.style.removeProperty('--iry');
-    card.style.removeProperty('--irx');
+    tiltRef.current?.style.removeProperty('transform');
   };
 
   return (
@@ -91,6 +100,7 @@ export default function FeatureCard({ id, to, icon: Icon, title, desc, chips = [
       to={to}
       aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-desc`}
+      onPointerEnter={onEnter}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
       className={`${LINK} tone-${tone} ${v.link}`}
@@ -99,7 +109,7 @@ export default function FeatureCard({ id, to, icon: Icon, title, desc, chips = [
       <div aria-hidden="true" className={`${STAGE} ${v.stage}`}>
         {/* Di ponsel ilustrasi dikecilkan supaya muat di panggung yang lebih pendek. */}
         <div className={`illus-scene flex h-full w-full items-center justify-center max-sm:scale-[0.8] ${v.scene || ''}`}>
-          <div className="illus-tilt">
+          <div ref={tiltRef} className="illus-tilt">
             <span className="illus-ground" />
             {children}
           </div>

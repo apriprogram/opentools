@@ -8,13 +8,35 @@ import {
   decideProof
 } from "./proof.service.js";
 import { buildNotaData, notaPeriod, formatNotaNumber } from "./nota.service.js";
-import { getPaymentInfo } from "./settings.service.js";
+import { getPaymentInfo, getPricingSettings, effectivePrice } from "./settings.service.js";
 import { newScanCode } from "./scan.service.js";
 
 // Paket QR Generator (pembayaran transfer, dikonfirmasi admin atau otomatis dari bukti).
+// Harga dan diskon diatur super admin dari halaman Pengaturan (settings.service.js); di sini hanya label dan lama aktif.
 export const PLANS = {
-  monthly: { id: "monthly", label: "Bulanan", price: 30000, days: 30, note: "1 QR, aktif 30 hari" },
-  yearly: { id: "yearly", label: "Tahunan", price: 300000, days: 365, note: "1 QR, aktif 365 hari, hemat Rp60.000" }
+  monthly: { id: "monthly", label: "Bulanan", days: 30 },
+  yearly: { id: "yearly", label: "Tahunan", days: 365 }
+};
+
+const rp = (n) => `Rp${Number(n).toLocaleString("id-ID")}`;
+
+/**
+ * Daftar paket dengan harga yang berlaku sekarang:
+ * { id, label, days, price (yang dibayar), basePrice (harga normal), discount | null, note }.
+ */
+export const listPlans = async () => {
+  const pricing = await getPricingSettings();
+  const plans = Object.values(PLANS).map((plan) => ({ ...plan, ...effectivePrice(pricing.plans[plan.id]) }));
+  const monthly = plans.find((p) => p.id === "monthly");
+  return plans.map((plan) => {
+    let note = `1 QR, aktif ${plan.days} hari`;
+    // Paket tahunan: tunjukkan hematnya dibanding 12 kali paket bulanan, kalau memang lebih murah.
+    if (plan.id === "yearly" && monthly) {
+      const saving = monthly.price * 12 - plan.price;
+      if (saving > 0) note += `, hemat ${rp(saving)} dibanding bulanan`;
+    }
+    return { ...plan, note };
+  });
 };
 
 const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // tanpa 0/O/1/I agar mudah dibaca
@@ -46,7 +68,7 @@ const notaPayment = (pay) => {
 };
 
 // Kolom pesanan tanpa data gambar (proof_data), agar daftar pesanan tetap ringan.
-const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_number, nota_number, status, license_key, created_at, paid_at, qr_payload, user_qr_id,
+const ORDER_COLUMNS = `code, plan, price, base_price, discount_amount, unique_code, amount, name, email, wa_number, nota_number, status, license_key, created_at, paid_at, qr_payload, user_qr_id,
   verify_status, verify_note, verify_amount, proof_uploaded_at, proof_attempts, (proof_data IS NOT NULL) AS has_proof,
   (SELECT l.revoked FROM qr_licenses l WHERE l.order_code = qr_orders.code LIMIT 1) AS license_revoked,
   (SELECT l.expires_at FROM qr_licenses l WHERE l.order_code = qr_orders.code LIMIT 1) AS license_expires_at,
@@ -118,6 +140,9 @@ const toOrder = (row, { withLicense = false } = {}) => ({
   plan: row.plan,
   planLabel: PLANS[row.plan]?.label || row.plan,
   price: row.price,
+  // Harga normal dan potongan saat pesanan dibuat. Pesanan lama (sebelum ada diskon) tidak punya potongan.
+  basePrice: row.base_price ?? row.price,
+  discount: Number(row.discount_amount || 0),
   uniqueCode: row.unique_code,
   amount: row.amount,
   name: row.name,
@@ -144,7 +169,8 @@ const toOrder = (row, { withLicense = false } = {}) => ({
 });
 
 export const createOrder = async ({ plan, name, email, whatsapp, design, qrId }) => {
-  const p = PLANS[plan];
+  // Harga dikunci saat pesanan dibuat: perubahan harga atau diskon sesudahnya tidak mengubah pesanan ini.
+  const p = (await listPlans()).find((item) => item.id === plan);
   if (!p) throw httpError(400, "Paket tidak valid");
   const waNumber = normalizeWhatsapp(whatsapp);
   if (!waNumber) throw httpError(400, "Nomor WhatsApp tidak valid. Contoh: 081234567890");
@@ -168,9 +194,23 @@ export const createOrder = async ({ plan, name, email, whatsapp, design, qrId })
   }
 
   await query(
-    `INSERT INTO qr_orders (code, plan, price, unique_code, amount, name, email, wa_number, status, created_at, qr_payload, user_qr_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
-    [code, plan, p.price, uniqueCode, amount, name, email, waNumber, new Date(), JSON.stringify(qrDesign), qrId ? String(qrId) : null]
+    `INSERT INTO qr_orders (code, plan, price, base_price, discount_amount, unique_code, amount, name, email, wa_number, status, created_at, qr_payload, user_qr_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
+    [
+      code,
+      plan,
+      p.price,
+      p.basePrice,
+      p.basePrice - p.price,
+      uniqueCode,
+      amount,
+      name,
+      email,
+      waNumber,
+      new Date(),
+      JSON.stringify(qrDesign),
+      qrId ? String(qrId) : null
+    ]
   );
 
   await assignNotaNumber(code, new Date());

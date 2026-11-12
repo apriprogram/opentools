@@ -23,7 +23,7 @@ export const getCompany = () => ({
   npwp: process.env.NOTA_NPWP || ""
 });
 
-export const rupiah = (n) => `Rp${Number(n).toLocaleString("id-ID")}`;
+export const rupiah = (n) => `${Number(n) < 0 ? "-" : ""}Rp${Math.abs(Number(n)).toLocaleString("id-ID")}`;
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -78,6 +78,28 @@ const STATUS_LABEL = {
 // Susun data nota dari pesanan. planDays dan planLabel dikirim dari layanan QR.
 export const buildNotaData = (order, { notaNumber, planDays, company = getCompany(), dana = {} }) => {
   const subtotal = order.price + order.uniqueCode;
+  // Pesanan dengan diskon: harga normal, lalu baris potongan bernilai minus.
+  const discount = Number(order.discount || 0);
+  const basePrice = discount > 0 ? Number(order.basePrice || order.price + discount) : order.price;
+  const items = [
+    {
+      title: `Paket QR Generator ${order.planLabel} (aktif ${planDays} hari)`,
+      sub: `Kode pesanan ${order.code}`,
+      qty: 1,
+      harga: basePrice,
+      jumlah: basePrice
+    },
+    ...(discount > 0
+      ? [{ title: "Diskon paket", sub: "Potongan harga yang berlaku saat pesanan dibuat", qty: 1, harga: -discount, jumlah: -discount }]
+      : []),
+    {
+      title: "Kode unik pembayaran",
+      sub: "Wajib ikut ditransfer agar pembayaran dapat dicocokkan",
+      qty: 1,
+      harga: order.uniqueCode,
+      jumlah: order.uniqueCode
+    }
+  ].map((item, index) => ({ no: index + 1, ...item }));
   return {
     company,
     noNota: notaNumber,
@@ -86,24 +108,7 @@ export const buildNotaData = (order, { notaNumber, planDays, company = getCompan
     paidAt: order.paidAt ? formatTanggal(order.paidAt) : null,
     kepada: { nama: order.name, email: order.email, whatsapp: order.whatsapp || "" },
     kodePesanan: order.code,
-    items: [
-      {
-        no: 1,
-        title: `Paket QR Generator ${order.planLabel} (aktif ${planDays} hari)`,
-        sub: `Kode pesanan ${order.code}`,
-        qty: 1,
-        harga: order.price,
-        jumlah: order.price
-      },
-      {
-        no: 2,
-        title: "Kode unik pembayaran",
-        sub: "Wajib ikut ditransfer agar pembayaran dapat dicocokkan",
-        qty: 1,
-        harga: order.uniqueCode,
-        jumlah: order.uniqueCode
-      }
-    ],
+    items,
     subtotal,
     total: subtotal,
     terbilang: terbilang(subtotal),

@@ -289,7 +289,14 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
               <div className="rounded-2xl border border-border bg-card p-5">
                 <h2 className="text-[15px] font-semibold text-primary mb-2">Ringkasan pesanan</h2>
                 <p className="text-[13px] text-secondary">
-                  Paket {orderPlan.label} untuk 1 QR code: {orderPlan.note}. Harga {rupiah(orderPlan.price)}.
+                  Paket {orderPlan.label} untuk 1 QR code: {orderPlan.note}. Harga {rupiah(orderPlan.price)}
+                  {orderPlan.discount && orderPlan.basePrice > orderPlan.price && (
+                    <>
+                      {' '}
+                      (dari <s>{rupiah(orderPlan.basePrice)}</s>, hemat {rupiah(orderPlan.basePrice - orderPlan.price)})
+                    </>
+                  )}
+                  .
                 </p>
                 <p className="text-[12px] text-tertiary mt-2">
                   Saat transfer, nominal ditambah kode unik 1 sampai 99 agar mudah dicocokkan. Lisensi aktif setelah pembayaran lunas.

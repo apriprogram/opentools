@@ -6,9 +6,7 @@ import Button from '../components/ui/Button';
 import { useToast } from '../components/ui/Toast';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchQrPlans } from '../services/qrApi';
-
-const rupiah = (n) =>
-  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+import PlanPrice, { DiscountBadge } from '../components/ui/PlanPrice';
 
 const FREE_FEATURES = ['QR Code tanpa batas jumlah', 'Warna QR dan latar bisa dipilih', 'Logo di tengah (wajib)', 'Unduh PNG & SVG'];
 const PAID_FEATURES = ['Semua fitur gratis', 'Logo bisa dihilangkan', 'Warna dan link bisa diganti kapan saja', 'Untuk satu QR code'];
@@ -37,6 +35,10 @@ export default function QrPricingPage() {
   if (!loading && user) {
     return <Navigate to={user.role === 'superadmin' ? '/admin' : '/dashboard/qr'} replace />;
   }
+
+  // Label "Hemat" di paket tahunan hanya kalau memang lebih murah dari 12 kali paket bulanan (bisa berubah karena diskon).
+  const monthly = plans.find((p) => p.id === 'monthly');
+  const yearlySaves = (p) => p.id === 'yearly' && Boolean(monthly) && monthly.price * 12 > p.price;
 
   // Paket berbayar: tamu diarahkan mendaftar, pengguna langsung ke pemesanan di dashboard.
   const choose = (planId) => {
@@ -88,15 +90,15 @@ export default function QrPricingPage() {
               key={p.id}
               className={`flex flex-col rounded-2xl border border-border bg-card p-5 ${PLAN_TONE[p.id]?.card || ''}`}
             >
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-[15px] font-semibold text-primary">{p.label}</h2>
-                {p.id === 'yearly' && (
-                  <span className="premium-gold rounded-full border px-2 py-0.5 text-[11px] font-semibold">Hemat</span>
+                {p.discount ? (
+                  <DiscountBadge discount={p.discount} />
+                ) : (
+                  yearlySaves(p) && <span className="premium-gold rounded-full border px-2 py-0.5 text-[11px] font-semibold">Hemat</span>
                 )}
               </div>
-              <p className="text-[26px] font-semibold leading-[30px] text-primary">
-                {rupiah(p.price)} <span className="text-[13px] font-normal text-secondary">{p.id === 'monthly' ? '/ bulan' : '/ tahun'}</span>
-              </p>
+              <PlanPrice plan={p} period={p.id === 'monthly' ? '/ bulan' : '/ tahun'} className="text-primary" />
               {p.note && <p className="mt-1 text-[12px] text-secondary">{p.note}</p>}
               <ul className="mt-4 flex-1 space-y-2">
                 {PAID_FEATURES.map((f) => (

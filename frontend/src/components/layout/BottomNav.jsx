@@ -9,7 +9,7 @@ export default function BottomNav({ onOpenBatchModal, onScrollToStats }) {
 
   return (
     <nav className="fixed bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-40">
-      <div className="glass h-[46px] sm:h-[56px] px-1.5 sm:px-2 rounded-full flex items-center gap-0.5 sm:gap-2">
+      <div className="glass glass-blur h-[46px] sm:h-[56px] px-1.5 sm:px-2 rounded-full flex items-center gap-0.5 sm:gap-2">
         {/* Home Tab */}
         <Link
           to="/"

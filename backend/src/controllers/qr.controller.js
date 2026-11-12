@@ -1,6 +1,6 @@
 import * as qr from "../services/qr.service.js";
 import { renderNotaHtml, renderNotaPdf } from "../services/nota.service.js";
-import { getPaymentSettings, savePaymentSettings } from "../services/settings.service.js";
+import { getPaymentSettings, savePaymentSettings, getPricingSettings, savePricingSettings } from "../services/settings.service.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,7 +14,7 @@ export const getPlans = async (req, res) => {
   try {
     res.json({
       success: true,
-      plans: Object.values(qr.PLANS),
+      plans: await qr.listPlans(),
       payment: await qr.getPaymentInfo()
     });
   } catch (error) {
@@ -25,7 +25,7 @@ export const getPlans = async (req, res) => {
 // Data statistik pesanan untuk super admin.
 export const adminGetOrderStats = async (req, res) => {
   try {
-    res.json({ success: true, plans: Object.values(qr.PLANS), orders: await qr.adminOrderStats() });
+    res.json({ success: true, plans: await qr.listPlans(), orders: await qr.adminOrderStats() });
   } catch (error) {
     return fail(res, error, "Order stats");
   }
@@ -48,6 +48,24 @@ export const adminSavePaymentSettings = async (req, res) => {
     res.json({ success: true, settings });
   } catch (error) {
     return fail(res, error, "Save payment settings");
+  }
+};
+
+// Harga dan diskon paket (khusus super admin). plans: harga yang berlaku sekarang, untuk pratinjau.
+export const adminGetPricingSettings = async (req, res) => {
+  try {
+    res.json({ success: true, settings: await getPricingSettings(), plans: await qr.listPlans() });
+  } catch (error) {
+    return fail(res, error, "Pricing settings");
+  }
+};
+
+export const adminSavePricingSettings = async (req, res) => {
+  try {
+    const settings = await savePricingSettings(req.body || {});
+    res.json({ success: true, settings, plans: await qr.listPlans() });
+  } catch (error) {
+    return fail(res, error, "Save pricing settings");
   }
 };
 

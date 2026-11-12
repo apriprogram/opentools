@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Check, Crown, QrCode, Receipt } from 'lucide-react';
 import Button from '../ui/Button';
 import { rupiah } from './OrderParts';
+import PlanPrice, { DiscountBadge } from '../ui/PlanPrice';
 
 const FREE_FEATURES = ['QR tanpa batas jumlah', 'Warna QR dan latar bisa dipilih', 'Logo di tengah (wajib)', 'Unduh PNG dan SVG'];
 const PREMIUM_FEATURES = ['Semua fitur gratis', 'Logo bisa dihilangkan', 'Warna dan link bisa diganti kapan saja', 'Untuk 1 QR code'];
@@ -106,9 +107,8 @@ function PremiumCard({ plan, cta, busy, onPaid }) {
           Premium Gold
         </span>
       </div>
-      <p className="mt-3 text-[28px] font-semibold leading-[32px]">
-        {rupiah(plan.price)} <span className="text-[13px] font-normal">{plan.id === 'monthly' ? '/ bulan' : '/ tahun'}</span>
-      </p>
+      {plan.discount && <DiscountBadge discount={plan.discount} className="mt-3 self-start" />}
+      <PlanPrice plan={plan} period={plan.id === 'monthly' ? '/ bulan' : '/ tahun'} muted="opacity-75" className="mt-3" />
       {plan.note && <p className="mt-1 text-[12px] opacity-80">{plan.note}</p>}
       <ul className="mt-4 flex-1 space-y-2 text-[13px]">
         {PREMIUM_FEATURES.map((f) => (

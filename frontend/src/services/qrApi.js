@@ -98,6 +98,17 @@ export async function adminSavePaymentSettings(settings) {
   return res.data.settings;
 }
 
+// Harga dan diskon paket berbayar (super admin). plans: harga yang berlaku sekarang.
+export async function adminFetchPricingSettings() {
+  const res = await api.get('/admin/settings/pricing', { headers: authHeaders() });
+  return { settings: res.data.settings, plans: res.data.plans || [] };
+}
+
+export async function adminSavePricingSettings(settings) {
+  const res = await api.put('/admin/settings/pricing', settings, { headers: authHeaders() });
+  return { settings: res.data.settings, plans: res.data.plans || [] };
+}
+
 // Data ringkas pesanan untuk halaman Statistik (super admin).
 export async function adminFetchOrderStats() {
   const res = await api.get('/admin/qr/stats', { headers: authHeaders() });

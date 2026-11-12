@@ -246,7 +246,7 @@ export default function PanelLayout({ title, children }) {
           </div>
         )}
         {/* Header */}
-        <header className="glass flex items-center justify-between gap-2 rounded-full px-2 py-1.5 sm:gap-3 sm:py-2 sm:pl-4 sm:pr-2">
+        <header className="glass glass-blur flex items-center justify-between gap-2 rounded-full px-2 py-1.5 sm:gap-3 sm:py-2 sm:pl-4 sm:pr-2">
           <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"

@@ -39,6 +39,8 @@ import {
   adminGetNotaPdf,
   adminGetPaymentSettings,
   adminSavePaymentSettings,
+  adminGetPricingSettings,
+  adminSavePricingSettings,
   adminGetOrderStats
 } from "../controllers/qr.controller.js";
 import { requireAdmin } from "../middleware/admin.middleware.js";
@@ -151,6 +153,8 @@ router.get("/admin/qr/stats", requireAdmin, adminGetOrderStats);
 // Admin: pengaturan metode pembayaran (DANA dan transfer bank)
 router.get("/admin/settings/payment", requireAdmin, adminGetPaymentSettings);
 router.put("/admin/settings/payment", requireAdmin, express.json({ limit: "20kb" }), adminSavePaymentSettings);
+router.get("/admin/settings/pricing", requireAdmin, adminGetPricingSettings);
+router.put("/admin/settings/pricing", requireAdmin, express.json({ limit: "20kb" }), adminSavePricingSettings);
 // Admin: data Twibbon semua pengguna
 router.get("/admin/twibbons", requireAdmin, adminCampaigns);
 // Admin: data Linktree semua pengguna (hanya baca)

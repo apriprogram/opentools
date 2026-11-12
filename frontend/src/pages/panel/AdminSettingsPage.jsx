@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Landmark, MessageCircle, RotateCcw, Save, Wallet } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Landmark, MessageCircle, RotateCcw, Save, Tags, Wallet } from 'lucide-react';
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import Button from '../../components/ui/Button';
 import Switch from '../../components/ui/Switch';
 import { useToast } from '../../components/ui/Toast';
+import PricingSettings from '../../components/panel/PricingSettings';
 import { adminFetchPaymentSettings, adminSavePaymentSettings } from '../../services/qrApi';
 
 const INPUT =
@@ -54,9 +56,60 @@ function MethodCard({ icon: Icon, title, description, enabled, onToggle, childre
   );
 }
 
-// Pengaturan super admin. Saat ini berisi metode pembayaran untuk pesanan Premium:
-// DANA dan transfer bank, masing-masing bisa dinyalakan atau dimatikan.
+// Tab di halaman Pengaturan. Tab yang aktif disimpan di alamat (?tab=harga) supaya bisa dibuka langsung.
+const TABS = [
+  { id: 'pembayaran', label: 'Metode pembayaran', icon: Wallet, intro: 'Atur metode pembayaran yang tampil saat pengguna memesan paket Premium.' },
+  { id: 'harga', label: 'Harga & diskon', icon: Tags, intro: 'Atur harga tiap fitur berbayar dan diskon yang memotong harganya.' },
+];
+
+// Pengaturan super admin, dibagi dua tab: metode pembayaran, serta harga dan diskon paket berbayar.
 export default function AdminSettingsPage() {
+  const [params, setParams] = useSearchParams();
+  const tab = TABS.find((t) => t.id === params.get('tab')) || TABS[0];
+  const pick = (id) => setParams(id === TABS[0].id ? {} : { tab: id }, { replace: true });
+
+  return (
+    <PanelLayout title="Pengaturan">
+      <div className="mb-4 sm:mb-5">
+        <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">Pengaturan</h1>
+        <PanelCrumb />
+        <p className="mt-1 text-[13px] text-secondary sm:text-[14px]">{tab.intro}</p>
+      </div>
+
+      <div className="mb-5 overflow-x-auto [scrollbar-width:none] sm:mb-6 [&::-webkit-scrollbar]:hidden">
+        <div role="tablist" aria-label="Bagian pengaturan" className="inline-flex gap-1 rounded-lg bg-card-muted p-1">
+          {TABS.map((t) => {
+            const active = t.id === tab.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                id={`tab-${t.id}`}
+                aria-selected={active}
+                aria-controls={`panel-${t.id}`}
+                onClick={() => pick(t.id)}
+                className={`flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3.5 text-[13px] font-medium transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                  active ? 'bg-card text-primary shadow-tab dark:bg-zinc-700 dark:shadow-none' : 'text-secondary hover:text-primary'
+                }`}
+              >
+                <t.icon size={15} strokeWidth={1.75} aria-hidden="true" />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div role="tabpanel" id={`panel-${tab.id}`} aria-labelledby={`tab-${tab.id}`}>
+        {tab.id === 'harga' ? <PricingSettings /> : <PaymentSettings />}
+      </div>
+    </PanelLayout>
+  );
+}
+
+// Tab "Metode pembayaran": DANA dan transfer bank, masing-masing bisa dinyalakan atau dimatikan.
+function PaymentSettings() {
   const { addToast: toast } = useToast();
   const [saved, setSaved] = useState(null);
   const [draft, setDraft] = useState(null);
@@ -100,22 +153,14 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <PanelLayout title="Pengaturan">
-      <div className="mb-4 sm:mb-6">
-        <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">Pengaturan</h1>
-        <PanelCrumb />
-        <p className="mt-1 text-[13px] text-secondary sm:text-[14px]">
-          Atur metode pembayaran yang tampil saat pengguna memesan paket Premium.
-        </p>
-      </div>
-
+    <>
       {error ? (
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="max-w-3xl rounded-2xl border border-border bg-card p-5">
           <p className="text-[13px] text-danger">{error}</p>
           <Button size="sm" variant="secondary" icon={RotateCcw} onClick={load} className="mt-3">Muat ulang</Button>
         </div>
       ) : !draft ? (
-        <p className="rounded-2xl border border-border bg-card p-5 text-[13px] text-tertiary">Memuat...</p>
+        <p className="max-w-3xl rounded-2xl border border-border bg-card p-5 text-[13px] text-tertiary">Memuat...</p>
       ) : (
         <form onSubmit={save} className="max-w-3xl space-y-4 pb-24">
           <div>
@@ -247,6 +292,6 @@ export default function AdminSettingsPage() {
           </div>
         </form>
       )}
-    </PanelLayout>
+    </>
   );
 }

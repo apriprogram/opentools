@@ -149,7 +149,10 @@ const QR_ORDER_COLUMNS = [
   ["verify_detail", "TEXT NULL"],
   // Desain QR (JSON: link, fg, bg, logo) dan QR yang dituju (perpanjang). Satu pesanan untuk satu QR.
   ["qr_payload", "TEXT NULL"],
-  ["user_qr_id", "VARCHAR(36) NULL"]
+  ["user_qr_id", "VARCHAR(36) NULL"],
+  // Harga normal dan potongan diskon saat pesanan dibuat (price = harga setelah diskon).
+  ["base_price", "INT UNSIGNED NULL"],
+  ["discount_amount", "INT UNSIGNED NOT NULL DEFAULT 0"]
 ];
 
 async function ensureColumn(table, column, definition) {

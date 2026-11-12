@@ -77,7 +77,7 @@ export default function Navbar({ onOpenBatchModal }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/60 bg-white/55 backdrop-blur-2xl backdrop-saturate-150 transition-smooth select-none dark:border-white/10 dark:bg-zinc-950/45">
+    <header className="sticky top-0 z-40 w-full border-b border-white/60 bg-white/60 backdrop-blur-lg transition-smooth select-none dark:border-white/10 dark:bg-zinc-950/45">
       <div className="w-full px-3 sm:px-6 md:px-8 h-[48px] sm:h-[64px] flex items-center justify-between">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group">

@@ -214,15 +214,27 @@
    Latar bersuasana senja: biru keunguan di kiri atas, jingga hangat di kanan, ungu di bawah.
    Di atasnya, kartu dan tombol memakai kaca buram: warna tembus pandang, garis tepi terang tipis,
    dan sorot halus di tepi atas. */
-.site-ambient {
+/* Gradasinya digambar di lapisan tetap (::before), bukan dengan background-attachment: fixed.
+   background-attachment: fixed membuat browser menggambar ulang latar di setiap gerakan gulir;
+   lapisan tetap cukup digambar sekali lalu hanya digeser oleh kartu grafis.
+   Warna dasarnya ikut di lapisan itu: kalau ditaruh di elemennya sendiri, warnanya menutupi lapisan ini. */
+.site-ambient::before,
+.panel-ambient::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transform: translateZ(0);
+}
+.site-ambient::before {
   background-color: #E9ECF3;
   background-image:
     radial-gradient(58rem 38rem at 0% 0%, rgba(118, 138, 255, 0.34), transparent 62%),
     radial-gradient(48rem 34rem at 100% 10%, rgba(255, 168, 122, 0.34), transparent 62%),
     radial-gradient(56rem 40rem at 50% 108%, rgba(168, 138, 255, 0.26), transparent 64%);
-  background-attachment: fixed;
 }
-.dark .site-ambient {
+.dark .site-ambient::before {
   background-color: #07080C;
   background-image:
     radial-gradient(58rem 38rem at 0% 0%, rgba(74, 90, 196, 0.42), transparent 62%),
@@ -231,11 +243,12 @@
 }
 
 /* Permukaan kaca untuk bilah, pil, dan kolom isian. */
+/* Blur latar itu mahal: tiap elemen ber-blur dihitung ulang di setiap frame saat halaman digulir.
+   Di atas latar bergradasi halus hasil blur tidak terlihat bedanya, jadi .glass tidak memakai blur.
+   Hanya bilah yang melayang di atas konten bergulir (bilah bawah, header panel) yang diberi .glass-blur. */
 .glass {
   background-color: rgba(255, 255, 255, 0.58);
   border: 1px solid rgba(255, 255, 255, 0.72);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  backdrop-filter: blur(22px) saturate(160%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 30px -18px rgba(15, 23, 42, 0.35);
 }
 .dark .glass {
@@ -243,13 +256,15 @@
   border-color: rgba(255, 255, 255, 0.12);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 30px -18px rgba(0, 0, 0, 0.7);
 }
+.glass-blur {
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+}
 
 /* Kaca di atas kartu berwarna: tombol ikon bulat dan label kecil. */
 .glass-on-color {
   border: 0;
   background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.14) 45%, rgba(255, 255, 255, 0.08) 100%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  backdrop-filter: blur(12px) saturate(140%);
   box-shadow:
     inset 1px 1px 0.5px rgba(255, 255, 255, 0.62),
     inset -1px -1px 0.5px rgba(255, 255, 255, 0.16),
@@ -360,21 +375,25 @@
   position: relative;
   /* Sedikit dikecilkan supaya ilustrasi yang miring tidak terpotong tepi panggung. */
   scale: 0.9;
-  transform: rotateX(var(--irx, 10deg)) rotateY(var(--iry, -24deg));
+  transform: rotateX(10deg) rotateY(-24deg);
   transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
 }
 [data-tracking='true'] .illus-tilt {
   transition: transform 90ms linear;
+  will-change: transform;
+}
+/* Panggung yang belum terlihat di layar tidak digambar sama sekali, jadi lapisan 3D-nya tidak dibuat. */
+.tone-stage {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 200px;
 }
 /* Bayangan di "lantai", di belakang dan sedikit di bawah benda. */
 .illus-ground {
   position: absolute;
-  inset: auto 6% -20px 6%;
-  height: 26px;
-  border-radius: 9999px;
-  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.42), transparent);
-  filter: blur(7px);
+  inset: auto 2% -26px 2%;
+  height: 38px;
+  /* Bayangan lembut dari gradasi saja, tanpa filter blur. */
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.12) 55%, transparent);
   translate: 0 0 -34px;
   pointer-events: none;
 }
@@ -443,24 +462,28 @@
    --rx/--ry: kemiringan, --gx: posisi pantulan cahaya, --sx: geser bayangan. Diubah lewat JS saat kursor bergerak. */
 .phone-scene {
   perspective: 1500px;
-  --rx: 5deg;
-  --ry: -18deg;
-  --gx: 22%;
-  --sx: 18px;
-}
-.phone-float {
-  transform-style: preserve-3d;
-  animation: phone-float 6s ease-in-out infinite;
 }
 .phone-3d {
   position: relative;
   transform-style: preserve-3d;
-  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transform: rotateX(5deg) rotateY(-18deg);
   transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
 }
 .phone-scene[data-tracking='true'] .phone-3d {
   transition: transform 90ms linear;
+  will-change: transform;
+}
+.phone-scene[data-tracking='true'] :is(.phone-glare, .phone-shadow) {
+  transition: transform 90ms linear;
+}
+/* Di dalam mockup, isi layar hanya pratinjau: blur latar dan kilau berulang dimatikan supaya ringan. */
+.phone-screen * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.phone-screen .lt-liquid::before,
+.phone-screen .lt-pop {
+  animation: none;
 }
 .phone-edge,
 .phone-body {
@@ -498,53 +521,41 @@
 .phone-scroll::-webkit-scrollbar {
   display: none;
 }
+/* Pantulan cahaya: gradasi tetap pada elemen yang lebih lebar dari layar, digeser dengan transform. */
 .phone-glare {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  width: 300%;
   pointer-events: none;
-  background: linear-gradient(
-    112deg,
-    transparent calc(var(--gx) - 26%),
-    rgba(255, 255, 255, 0.2) var(--gx),
-    transparent calc(var(--gx) + 26%)
-  );
-  transition: background 200ms linear;
+  background: linear-gradient(112deg, transparent 41%, rgba(255, 255, 255, 0.2) 50%, transparent 59%);
+  transform: translateX(-9%);
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .phone-shadow {
   position: absolute;
   bottom: 2px;
   left: 50%;
-  width: 230px;
-  height: 34px;
-  border-radius: 9999px;
-  background: radial-gradient(closest-side, rgba(15, 23, 42, 0.42), transparent);
-  filter: blur(8px);
-  transform: translateX(calc(-50% + var(--sx)));
+  width: 260px;
+  height: 46px;
+  /* Bayangan lembut dari gradasi saja, tanpa filter blur. */
+  background: radial-gradient(closest-side, rgba(15, 23, 42, 0.3), rgba(15, 23, 42, 0.12) 55%, transparent);
+  transform: translateX(calc(-50% + 18px));
   transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
 }
 .dark .phone-shadow {
-  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.75), transparent);
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.25) 55%, transparent);
 }
 /* Isi layar mockup memakai gaya Linktree aslinya, bukan gaya judul halaman publik. */
 .site-ambient main .phone-screen h1 {
   font-weight: 600;
   letter-spacing: normal;
 }
-@keyframes phone-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .phone-float {
-    animation: none;
-  }
   .phone-3d,
+  .phone-glare,
   .phone-shadow {
     transition: none;
   }
@@ -553,15 +564,14 @@
 /* ── Panel (dashboard pengguna dan super admin) ──
    Latar senada dengan halaman publik tetapi lebih tenang, karena isinya data dan tabel.
    Sidebar dan header memakai .glass; kartu konten tetap pekat supaya tabel dan kolom yang menempel tetap rapi. */
-.panel-ambient {
+.panel-ambient::before {
   background-color: #ECEEF4;
   background-image:
     radial-gradient(54rem 36rem at 0% 0%, rgba(118, 138, 255, 0.26), transparent 62%),
     radial-gradient(44rem 30rem at 100% 0%, rgba(255, 168, 122, 0.2), transparent 62%),
     radial-gradient(52rem 36rem at 60% 110%, rgba(168, 138, 255, 0.18), transparent 64%);
-  background-attachment: fixed;
 }
-.dark .panel-ambient {
+.dark .panel-ambient::before {
   background-color: #08090D;
   background-image:
     radial-gradient(54rem 36rem at 0% 0%, rgba(74, 90, 196, 0.34), transparent 62%),

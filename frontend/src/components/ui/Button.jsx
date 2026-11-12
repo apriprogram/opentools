@@ -38,7 +38,7 @@ export default function Button({
     primary:
       'bg-accent-black dark:bg-white text-white dark:text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_8px_20px_-12px_rgba(15,23,42,0.55)] hover:bg-accent-black-hover dark:hover:bg-zinc-200 active:scale-[0.98] disabled:shadow-none disabled:bg-[#D4D4D8] dark:disabled:bg-zinc-800 disabled:text-white/80 dark:disabled:text-black/80 disabled:cursor-not-allowed disabled:active:scale-100',
     secondary:
-      'border border-black/[0.08] bg-white/70 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl hover:bg-white active:scale-[0.98] dark:border-white/[0.14] dark:bg-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] dark:hover:bg-white/[0.16] disabled:text-tertiary disabled:cursor-not-allowed disabled:active:scale-100',
+      'border border-black/[0.08] bg-white/70 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:bg-white active:scale-[0.98] dark:border-white/[0.14] dark:bg-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] dark:hover:bg-white/[0.16] disabled:text-tertiary disabled:cursor-not-allowed disabled:active:scale-100',
     ghost:
       'bg-transparent text-primary hover:bg-card-muted active:bg-[#ECECED] disabled:text-tertiary disabled:cursor-not-allowed',
     danger:

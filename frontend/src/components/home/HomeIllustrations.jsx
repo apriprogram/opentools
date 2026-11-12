@@ -36,13 +36,19 @@ const ICON = { size: 16, strokeWidth: 1.75, 'aria-hidden': true };
 const LEAD = 'flex-1 border-t border-dashed border-white/60';
 const INK_TEXT = 'text-[color:var(--tone-ink)]';
 const INK_BG = 'bg-[color:var(--tone-ink)]';
-const range = (n) => Array.from({ length: n }, (_, i) => i + 1);
+// Lapisan sisi benda bertebal dibuat tiap 3px, bukan tiap 1px: tiap lapisan menjadi satu lapisan gambar
+// di kartu grafis, jadi jumlahnya dijaga sesedikit mungkin. Pada sudut miring yang dipakai, celahnya tidak terlihat.
+const EDGE_STEP = 3;
+const edgeLayers = (depth) => {
+  const count = Math.max(1, Math.round(depth / EDGE_STEP));
+  return Array.from({ length: count }, (_, i) => ((i + 1) * depth) / count);
+};
 
 function Solid({ tone = 'glass', depth = 8, className = '', face = '', style, children }) {
   return (
     // Posisi bawaan relative, kecuali pemanggil menaruhnya secara absolute (mis. tumpukan file).
     <div className={`p3d shrink-0 ${className.includes('absolute') ? '' : 'relative'} ${className}`} style={style}>
-      {range(depth).map((z) => (
+      {edgeLayers(depth).map((z) => (
         <span key={z} className={`solid-edge solid-edge-${tone}`} style={{ transform: `translateZ(-${z}px)` }} />
       ))}
       <div className={`p3d solid-face solid-face-${tone} relative h-full w-full ${face}`}>{children}</div>
@@ -110,31 +116,31 @@ export function IllusConvert() {
     <div className="p3d flex flex-col items-center gap-3">
       <div className="p3d flex items-center gap-2">
         <File3D className="lift-1 h-[100px] w-[78px]">
-          <Play size={18} strokeWidth={1.75} aria-hidden="true" className="lift-1 text-white" />
+          <Play size={18} strokeWidth={1.75} aria-hidden="true" className="text-white" />
           <div className="p3d flex flex-col gap-1.5">
             <Stroke className="w-10" />
-            <Badge className="lift-1 self-start">MP4</Badge>
+            <Badge className="self-start">MP4</Badge>
           </div>
         </File3D>
 
         <Connector className="lift-2 w-14" />
 
         <File3D tone="white" depth={10} className="lift-3 h-[100px] w-[78px]">
-          <div className={`lift-1 flex h-8 w-full items-center justify-between pr-3 ${INK_TEXT}`}>
+          <div className={`flex h-8 w-full items-center justify-between pr-3 ${INK_TEXT}`}>
             {WAVE.map((height, i) => (
               <span key={i} className="w-[3px] rounded-full bg-current" style={{ height }} />
             ))}
           </div>
           <div className="p3d flex flex-col gap-1.5">
             <Stroke on="white" className="w-10" />
-            <Badge on="white" className="lift-1 self-start">MP3</Badge>
+            <Badge on="white" className="self-start">MP3</Badge>
           </div>
         </File3D>
       </div>
 
-      <div className="p3d hidden items-center gap-1.5 sm:flex">
-        {FORMATS.map((f, i) => (
-          <Chip key={f} className={i % 2 ? 'lift-2' : 'lift-1'}>{f}</Chip>
+      <div className="lift-1 hidden items-center gap-1.5 sm:flex">
+        {FORMATS.map((f) => (
+          <Chip key={f}>{f}</Chip>
         ))}
       </div>
     </div>
@@ -146,7 +152,7 @@ export function IllusCompress() {
   return (
     <div className="p3d flex items-end gap-2">
       <File3D depth={12} className="lift-1 h-[116px] w-[92px]">
-        <ImageIcon size={20} strokeWidth={1.75} aria-hidden="true" className="lift-1 text-white" />
+        <ImageIcon size={20} strokeWidth={1.75} aria-hidden="true" className="text-white" />
         <div className="flex flex-col gap-1.5">
           <Stroke className="w-14" />
           <Stroke className="w-9" />
@@ -291,15 +297,15 @@ export function IllusLinktree() {
       <Solid tone="metal" depth={9} className="h-[168px] w-[86px] rounded-[22px]" face="p-[3.5px]">
         <div className="mini-screen p3d relative flex h-full w-full flex-col items-center rounded-[18px] px-2 pt-5">
           <span className="absolute left-1/2 top-[5px] h-[9px] w-7 -translate-x-1/2 rounded-full bg-black" />
-          <span className="lift-1 block h-7 w-7 shrink-0 rounded-full bg-white/35 shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.75)]" />
+          <span className="block h-7 w-7 shrink-0 rounded-full bg-white/35 shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.75)]" />
           <span className="mt-1.5 block h-1.5 w-10 shrink-0 rounded-full bg-white/80" />
           <span className="mt-1 block h-1 w-14 shrink-0 rounded-full bg-white/40" />
           <div className="p3d mt-2.5 flex w-full shrink-0 flex-col gap-1.5">
-            <span className="lift-2 flex h-[17px] shrink-0 items-center justify-center rounded-full bg-white shadow-[0_8px_10px_-8px_rgba(0,0,0,0.7)]">
+            <span className="lift-1 flex h-[17px] shrink-0 items-center justify-center rounded-full bg-white shadow-[0_8px_10px_-8px_rgba(0,0,0,0.7)]">
               <span className={`block h-1 w-8 rounded-full ${INK_BG} opacity-60`} />
             </span>
             {[0, 1, 2].map((i) => (
-              <span key={i} className="lift-1 flex h-[17px] shrink-0 items-center justify-center rounded-full bg-white/25 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45)]">
+              <span key={i} className="flex h-[17px] shrink-0 items-center justify-center rounded-full bg-white/25 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45)]">
                 <span className="block h-1 w-8 rounded-full bg-white/70" />
               </span>
             ))}
@@ -383,7 +389,7 @@ export function IllusStats() {
             <Solid
               key={i}
               tone={i === PEAK ? 'white' : 'glass'}
-              depth={i === PEAK ? 16 : 10}
+              depth={i === PEAK ? 12 : 6}
               className={`w-4 rounded-t-[4px] ${i === PEAK ? 'lift-2 origin-bottom transition-transform duration-200 ease-out motion-safe:group-hover:scale-y-105' : 'lift-1'}`}
               style={{ height }}
             />

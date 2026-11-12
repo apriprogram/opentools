@@ -1,7 +1,8 @@
 import { query } from "../db/mysql.js";
 
 // Pengaturan aplikasi yang bisa diubah super admin dari panel, disimpan di tabel app_settings.
-// Saat ini: metode pembayaran (DANA dan transfer bank, masing-masing bisa dinyalakan atau dimatikan).
+// Isinya: metode pembayaran (DANA dan transfer bank, masing-masing bisa dinyalakan atau dimatikan),
+// serta harga dan diskon tiap paket berbayar (lihat bagian "Harga paket" di bawah).
 // Selama admin belum menyimpan apa pun, nilai bawaan diambil dari environment (PAY_DANA_NUMBER dan lainnya).
 
 const httpError = (status, message) => {
@@ -130,4 +131,130 @@ export const getPaymentInfo = async () => {
   }
   const first = methods[0] || { title: "Transfer", number: "", name: "" };
   return { methods, whatsapp: s.whatsapp, method: first.title, number: first.number, name: first.name };
+};
+
+/* ── Harga paket ───────────────────────────────────────────────────────────
+   Harga normal dan diskon tiap paket berbayar, diatur super admin dari halaman Pengaturan.
+   Selama admin belum menyimpan apa pun, harga bawaan di bawah yang dipakai.
+   Diskon: persen (1 sampai 90) atau potongan rupiah, boleh diberi tanggal berakhir (WIB). */
+const PRICING_KEY = "pricing";
+export const PRICE_MIN = 1000;
+export const PRICE_MAX = 100000000;
+const PERCENT_MAX = 90;
+let pricingCache = null;
+
+// Paket berbayar yang harganya bisa diatur. Label dan lama aktif tetap diatur di qr.service.js.
+const PRICING_PLANS = {
+  monthly: { label: "Bulanan", price: 30000 },
+  yearly: { label: "Tahunan", price: 300000 }
+};
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+// Tanggal hari ini menurut WIB (YYYY-MM-DD).
+const todayWib = () => new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const wholeNumber = (value) => {
+  const n = Number(String(value ?? "").replace(/[^\d]/g, ""));
+  return Number.isFinite(n) ? Math.floor(n) : 0;
+};
+
+const emptyDiscount = () => ({ enabled: false, type: "percent", value: 0, endsAt: null });
+
+const mergeDiscount = (saved) => ({
+  enabled: saved?.enabled === true,
+  type: saved?.type === "amount" ? "amount" : "percent",
+  value: Math.max(0, wholeNumber(saved?.value)),
+  endsAt: typeof saved?.endsAt === "string" && DATE_RE.test(saved.endsAt) ? saved.endsAt : null
+});
+
+const mergePricing = (saved) => {
+  const plans = {};
+  for (const [id, base] of Object.entries(PRICING_PLANS)) {
+    const s = saved?.plans?.[id];
+    const price = wholeNumber(s?.price);
+    plans[id] = {
+      price: price >= PRICE_MIN && price <= PRICE_MAX ? price : base.price,
+      discount: s?.discount ? mergeDiscount(s.discount) : emptyDiscount()
+    };
+  }
+  return { plans };
+};
+
+/** Pengaturan harga lengkap (untuk halaman admin). */
+export const getPricingSettings = async () => {
+  if (pricingCache && Date.now() - pricingCache.at < CACHE_MS) return pricingCache.value;
+  const rows = await query("SELECT value FROM app_settings WHERE name = ? LIMIT 1", [PRICING_KEY]);
+  let saved = null;
+  if (rows.length) {
+    try {
+      saved = JSON.parse(rows[0].value);
+    } catch {
+      saved = null;
+    }
+  }
+  const value = mergePricing(saved);
+  pricingCache = { at: Date.now(), value };
+  return value;
+};
+
+// Besar potongan dalam rupiah untuk satu harga. Harga akhir tidak pernah di bawah PRICE_MIN.
+const discountAmount = (price, discount) => {
+  if (!discount?.enabled || !discount.value) return 0;
+  const cut = discount.type === "amount" ? discount.value : Math.round((price * discount.value) / 100);
+  return Math.max(0, Math.min(cut, price - PRICE_MIN));
+};
+
+/**
+ * Harga yang berlaku sekarang untuk satu paket.
+ * Mengembalikan { basePrice, price, discount } dengan discount null bila tidak ada diskon yang berlaku
+ * (tidak dinyalakan, nilainya nol, atau tanggal berakhirnya sudah lewat).
+ */
+export const effectivePrice = (planPricing) => {
+  const basePrice = planPricing.price;
+  const d = planPricing.discount;
+  const running = d?.enabled && d.value > 0 && (!d.endsAt || todayWib() <= d.endsAt);
+  const cut = running ? discountAmount(basePrice, d) : 0;
+  if (!cut) return { basePrice, price: basePrice, discount: null };
+  return {
+    basePrice,
+    price: basePrice - cut,
+    discount: { type: d.type, value: d.value, amount: cut, endsAt: d.endsAt }
+  };
+};
+
+/** Simpan harga dan diskon. Semua paket dikirim sekaligus. */
+export const savePricingSettings = async (input) => {
+  const plans = {};
+  for (const [id, base] of Object.entries(PRICING_PLANS)) {
+    const s = input?.plans?.[id] || {};
+    const price = wholeNumber(s.price);
+    if (price < PRICE_MIN || price > PRICE_MAX) {
+      throw httpError(400, `Harga paket ${base.label} harus antara Rp${PRICE_MIN.toLocaleString("id-ID")} dan Rp${PRICE_MAX.toLocaleString("id-ID")}.`);
+    }
+    const discount = mergeDiscount(s.discount);
+    if (s.discount?.endsAt && !discount.endsAt) {
+      throw httpError(400, `Tanggal berakhir diskon paket ${base.label} tidak valid.`);
+    }
+    if (discount.enabled) {
+      if (discount.type === "percent" && (discount.value < 1 || discount.value > PERCENT_MAX)) {
+        throw httpError(400, `Diskon paket ${base.label} harus antara 1% dan ${PERCENT_MAX}%.`);
+      }
+      if (discount.type === "amount" && (discount.value < 1 || price - discount.value < PRICE_MIN)) {
+        throw httpError(
+          400,
+          `Potongan paket ${base.label} terlalu besar. Harga setelah diskon minimal Rp${PRICE_MIN.toLocaleString("id-ID")}.`
+        );
+      }
+      if (discount.endsAt && discount.endsAt < todayWib()) {
+        throw httpError(400, `Tanggal berakhir diskon paket ${base.label} sudah lewat. Pilih hari ini atau sesudahnya.`);
+      }
+    }
+    plans[id] = { price, discount };
+  }
+
+  await query(
+    "INSERT INTO app_settings (name, value, updated_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = VALUES(updated_at)",
+    [PRICING_KEY, JSON.stringify({ plans }), new Date()]
+  );
+  pricingCache = null;
+  return getPricingSettings();
 };

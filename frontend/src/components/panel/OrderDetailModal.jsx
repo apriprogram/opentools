@@ -149,7 +149,7 @@ export default function OrderDetailModal({ order: o, proofFetcher, onClose, onPr
       }
       summary={[
         { label: 'Nominal transfer', value: rupiah(o.amount) },
-        { label: 'Harga paket', value: rupiah(o.price) },
+        { label: o.discount > 0 ? `Harga paket (diskon ${rupiah(o.discount)})` : 'Harga paket', value: rupiah(o.price) },
         { label: 'Kode unik', value: o.uniqueCode ?? '-' },
         { label: 'Dibayar', value: tanggal(o.paidAt) },
       ]}
