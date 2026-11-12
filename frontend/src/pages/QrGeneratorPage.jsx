@@ -30,7 +30,8 @@ function EmbeddedWrap({ children }) {
 // Generator QR. Tanpa orderPlan: mode gratis (hitam putih dengan logo hitam), bisa disimpan ke akun.
 // Dengan orderPlan: mode pemesanan Premium untuk satu QR. Warna dan logo bisa diatur, lalu lanjut bayar.
 // renewQr: QR yang sudah ada (jadikan Premium atau perpanjang), desainnya dipakai sebagai awal.
-export default function QrGeneratorPage({ embedded = false, orderPlan = null, renewQr = null, onOrder = null, orderBusy = false }) {
+// freePremium: warna dan logo bisa diatur tanpa pesanan (dipakai super admin di menu Tools Admin).
+export default function QrGeneratorPage({ embedded = false, orderPlan = null, renewQr = null, onOrder = null, orderBusy = false, freePremium = false }) {
   const Wrap = embedded ? EmbeddedWrap : PageContainer;
   const { addToast: toast } = useToast();
   const { user } = useAuth();
@@ -45,11 +46,13 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
   const [savedQr, setSavedQr] = useState(null);
 
   const isPaid = Boolean(orderPlan);
+  // Warna dan logo bebas diatur: saat memesan paket, atau untuk admin tanpa pesanan.
+  const custom = isPaid || freePremium;
   // Mode gratis: warna tetap hitam-putih dan logo hitam selalu tampil.
   const colors = {
-    fg: isPaid ? fg : FREE_FG,
-    bg: isPaid ? bg : FREE_BG,
-    logo: isPaid ? useLogo : true,
+    fg: custom ? fg : FREE_FG,
+    bg: custom ? bg : FREE_BG,
+    logo: custom ? useLogo : true,
   };
   const target = normalizeLink(link);
   // Link yang tersalin bersama kata lain: saat dipindai hasilnya teks biasa, bukan link yang langsung terbuka.
@@ -100,7 +103,7 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
     if (!target) return;
     setSaving(true);
     try {
-      const saved = await saveMyQr({ link: target, fg: FREE_FG, bg: FREE_BG, logo: true });
+      const saved = await saveMyQr({ link: target, fg: colors.fg, bg: colors.bg, logo: colors.logo });
       setSavedQr(saved);
       toast({ type: 'success', title: 'QR disimpan', message: 'QR ini sekarang bisa dinonaktifkan atau dikelola dari daftar QR.' });
     } catch (err) {
@@ -143,11 +146,13 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
       <section className="max-w-5xl mx-auto pt-4">
         <div className="mb-6">
           <h1 className="text-[24px] sm:text-[28px] font-semibold text-primary tracking-tight leading-[32px]">
-            {isPaid ? `Premium Gold ${orderPlan.label}` : 'QR Generator'}
+            {isPaid ? `Premium Gold ${orderPlan.label}` : freePremium ? 'Buat QR' : 'QR Generator'}
           </h1>
           <p className="text-[14px] text-secondary leading-[22px] mt-1">
             {isPaid
               ? 'Untuk satu QR code. Atur link, warna, dan logo, lalu lanjut bayar.'
+              : freePremium
+                ? 'Atur link, warna, dan logo, lalu simpan. QR buatan admin memakai fitur Premium tanpa biaya.'
               : 'Ubah link menjadi QR Code. Gratis dengan logo hitam dan warna hitam putih.'}
           </p>
         </div>
@@ -190,6 +195,10 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
                   <span className="premium-gold inline-flex items-center gap-1.5 text-[12px] font-semibold border rounded-full px-2.5 py-1">
                     <Crown size={13} strokeWidth={1.75} /> Premium Gold {orderPlan.label}
                   </span>
+                ) : freePremium ? (
+                  <span className="premium-gold inline-flex items-center gap-1.5 text-[12px] font-semibold border rounded-full px-2.5 py-1">
+                    <Crown size={13} strokeWidth={1.75} /> Fitur Premium
+                  </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-secondary border border-border rounded-full px-2.5 py-1">
                     Paket Gratis
@@ -200,7 +209,7 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-[13px] text-secondary mb-2">Warna QR</p>
-                  {isPaid ? (
+                  {custom ? (
                     <div className="flex items-center gap-3">
                       <label className="flex items-center gap-2 text-[13px] text-primary">
                         <input type="color" value={fg} onChange={(e) => setFg(e.target.value)} className="h-9 w-9 rounded border border-border bg-transparent cursor-pointer" />
@@ -222,7 +231,7 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
 
                 <div>
                   <p className="text-[13px] text-secondary mb-2">Logo di tengah</p>
-                  {isPaid ? (
+                  {custom ? (
                     <label className="flex items-center gap-2 text-[13px] text-primary cursor-pointer select-none">
                       <input type="checkbox" checked={useLogo} onChange={(e) => setUseLogo(e.target.checked)} className="h-4 w-4 accent-black" />
                       Tampilkan logo
@@ -236,14 +245,14 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
                 </div>
               </div>
 
-              {isPaid && lowContrast && (
+              {custom && lowContrast && (
                 <p className="flex items-start gap-2 text-[12px] text-amber-500 mt-4">
                   <AlertTriangle size={14} className="mt-[1px] shrink-0" />
                   Kontras warna rendah ({contrast.toFixed(1)}:1). QR mungkin sulit dipindai. Pilih warna yang lebih gelap untuk QR dan lebih terang untuk latar.
                 </p>
               )}
 
-              {!isPaid && (
+              {!custom && (
                 <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-card-muted p-4">
                   <p className="text-[13px] text-secondary">
                     Ingin ubah warna atau hapus logo? Paket Bulanan Rp30.000 atau Tahunan Rp300.000 untuk satu QR.

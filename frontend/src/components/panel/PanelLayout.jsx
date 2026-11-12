@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { QrCode, Link2, ClipboardList, Database, ImagePlus, LogOut, Eye, Menu, Moon, Settings, Sun, X } from 'lucide-react';
+import { BarChart3, Images, QrCode, Link2, ClipboardList, Database, ImagePlus, LogOut, Eye, Menu, Moon, Settings, Sun, Undo2, UserCog, Users, X } from 'lucide-react';
+import Avatar from '../ui/Avatar';
 import { NotificationBell, ProfileMenu } from './HeaderMenus';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -20,14 +21,25 @@ const MENUS = {
   user: [{ section: 'Utama', items: USER_ITEMS }],
   superadmin: [
     {
-      section: 'Admin',
+      section: 'Pemesanan',
       items: [
-        { label: 'Konfirmasi Pesanan', to: '/admin', icon: ClipboardList, end: true },
+        { label: 'Statistik', to: '/admin/statistik', icon: BarChart3 },
+        { label: 'Data QR', to: '/admin', icon: ClipboardList, end: true },
         { label: 'Data Linktree', to: '/admin/linktree', icon: Database },
-        { label: 'Pengaturan', to: '/admin/pengaturan', icon: Settings },
+        { label: 'Data Twibbon', to: '/admin/twibbon', icon: Images },
       ],
     },
-    { section: 'Dashboard user', items: USER_ITEMS },
+    // Tools Admin: QR, Linktree, dan Twibbon milik admin sendiri. QR buatan admin memakai fitur Premium tanpa biaya.
+    { section: 'Tools Admin', items: USER_ITEMS },
+    {
+      section: 'Pengaturan',
+      items: [
+        { label: 'Pengaturan', to: '/admin/pengaturan', icon: Settings },
+        { label: 'Users', to: '/admin/users', icon: Users },
+        // Tombol keluar ikut di bagian ini (action, bukan tautan).
+        { label: 'Keluar', action: 'logout', icon: LogOut },
+      ],
+    },
   ],
 };
 
@@ -51,7 +63,7 @@ export function PanelCrumb({ className = '' }) {
 }
 
 export default function PanelLayout({ title, children }) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, stopImpersonating } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,9 +72,17 @@ export default function PanelLayout({ title, children }) {
   const menu = MENUS[role];
   const displayName = user?.name || user?.username || '';
 
+  // Saat super admin sedang masuk sebagai pengguna, keluar berarti kembali ke akun admin.
   const onLogout = async () => {
-    await signOut();
-    navigate('/masuk', { replace: true });
+    const backToAdmin = await signOut();
+    navigate(backToAdmin ? '/admin/users' : '/masuk', { replace: true });
+  };
+
+  const [leaving, setLeaving] = useState(false);
+  const backToAdmin = async () => {
+    setLeaving(true);
+    const ok = await stopImpersonating();
+    navigate(ok ? '/admin/users' : '/masuk', { replace: true });
   };
 
   // Pindah halaman: tutup menu ponsel.
@@ -111,7 +131,18 @@ export default function PanelLayout({ title, children }) {
         <div key={group.section}>
           <p className="px-2 text-[11px] font-semibold uppercase tracking-wider text-tertiary">{group.section}</p>
           <div className="mt-2 space-y-1">
-            {group.items.map((item) => (
+            {group.items.map((item) =>
+              item.action === 'logout' ? (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={onLogout}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] text-danger transition-smooth hover:bg-card-muted/60 md:text-[14px]"
+                >
+                  <item.icon size={17} strokeWidth={1.75} />
+                  {item.label}
+                </button>
+              ) : (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -126,7 +157,8 @@ export default function PanelLayout({ title, children }) {
                 <item.icon size={17} strokeWidth={1.75} />
                 {item.label}
               </NavLink>
-            ))}
+              )
+            )}
           </div>
         </div>
       ))}
@@ -134,23 +166,24 @@ export default function PanelLayout({ title, children }) {
 
     {/* Ponsel: nama akun tampil di sini, karena header hanya menampilkan foto profil. */}
     <div className="mt-4 flex items-center gap-2.5 rounded-lg border border-border px-3 py-2 md:hidden">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-black text-[12px] font-semibold text-white dark:bg-white dark:text-black">
-        {(displayName || 'A').slice(0, 1).toUpperCase()}
-      </span>
+      <Avatar user={user} className="h-8 w-8 text-[12px]" />
       <div className="min-w-0 leading-tight">
         <p className="truncate text-[13px] font-medium text-primary">{displayName}</p>
         <p className="text-[11px] text-tertiary">{ROLE_LABEL[role]}</p>
       </div>
     </div>
 
-    <button
-      type="button"
-      onClick={onLogout}
-      className="mt-2 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-danger transition-smooth hover:bg-card-muted/60 md:mt-6 md:text-[14px]"
-    >
-      <LogOut size={17} strokeWidth={1.75} />
-      Keluar
-    </button>
+    {/* Panel user: tombol keluar di dasar sidebar. Panel super admin menaruhnya di bagian Pengaturan. */}
+    {!menu.some((group) => group.items.some((item) => item.action === 'logout')) && (
+      <button
+        type="button"
+        onClick={onLogout}
+        className="mt-2 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-danger transition-smooth hover:bg-card-muted/60 md:mt-6 md:text-[14px]"
+      >
+        <LogOut size={17} strokeWidth={1.75} />
+        Keluar
+      </button>
+    )}
     </>
   );
 
@@ -186,6 +219,26 @@ export default function PanelLayout({ title, children }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* Super admin sedang masuk sebagai pengguna: tanda yang selalu terlihat, dengan jalan kembali */}
+        {user?.impersonated && (
+          <div role="status" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 bg-amber-500 px-3 py-2 text-[12px] text-black sm:px-4 sm:text-[13px] md:px-8">
+            <p className="flex min-w-0 items-center gap-2">
+              <UserCog size={15} strokeWidth={2} aria-hidden="true" className="shrink-0" />
+              <span className="min-w-0 [overflow-wrap:anywhere]">
+                Kamu masuk sebagai <strong className="font-semibold">{displayName || user.email}</strong>
+                {user.email && displayName ? ` (${user.email})` : ''}. Perubahan tersimpan di akun ini.
+              </span>
+            </p>
+            <button
+              type="button"
+              onClick={backToAdmin}
+              disabled={leaving}
+              className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-black px-3 text-[12px] font-medium text-white transition-smooth hover:bg-black/80 disabled:opacity-60"
+            >
+              <Undo2 size={13} strokeWidth={2} aria-hidden="true" /> {leaving ? 'Kembali...' : 'Kembali ke admin'}
+            </button>
+          </div>
+        )}
         {/* Header */}
         <header className="flex items-center justify-between gap-2 border-b border-border bg-card px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 md:px-8">
           <div className="flex min-w-0 items-center gap-2">

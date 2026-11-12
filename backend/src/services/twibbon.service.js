@@ -139,6 +139,35 @@ export const deleteCampaignById = async (id) => {
   return result.affectedRows > 0;
 };
 
+// Semua Twibbon untuk super admin, lengkap dengan pembuatnya. Tanpa gambar bingkai supaya daftar tetap ringan.
+export const adminListCampaigns = async () => {
+  const rows = await query(
+    `SELECT c.id, c.slug, c.title, c.description, c.user_id, c.views, c.usage_count, c.created_at,
+            u.name AS owner_name, u.email AS owner_email, u.wa_number AS owner_wa,
+            tu.name AS creator_name, tu.email AS creator_email
+     FROM twibbon_campaigns c
+     LEFT JOIN users u ON u.id = c.user_id
+     LEFT JOIN twibbon_users tu ON tu.id = c.creator_id
+     ORDER BY c.created_at DESC LIMIT 2000`
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    description: row.description || "",
+    views: Number(row.views) || 0,
+    usage: Number(row.usage_count) || 0,
+    createdAt: iso(row.created_at),
+    owner: {
+      name: row.owner_name || row.creator_name || "",
+      email: row.owner_email || row.creator_email || "",
+      whatsapp: row.owner_wa || "",
+      // Twibbon lama dibuat sebelum ada akun, jadi tidak terikat ke tabel users.
+      legacy: row.user_id === null || row.user_id === undefined
+    }
+  }));
+};
+
 export const getAllCampaigns = async () => {
   const rows = await query(`${SELECT} ORDER BY c.created_at DESC LIMIT 60`);
   return rows.map((r) => toCampaign(r));

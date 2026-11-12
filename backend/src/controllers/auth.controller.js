@@ -3,7 +3,10 @@ import {
   checkLogin,
   createSession,
   deleteSession,
-  publicUser
+  publicUser,
+  adminListUsers,
+  impersonateUser,
+  adminDeleteUser
 } from "../services/auth.service.js";
 import { bearerToken } from "../middleware/auth.middleware.js";
 import { normalizeWhatsapp } from "../services/qr.service.js";
@@ -100,4 +103,43 @@ export const logout = async (req, res) => {
 
 export const me = (req, res) => {
   res.json({ success: true, user: req.user });
+};
+
+// Daftar pengguna untuk super admin.
+export const adminUsers = async (req, res) => {
+  try {
+    return res.json({ success: true, users: await adminListUsers() });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
+// Hapus akun pengguna beserta datanya. ?orders=0 mempertahankan riwayat pesanannya.
+export const adminRemoveUser = async (req, res) => {
+  try {
+    if (req.user?.role !== "superadmin" || req.user.impersonated) {
+      return res.status(403).json({ success: false, message: "Masuk sebagai super admin terlebih dahulu." });
+    }
+    const result = await adminDeleteUser(req.user, req.params.id, { deleteOrders: req.query.orders !== "0" });
+    return res.json({ success: true, ...result });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
+// Super admin masuk sebagai pengguna. Hanya lewat sesi super admin (bukan kunci admin cadangan),
+// supaya selalu tercatat siapa yang melakukannya.
+export const adminImpersonate = async (req, res) => {
+  try {
+    if (req.user?.role !== "superadmin") {
+      return res.status(403).json({ success: false, message: "Masuk sebagai super admin terlebih dahulu." });
+    }
+    if (req.user.impersonated) {
+      return res.status(403).json({ success: false, message: "Sesi ini tidak bisa dipakai untuk masuk sebagai pengguna lain." });
+    }
+    const session = await impersonateUser(req.user, req.params.id);
+    return res.json({ success: true, ...session });
+  } catch (error) {
+    return fail(res, error);
+  }
 };

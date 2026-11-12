@@ -39,6 +39,10 @@ const qrStatus = (licenses, now) => {
   return { status: newest(licenses).revoked ? "nonaktif" : "berakhir", planExpiresAt: null };
 };
 
+// QR milik super admin (menu Tools Admin) memakai fitur Premium tanpa pesanan dan tanpa batas waktu.
+const ADMIN_FREE = { status: "aktif", planExpiresAt: null, unlimited: true };
+const isAdminFree = (user) => user?.role === "superadmin";
+
 export const listUserQr = async (user) => {
   const rows = await query(
     `SELECT ${QR_COLUMNS} FROM user_qr WHERE user_id = ? ORDER BY created_at DESC LIMIT 200`,
@@ -52,26 +56,30 @@ export const listUserQr = async (user) => {
   const now = new Date();
   return rows.map((row) => ({
     ...toQr(row),
-    ...qrStatus(
-      licenses.filter((l) => l.user_qr_id === row.id),
-      now
-    )
+    ...(isAdminFree(user)
+      ? ADMIN_FREE
+      : qrStatus(
+          licenses.filter((l) => l.user_qr_id === row.id),
+          now
+        ))
   }));
 };
 
-// QR dari generator selalu gratis. Paket berbayar dibuat lewat pesanan, satu pesanan untuk satu QR.
-export const createUserQr = async (user, { link }) => {
+// QR dari generator selalu gratis (hitam putih dengan logo). Paket berbayar dibuat lewat pesanan, satu pesanan untuk satu QR.
+// Pengecualian: super admin boleh langsung memakai warna sendiri dan mematikan logo.
+export const createUserQr = async (user, { link, fg, bg, logo }) => {
+  const custom = isAdminFree(user);
+  const design = custom ? { fg: fg || FREE_FG, bg: bg || FREE_BG, logo: logo === false ? 0 : 1 } : { fg: FREE_FG, bg: FREE_BG, logo: 1 };
   const id = crypto.randomUUID();
   const code = newScanCode();
   const createdAt = new Date();
   await query(
-    "INSERT INTO user_qr (id, user_id, link, fg, bg, logo, plan_expires_at, code, dynamic_at, created_at) VALUES (?, ?, ?, ?, ?, 1, NULL, ?, ?, ?)",
-    [id, user.id, link, FREE_FG, FREE_BG, code, createdAt, createdAt]
+    "INSERT INTO user_qr (id, user_id, link, fg, bg, logo, plan_expires_at, code, dynamic_at, created_at) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)",
+    [id, user.id, link, design.fg, design.bg, design.logo, code, createdAt, createdAt]
   );
   return {
-    ...toQr({ id, link, fg: FREE_FG, bg: FREE_BG, logo: 1, code, disabled: 0, dynamic_at: createdAt, created_at: createdAt }),
-    status: "gratis",
-    planExpiresAt: null
+    ...toQr({ id, link, ...design, code, disabled: 0, dynamic_at: createdAt, created_at: createdAt }),
+    ...(custom ? ADMIN_FREE : { status: "gratis", planExpiresAt: null })
   };
 };
 
@@ -89,8 +97,10 @@ export const updateUserQrDesign = async (user, id, { link, fg, bg, logo }) => {
     [String(id), user.id]
   );
   if (!rows.length) throw httpError(404, "QR tidak ditemukan.");
-  const licenses = await query("SELECT user_qr_id, expires_at, revoked FROM qr_licenses WHERE user_qr_id = ?", [rows[0].id]);
-  const state = qrStatus(licenses, new Date());
+  const licenses = isAdminFree(user)
+    ? []
+    : await query("SELECT user_qr_id, expires_at, revoked FROM qr_licenses WHERE user_qr_id = ?", [rows[0].id]);
+  const state = isAdminFree(user) ? ADMIN_FREE : qrStatus(licenses, new Date());
   if (state.status !== "aktif") {
     throw httpError(403, "Link, warna, dan logo hanya bisa diubah untuk QR dengan paket Premium Gold yang masih aktif.");
   }

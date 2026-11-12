@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Download, Eye, ImagePlus, LayoutDashboard, Plus, Search, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Download, Eye, ImagePlus, LayoutDashboard, Plus, Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageContainer from '../components/layout/PageContainer';
 import FramePreview from '../components/twibbon/FramePreview';
 import Button from '../components/ui/Button';
-import { useToast } from '../components/ui/Toast';
 import { useAuth } from '../contexts/AuthContext';
-import { deleteTwibbon, getCampaigns } from '../services/twibbonApi';
+import { getCampaigns } from '../services/twibbonApi';
 
 const CREATE_PATH = '/dashboard/twibbon/baru';
 const angka = (n) => Number(n || 0).toLocaleString('id-ID');
@@ -15,11 +14,9 @@ const angka = (n) => Number(n || 0).toLocaleString('id-ID');
 // Daftar Twibbon publik. Siapa saja bisa memakai Twibbon; membuat Twibbon wajib masuk akun.
 export default function CampaignsListPage() {
   const { t } = useTranslation();
-  const { addToast: toast } = useToast();
   const { user } = useAuth();
   const [campaigns, setCampaigns] = useState(null);
   const [query, setQuery] = useState('');
-  const isAdmin = user?.role === 'superadmin';
 
   useEffect(() => {
     getCampaigns()
@@ -33,18 +30,7 @@ export default function CampaignsListPage() {
     return (campaigns || []).filter((c) => `${c.title} ${c.description || ''} ${c.creatorName || ''}`.toLowerCase().includes(q));
   }, [campaigns, query]);
 
-  // Super admin boleh menghapus Twibbon mana pun (moderasi). Pemilik mengelola Twibbon-nya di panel.
-  const remove = async (e, campaign) => {
-    e.preventDefault();
-    if (!window.confirm(`Hapus Twibbon "${campaign.title}"? Tindakan ini tidak bisa dibatalkan.`)) return;
-    try {
-      await deleteTwibbon(campaign.id);
-      setCampaigns((list) => (list || []).filter((c) => c.id !== campaign.id));
-      toast({ type: 'success', title: 'Twibbon dihapus' });
-    } catch (err) {
-      toast({ type: 'error', title: 'Gagal menghapus', message: err?.response?.data?.message || 'Coba lagi beberapa saat.' });
-    }
-  };
+  // Moderasi (hapus Twibbon) dilakukan super admin dari menu Data Twibbon, bukan dari halaman publik ini.
 
   // Tombol buat: akun yang sudah masuk ke panel, tamu ke halaman masuk (lalu diteruskan ke pembuat Twibbon).
   const createButton = user ? (
@@ -136,17 +122,6 @@ export default function CampaignsListPage() {
                         <span className="inline-flex items-center gap-1" title={t('twibbon.downloads', 'Dipakai')}>
                           <Download size={12} strokeWidth={1.75} aria-hidden="true" /> {angka(campaign.usage)}
                         </span>
-                        {isAdmin && (
-                          <button
-                            type="button"
-                            onClick={(e) => remove(e, campaign)}
-                            title="Hapus Twibbon (super admin)"
-                            aria-label={`Hapus Twibbon ${campaign.title}`}
-                            className="flex h-6 w-6 items-center justify-center rounded-sm text-tertiary transition-smooth hover:bg-red-500/10 hover:text-red-500"
-                          >
-                            <Trash2 size={13} strokeWidth={1.75} />
-                          </button>
-                        )}
                       </span>
                     </div>
                   </div>

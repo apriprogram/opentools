@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
-  AlertTriangle, Bell, CheckCircle2, ChevronDown, Eye, EyeOff, Globe, Info, KeyRound, LifeBuoy, LogOut, Save, UserRound, XCircle,
+  AlertTriangle, Bell, Camera, CheckCircle2, ChevronDown, Eye, EyeOff, Globe, Info, KeyRound, LifeBuoy, LogOut, Save, Trash2, UserRound, XCircle,
 } from 'lucide-react';
+import Avatar from '../ui/Avatar';
+import { readImageAsDataUrl } from '../../lib/imageUpload';
 import Button from '../ui/Button';
 import { useToast } from '../ui/Toast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -219,7 +221,6 @@ export function ProfileMenu({ onLogout }) {
   const [modal, setModal] = useState(null);
   const role = user?.role === 'superadmin' ? 'superadmin' : 'user';
   const name = user?.name || user?.username || '';
-  const initial = (name || 'A').slice(0, 1).toUpperCase();
 
   const pick = (action) => {
     popover.close();
@@ -240,9 +241,7 @@ export function ProfileMenu({ onLogout }) {
           popover.expanded ? 'border-border-focus' : 'border-border hover:border-border-hover'
         }`}
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-black text-[12px] font-semibold text-white dark:bg-white dark:text-black">
-          {initial}
-        </span>
+        <Avatar user={user} className="h-7 w-7 text-[12px]" />
         <span className="hidden min-w-0 leading-tight sm:block">
           <span className="block max-w-[160px] truncate text-[13px] font-medium text-primary">{name}</span>
           <span className="block text-[11px] text-tertiary">{ROLE_LABEL[role]}</span>
@@ -259,9 +258,7 @@ export function ProfileMenu({ onLogout }) {
         createPortal(
           <div {...popover.panelProps} role="menu" aria-label="Menu akun">
             <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-black text-[15px] font-semibold text-white dark:bg-white dark:text-black">
-                {initial}
-              </span>
+              <Avatar user={user} className="h-10 w-10 text-[15px]" />
               <div className="min-w-0 leading-tight">
                 <p className="truncate text-[14px] font-semibold text-primary">{name}</p>
                 <p className="truncate text-[12px] text-secondary">{user?.email || `@${user?.username || ''}`}</p>
@@ -271,7 +268,7 @@ export function ProfileMenu({ onLogout }) {
             <div className="p-1.5">
               <button type="button" role="menuitem" onClick={() => pick(() => setModal('profile'))} className={`${MENU_ITEM} text-primary`}>
                 <UserRound size={16} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-secondary" /> Profil saya
-                <span className="ml-auto text-[11px] text-tertiary">{role === 'user' ? 'Data dan password' : 'Data akun'}</span>
+                <span className="ml-auto text-[11px] text-tertiary">Foto, data, password</span>
               </button>
               <a href="/" target="_blank" rel="noopener noreferrer" role="menuitem" onClick={popover.close} className={`${MENU_ITEM} text-primary`}>
                 <Globe size={16} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-secondary" /> Lihat website
@@ -295,14 +292,15 @@ export function ProfileMenu({ onLogout }) {
   );
 }
 
-// Modal "Profil saya": data akun (nama dan WhatsApp) dan ubah password, masing-masing dengan tombol simpannya sendiri.
+// Modal "Profil saya": foto dan data akun, lalu ubah password, masing-masing dengan tombol simpannya sendiri.
+// Berlaku untuk user dan super admin.
 function ProfileModal({ onClose }) {
   const { user } = useAuth();
   const admin = user?.role === 'superadmin';
   return (
     <DetailModal
       title="Profil saya"
-      subtitle={admin ? 'Ubah data akun kamu.' : 'Ubah data akun dan password kamu.'}
+      subtitle="Ubah foto, data akun, dan password kamu."
       icon={UserRound}
       onClose={onClose}
       footer={<Button size="sm" variant="secondary" onClick={onClose}>Tutup</Button>}
@@ -311,36 +309,68 @@ function ProfileModal({ onClose }) {
         <ProfileForm />
       </DetailSection>
       <DetailSection title="Ubah password" icon={KeyRound}>
-        {admin ? (
-          <p className="text-[12px] text-secondary sm:text-[13px]">
-            Password super admin diatur di pengaturan server (cPanel), jadi tidak bisa diganti dari halaman ini.
+        <PasswordForm />
+        {admin && (
+          <p className="mt-3 text-[11px] leading-relaxed text-tertiary sm:text-[12px]">
+            Lupa password super admin? Ganti nilai ADMIN_PASSWORD_HASH di pengaturan server (cPanel), lalu restart aplikasi.
           </p>
-        ) : (
-          <PasswordForm />
         )}
       </DetailSection>
     </DetailModal>
   );
 }
 
-// Ubah nama dan nomor WhatsApp akun.
+// Ubah foto, nama, nomor WhatsApp, dan username akun. Super admin juga bisa mengganti email.
 function ProfileForm() {
   const { user, updateUser } = useAuth();
   const { addToast: toast } = useToast();
   const admin = user?.role === 'superadmin';
   const [name, setName] = useState(user?.name || '');
   const [whatsapp, setWhatsapp] = useState(user?.whatsapp || '');
+  const [username, setUsername] = useState(user?.username || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [avatar, setAvatar] = useState(user?.avatar || '');
   const [saving, setSaving] = useState(false);
-  const changed = name.trim() !== (user?.name || '') || whatsapp.trim() !== (user?.whatsapp || '');
+  const fileRef = useRef(null);
+  const cleanUsername = username.trim().toLowerCase();
+  const usernameBad = cleanUsername ? !/^[a-z0-9._-]{3,30}$/.test(cleanUsername) : admin;
+  const changed =
+    name.trim() !== (user?.name || '') ||
+    whatsapp.trim() !== (user?.whatsapp || '') ||
+    cleanUsername !== (user?.username || '') ||
+    (admin && email.trim() !== (user?.email || '')) ||
+    avatar !== (user?.avatar || '');
+
+  // Foto dipotong persegi dan diperkecil di browser sebelum dikirim.
+  const pickPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      setAvatar(await readImageAsDataUrl(file, { maxSide: 256, maxChars: 190000, square: true }));
+    } catch (err) {
+      toast({ type: 'error', title: 'Foto tidak bisa dipakai', message: err.message });
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const next = await updateMyProfile({ name: name.trim(), whatsapp: whatsapp.trim() });
-      updateUser(next);
+      const next = await updateMyProfile({
+        name: name.trim(),
+        whatsapp: whatsapp.trim(),
+        username: cleanUsername,
+        email: admin ? email.trim() : undefined,
+        avatar,
+      });
+      // Tanda "masuk sebagai pengguna" berasal dari sesi, jadi dipertahankan.
+      updateUser({ ...next, impersonated: user?.impersonated });
       setName(next.name || '');
       setWhatsapp(next.whatsapp || '');
+      setUsername(next.username || '');
+      setEmail(next.email || '');
+      setAvatar(next.avatar || '');
       toast({ type: 'success', title: 'Profil disimpan' });
     } catch (err) {
       toast({ type: 'error', title: 'Gagal menyimpan', message: err?.response?.data?.message || 'Coba lagi beberapa saat.' });
@@ -351,6 +381,22 @@ function ProfileForm() {
 
   return (
     <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+      <div className="flex items-center gap-4 sm:col-span-2">
+        <Avatar user={{ ...user, name: name || user?.name }} src={avatar} className="h-16 w-16 text-[22px] sm:h-20 sm:w-20 sm:text-[26px]" />
+        <div className="min-w-0">
+          <p className="text-[12px] font-medium text-secondary">Foto profil</p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            <Button size="sm" variant="secondary" icon={Camera} onClick={() => fileRef.current?.click()}>
+              {avatar ? 'Ganti foto' : 'Unggah foto'}
+            </Button>
+            {avatar && (
+              <Button size="sm" variant="ghost" icon={Trash2} onClick={() => setAvatar('')}>Hapus foto</Button>
+            )}
+          </div>
+          <p className="mt-1.5 text-[11px] text-tertiary">JPG, PNG, atau WebP. Foto dipotong persegi otomatis.</p>
+          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={pickPhoto} className="hidden" aria-label="Pilih foto profil" />
+        </div>
+      </div>
       <div>
         <label htmlFor="profile-name" className={LABEL}>Nama</label>
         <input id="profile-name" type="text" required minLength={2} maxLength={120} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} className={INPUT} />
@@ -370,15 +416,47 @@ function ProfileForm() {
           className={INPUT}
         />
       </div>
-      <div className="sm:col-span-2">
-        <label htmlFor="profile-login" className={LABEL}>{admin ? 'Username' : 'Email'}</label>
-        <input id="profile-login" type="text" value={admin ? user?.username || '' : user?.email || ''} disabled readOnly className={INPUT} />
+      <div>
+        <label htmlFor="profile-username" className={LABEL}>Username{admin ? '' : ' (boleh kosong)'}</label>
+        <input
+          id="profile-username"
+          type="text"
+          required={admin}
+          maxLength={30}
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          placeholder="contoh: budi.santoso"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          aria-invalid={usernameBad && cleanUsername ? 'true' : undefined}
+          className={`${INPUT} ${usernameBad && cleanUsername ? 'border-red-500 focus:border-red-500' : ''}`}
+        />
+        <p className={`mt-1 text-[11px] ${usernameBad && cleanUsername ? 'text-danger' : 'text-tertiary'}`}>
+          {usernameBad && cleanUsername
+            ? '3 sampai 30 karakter: huruf kecil, angka, titik, garis bawah, atau strip.'
+            : 'Bisa dipakai untuk masuk, selain email.'}
+        </p>
+      </div>
+      <div>
+        <label htmlFor="profile-email" className={LABEL}>Email{admin ? ' (boleh kosong)' : ''}</label>
+        <input
+          id="profile-email"
+          type="email"
+          maxLength={190}
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={!admin}
+          readOnly={!admin}
+          className={INPUT}
+        />
         <p className="mt-1 text-[11px] text-tertiary">
-          {admin ? 'Username super admin diatur di pengaturan server.' : 'Email dipakai untuk masuk dan tidak bisa diubah dari sini.'}
+          {admin ? 'Bisa dipakai untuk masuk, selain username.' : 'Email dipakai untuk mencatat pesanan, jadi tidak bisa diganti.'}
         </p>
       </div>
       <div className="flex justify-end sm:col-span-2">
-        <Button size="sm" variant="primary" icon={Save} type="submit" disabled={saving || !changed || name.trim().length < 2}>
+        <Button size="sm" variant="primary" icon={Save} type="submit" disabled={saving || !changed || name.trim().length < 2 || usernameBad}>
           {saving ? 'Menyimpan...' : 'Simpan profil'}
         </Button>
       </div>

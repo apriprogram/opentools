@@ -99,3 +99,12 @@ export const trackUsage = async (req, res) => {
     return fail(res, 'Track usage', error);
   }
 };
+
+// Semua Twibbon untuk halaman Data Twibbon (super admin).
+export const adminCampaigns = async (req, res) => {
+  try {
+    return res.json({ success: true, twibbons: await twibbonService.adminListCampaigns() });
+  } catch (error) {
+    return fail(res, 'Admin list twibbon', error);
+  }
+};

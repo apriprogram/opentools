@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  AlertTriangle, ArrowLeft, CalendarDays, CheckCheck, CheckCircle2, Copy, Download, ExternalLink, Eye, ImagePlus, Rocket, RotateCcw, Save, Upload,
+  AlertTriangle, ArrowLeft, CalendarDays, CheckCheck, CheckCircle2, Copy, Download, Eraser, ExternalLink, Eye, ImagePlus, Rocket, RotateCcw, Save, Undo2, Upload,
 } from 'lucide-react';
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import FramePreview from '../../components/twibbon/FramePreview';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
-import { prepareFrame } from '../../lib/twibbonFrame';
+import { frameHasHole, prepareFrame, punchHole } from '../../lib/twibbonFrame';
 import { createTwibbon, fetchMyTwibbon, updateTwibbon } from '../../services/twibbonApi';
 
 const INPUT =
@@ -104,6 +104,8 @@ export default function TwibbonEditorPage() {
     setReading(true);
     try {
       setFrame(await prepareFrame(file));
+      setUndoFrame(null);
+      setPicking(false);
     } catch (err) {
       toast({ type: 'error', title: 'Gambar tidak bisa dipakai', message: err.message });
     } finally {
@@ -125,6 +127,46 @@ export default function TwibbonEditorPage() {
   };
 
   const frameSrc = frame?.dataUrl || saved?.frameBase64 || null;
+
+  // Alat "Buat area foto": untuk bingkai yang belum punya bagian transparan (misalnya gambar JPG).
+  // Pengguna mengetuk bagian bingkai yang akan jadi tempat foto, lalu warna di area itu dijadikan tembus pandang.
+  const [picking, setPicking] = useState(false);
+  const [tolerance, setTolerance] = useState(40);
+  const [undoFrame, setUndoFrame] = useState(null);
+  const [savedHole, setSavedHole] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    setSavedHole(null);
+    // Bingkai tersimpan berganti (misalnya setelah disimpan): riwayat batal tidak berlaku lagi.
+    setUndoFrame(null);
+    if (saved?.frameBase64) {
+      frameHasHole(saved.frameBase64)
+        .then((ok) => alive && setSavedHole(ok))
+        .catch(() => {});
+    }
+    return () => {
+      alive = false;
+    };
+  }, [saved?.frameBase64]);
+  // null berarti belum diketahui (bingkai tersimpan masih diperiksa).
+  const hasHoleNow = frame ? frame.transparent : savedHole;
+
+  const makeHole = async (e) => {
+    if (!picking || !frameSrc || reading) return;
+    const box = e.currentTarget.getBoundingClientRect();
+    setReading(true);
+    try {
+      const next = await punchHole(frameSrc, { x: (e.clientX - box.left) / box.width, y: (e.clientY - box.top) / box.height, tolerance });
+      setUndoFrame({ frame });
+      setFrame(next);
+      setPicking(false);
+      toast({ type: 'success', title: 'Area foto dibuat', message: 'Bagian abu-abu adalah tempat foto. Simpan kalau sudah pas, atau ulangi di bagian lain.' });
+    } catch (err) {
+      toast({ type: 'error', title: 'Area foto belum dibuat', message: err.message });
+    } finally {
+      setReading(false);
+    }
+  };
   const slugOk = SLUG_RE.test(slug);
   const titleOk = title.trim().length >= 2;
   const changed = editing
@@ -250,7 +292,20 @@ export default function TwibbonEditorPage() {
                 className={`relative overflow-hidden rounded-2xl border transition-smooth ${dragging ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-border'}`}
               >
                 <FramePreview src={frameSrc} alt="Pratinjau bingkai" rounded="rounded-none" />
-                {frame && (
+                {picking && (
+                  <button
+                    type="button"
+                    onClick={makeHole}
+                    disabled={reading}
+                    aria-label="Ketuk bagian bingkai yang akan jadi tempat foto"
+                    className="absolute inset-0 flex cursor-crosshair items-end justify-center bg-black/10 p-3 disabled:cursor-wait"
+                  >
+                    <span className="rounded-full bg-black/80 px-3 py-1.5 text-[12px] font-medium text-white">
+                      {reading ? 'Memproses...' : 'Ketuk bagian yang akan jadi tempat foto'}
+                    </span>
+                  </button>
+                )}
+                {frame && !picking && (
                   <span className="absolute left-2 top-2 inline-flex h-6 items-center rounded-full bg-black/70 px-2.5 text-[11px] font-medium text-white">Gambar baru, belum disimpan</span>
                 )}
                 {dragging && (
@@ -283,10 +338,45 @@ export default function TwibbonEditorPage() {
               </div>
             )}
 
-            {frame && !frame.transparent && (
+            {frameSrc && (
+              <div className="mt-3 rounded-md border border-border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[12px] font-medium text-primary sm:text-[13px]">Area foto</p>
+                  <div className="flex flex-wrap gap-2">
+                    {undoFrame && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={Undo2}
+                        onClick={() => {
+                          setFrame(undoFrame.frame);
+                          setUndoFrame(null);
+                        }}
+                      >
+                        Urungkan
+                      </Button>
+                    )}
+                    <Button size="sm" variant={picking ? 'primary' : 'secondary'} icon={Eraser} onClick={() => setPicking((v) => !v)} disabled={reading}>
+                      {picking ? 'Batal memilih' : 'Buat area foto'}
+                    </Button>
+                  </div>
+                </div>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-secondary sm:text-[12px]">
+                  Untuk gambar yang belum punya bagian transparan. Tekan Buat area foto, lalu ketuk bagian bingkai yang akan jadi tempat foto. Warna di area itu dijadikan tembus pandang.
+                </p>
+                <label className="mt-2.5 flex items-center gap-2.5 text-[11px] text-secondary sm:text-[12px]">
+                  <span className="shrink-0">Kepekaan warna</span>
+                  <input type="range" min={10} max={90} step={5} value={tolerance} onChange={(e) => setTolerance(Number(e.target.value))} className="h-1.5 min-w-0 flex-1 cursor-pointer accent-blue-500" />
+                  <span className="w-6 shrink-0 text-right tabular-nums text-primary">{tolerance}</span>
+                </label>
+                <p className="mt-1 text-[11px] text-tertiary">Naikkan kalau area fotonya belum bersih, turunkan kalau bagian lain ikut terhapus.</p>
+              </div>
+            )}
+
+            {hasHoleNow === false && (
               <p className="mt-3 flex items-start gap-2 rounded-md bg-amber-500/10 px-2.5 py-2 text-[12px] text-amber-700 dark:text-amber-400">
                 <AlertTriangle size={15} strokeWidth={1.75} aria-hidden="true" className="mt-px shrink-0" />
-                <span>Gambar ini tidak punya area transparan, jadi foto pengunjung akan tertutup. Buat lubang foto di gambarnya dulu, atau lanjutkan kalau memang disengaja.</span>
+                <span>Gambar ini belum punya area transparan, jadi foto pengunjung tertutup bingkai. Pakai Buat area foto di atas untuk membuat tempat fotonya.</span>
               </p>
             )}
             {frame && frame.transparent && (

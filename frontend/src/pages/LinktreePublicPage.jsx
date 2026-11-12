@@ -103,7 +103,7 @@ export default function LinktreePublicPage() {
         </div>
       )}
       <div className="flex-1">
-        <LinktreeView tree={tree} onLinkClick={onLinkClick} />
+        <LinktreeView tree={tree} onLinkClick={onLinkClick} plain />
       </div>
       {/* Lencana "Dibuat dengan OpenTools": kaca tipis yang warnanya mengikuti warna teks halaman. */}
       <div className="flex justify-center px-4 pb-4 pt-2">

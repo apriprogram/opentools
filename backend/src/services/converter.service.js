@@ -91,7 +91,7 @@ export async function runConversion(job) {
         completedAt: Date.now(),
         downloadUrl: `/api/v1/convert/${jobId}/download`
       });
-      recordProcessed(job.toolId);
+      recordProcessed(job.toolId, { bytesIn: job.fileSize || 0, bytesOut: stats.size });
       console.log(`[JOB DONE] ${jobId} → ${outputPath}`);
     } else {
       throw new Error("Converted file not found after processing.");

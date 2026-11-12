@@ -27,6 +27,44 @@ export function clearSession() {
   }
 }
 
+// Saat super admin masuk sebagai pengguna, sesi adminnya disimpan di sini supaya bisa dipulihkan lagi.
+const ADMIN_STASH_KEY = 'ot_admin_session';
+
+export function getStashedAdminSession() {
+  try {
+    return JSON.parse(localStorage.getItem(ADMIN_STASH_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+export function stashAdminSession() {
+  const current = getStoredSession();
+  if (!current?.token) return;
+  try {
+    localStorage.setItem(ADMIN_STASH_KEY, JSON.stringify(current));
+  } catch {
+    /* penyimpanan diblokir: admin perlu masuk ulang setelah selesai */
+  }
+}
+
+export function clearStashedAdminSession() {
+  try {
+    localStorage.removeItem(ADMIN_STASH_KEY);
+  } catch {
+    /* abaikan */
+  }
+}
+
+/** Pulihkan sesi admin yang disimpan. Mengembalikan true bila ada sesi yang dipulihkan. */
+export function restoreAdminSession() {
+  const stashed = getStashedAdminSession();
+  if (!stashed?.token) return false;
+  storeSession(stashed);
+  clearStashedAdminSession();
+  return true;
+}
+
 export function authHeaders() {
   const session = getStoredSession();
   return session?.token ? { Authorization: `Bearer ${session.token}` } : {};
@@ -49,6 +87,27 @@ export async function logoutAccount() {
 export async function fetchMe() {
   const res = await api.get('/auth/me', { headers: authHeaders() });
   return res.data.user;
+}
+
+// Super admin: daftar semua akun.
+export async function adminFetchUsers() {
+  const res = await api.get('/admin/users', { headers: authHeaders() });
+  return res.data.users;
+}
+
+// Super admin: hapus akun beserta datanya. deleteOrders false mempertahankan riwayat pesanannya.
+export async function adminDeleteUser(id, { deleteOrders = true } = {}) {
+  const res = await api.delete(`/admin/users/${encodeURIComponent(id)}`, {
+    params: { orders: deleteOrders ? 1 : 0 },
+    headers: authHeaders(),
+  });
+  return res.data;
+}
+
+// Super admin: buat sesi untuk masuk sebagai pengguna (tanpa password pengguna itu).
+export async function adminImpersonateUser(id) {
+  const res = await api.post(`/admin/users/${encodeURIComponent(id)}/impersonate`, {}, { headers: authHeaders() });
+  return res.data;
 }
 
 export async function fetchMyQr() {
@@ -114,8 +173,9 @@ export async function fetchMyNotaPdf(code) {
 }
 
 // Ubah profil akun: nama dan nomor WhatsApp.
-export async function updateMyProfile({ name, whatsapp }) {
-  const res = await api.put('/me/profile', { name, whatsapp }, { headers: authHeaders() });
+// username, email, dan avatar boleh tidak dikirim (tidak diubah). avatar kosong berarti hapus foto.
+export async function updateMyProfile({ name, whatsapp, username, email, avatar }) {
+  const res = await api.put('/me/profile', { name, whatsapp, username, email, avatar }, { headers: authHeaders() });
   return res.data.user;
 }
 

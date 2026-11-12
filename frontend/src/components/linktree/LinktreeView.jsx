@@ -12,7 +12,8 @@ const hasIcon = (value) =>
 export function pageBackground(theme) {
   const bg = (theme && theme.bg) || {};
   if (bg.type === 'image' && bg.image) {
-    return { backgroundImage: `url("${bg.image}")`, backgroundSize: 'cover', backgroundPosition: 'center' };
+    // Satu gambar menutupi seluruh area, tidak diulang.
+    return { backgroundImage: `url("${bg.image}")`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' };
   }
   if (bg.type === 'gradient') {
     return { backgroundImage: `linear-gradient(160deg, ${bg.color}, ${bg.color2})` };
@@ -72,7 +73,9 @@ export function socialIconStyle(theme, meta) {
 
 // Tampilan Linktree. Dipakai di halaman publik, pratinjau editor, dan contoh di landing.
 // preview: klik tautan tidak membuka halaman. onLinkClick: dipanggil saat tautan publik diklik.
-export default function LinktreeView({ tree, preview = false, onLinkClick }) {
+// plain: latar tidak digambar di sini karena pembungkusnya sudah menggambar latar satu halaman penuh.
+// Tanpa ini latar tergambar dua kali: sekali selebar halaman, sekali lagi setinggi isi.
+export default function LinktreeView({ tree, preview = false, onLinkClick, plain = false }) {
   const theme = tree.theme || {};
   const text = theme.text || '#111111';
   const avatarOutline = !theme.avatar || theme.avatar.outline !== false;
@@ -80,7 +83,7 @@ export default function LinktreeView({ tree, preview = false, onLinkClick }) {
   const socials = items.filter((i) => i.type === 'social');
   const rest = items.filter((i) => i.type !== 'social');
 
-  const pageStyle = pageBackground(theme);
+  const pageStyle = plain ? {} : pageBackground(theme);
   const buttonStyle = linkButtonStyle(theme);
   const liquidButton = isLiquidButton(theme);
   const liquidSocial = isLiquidSocial(theme);

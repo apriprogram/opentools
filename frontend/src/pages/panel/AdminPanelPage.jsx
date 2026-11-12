@@ -186,10 +186,10 @@ export default function AdminPanelPage() {
   ];
 
   return (
-    <PanelLayout title="Konfirmasi Pesanan">
+    <PanelLayout title="Data QR">
       <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">Konfirmasi Pesanan</h1>
+          <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">Data QR</h1>
           <PanelCrumb />
           <p className="mt-1 text-[13px] text-secondary sm:text-[14px]">Konfirmasi setelah transfer masuk. Kode lisensi dibuat otomatis.</p>
         </div>

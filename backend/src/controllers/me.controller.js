@@ -32,6 +32,9 @@ export const saveQr = async (req, res) => {
     if (!COLOR_RE.test(fg) || !COLOR_RE.test(bg)) {
       return res.status(400).json({ success: false, message: "Format warna tidak valid." });
     }
+    if (fg.toLowerCase() === bg.toLowerCase()) {
+      return res.status(400).json({ success: false, message: "Warna QR dan warna latar tidak boleh sama." });
+    }
     const saved = await me.createUserQr(req.user, { link, fg, bg, logo: req.body?.logo !== false });
     return res.status(201).json({ success: true, qr: saved });
   } catch (error) {
@@ -132,7 +135,13 @@ export const updateProfile = async (req, res) => {
     if ((rawWhatsapp && !whatsapp) || (!rawWhatsapp && req.user.role !== "superadmin")) {
       return res.status(400).json({ success: false, message: "Nomor WhatsApp tidak valid. Contoh: 081234567890." });
     }
-    const user = await updateUserProfile(req.user.id, { name, whatsapp });
+    const user = await updateUserProfile(req.user, {
+      name,
+      whatsapp,
+      username: req.body?.username,
+      email: req.body?.email,
+      avatar: req.body?.avatar
+    });
     return res.json({ success: true, user });
   } catch (error) {
     return fail(res, error);

@@ -116,6 +116,17 @@ const STATEMENTS = [
     KEY idx_linktree_items_tree (linktree_id)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+  // Pemakaian konverter dan kompresor, dijumlahkan per hari dan per alat (untuk halaman Statistik admin).
+  `CREATE TABLE IF NOT EXISTS tool_usage_daily (
+    day DATE NOT NULL,
+    tool_id VARCHAR(64) NOT NULL,
+    kind ENUM('convert','compress') NOT NULL,
+    uses INT UNSIGNED NOT NULL DEFAULT 0,
+    bytes_in BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    bytes_out BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, tool_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
   // Pengaturan aplikasi yang diubah super admin dari panel (misalnya metode pembayaran). Nilai berupa JSON.
   `CREATE TABLE IF NOT EXISTS app_settings (
     name VARCHAR(64) PRIMARY KEY,
@@ -213,4 +224,8 @@ export async function ensureSchema() {
   await ensureColumn("user_qr", "dynamic_at", "DATETIME NULL");
   await ensureIndex("user_qr", "uq_user_qr_code", "UNIQUE KEY `uq_user_qr_code` (`code`)");
   await backfillScanCodes();
+  // Sesi yang dibuat super admin untuk masuk sebagai pengguna: mencatat id admin yang membuatnya.
+  await ensureColumn("sessions", "impersonated_by", "INT UNSIGNED NULL");
+  // Foto profil akun: gambar kecil (data URL) yang sudah diperkecil di browser.
+  await ensureColumn("users", "avatar", "MEDIUMTEXT NULL");
 }

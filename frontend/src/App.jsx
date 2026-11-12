@@ -27,6 +27,9 @@ import UserQrPage from './pages/panel/UserQrPage';
 import AdminPanelPage from './pages/panel/AdminPanelPage';
 import AdminLinktreePage from './pages/panel/AdminLinktreePage';
 import AdminSettingsPage from './pages/panel/AdminSettingsPage';
+import AdminUsersPage from './pages/panel/AdminUsersPage';
+import AdminStatsPage from './pages/panel/AdminStatsPage';
+import AdminTwibbonPage from './pages/panel/AdminTwibbonPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -127,6 +130,9 @@ function AppContent() {
           <Route path="/dashboard/linktree/:id" element={<RequireRole role="user"><LinktreeEditorPage /></RequireRole>} />
           <Route path="/admin" element={<RequireRole role="superadmin"><AdminPanelPage /></RequireRole>} />
           <Route path="/admin/linktree" element={<RequireRole role="superadmin"><AdminLinktreePage /></RequireRole>} />
+          <Route path="/admin/twibbon" element={<RequireRole role="superadmin"><AdminTwibbonPage /></RequireRole>} />
+          <Route path="/admin/statistik" element={<RequireRole role="superadmin"><AdminStatsPage /></RequireRole>} />
+          <Route path="/admin/users" element={<RequireRole role="superadmin"><AdminUsersPage /></RequireRole>} />
           <Route path="/admin/pengaturan" element={<RequireRole role="superadmin"><AdminSettingsPage /></RequireRole>} />
           <Route path="/admin/qr" element={<Navigate to="/admin" replace />} />
         </Routes>

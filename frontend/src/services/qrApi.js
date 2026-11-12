@@ -97,3 +97,15 @@ export async function adminSavePaymentSettings(settings) {
   const res = await api.put('/admin/settings/payment', settings, { headers: authHeaders() });
   return res.data.settings;
 }
+
+// Data ringkas pesanan untuk halaman Statistik (super admin).
+export async function adminFetchOrderStats() {
+  const res = await api.get('/admin/qr/stats', { headers: authHeaders() });
+  return { orders: res.data.orders || [], plans: res.data.plans || [] };
+}
+
+// Pemakaian konverter dan kompresor per hari untuk halaman Statistik (super admin).
+export async function adminFetchToolStats() {
+  const res = await api.get('/admin/tools/stats', { headers: authHeaders() });
+  return { usage: res.data.usage || [], tools: res.data.tools || {} };
+}

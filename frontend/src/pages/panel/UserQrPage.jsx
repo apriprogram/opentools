@@ -36,10 +36,12 @@ export default function UserQrPage() {
   const qrParam = params.get('qr');
   const rawView = params.get('view');
   const needWa = !user?.whatsapp;
+  // Super admin (menu Tools Admin): QR dibuat langsung dengan fitur Premium, tanpa memilih paket dan tanpa pesanan.
+  const adminFree = user?.role === 'superadmin';
 
   let view = 'daftar';
   if (kode) view = 'bayar';
-  else if (rawView === 'pilih') view = 'pilih';
+  else if (rawView === 'pilih') view = adminFree ? 'buat' : 'pilih';
   else if (paket) view = needWa ? 'wa' : 'buat';
   else if (rawView === 'buat') view = 'buat';
 
@@ -155,7 +157,9 @@ export default function UserQrPage() {
 
   const headerTitle = view === 'bayar' && order ? `Pesanan ${order.code}` : TITLE[view] || TITLE.daftar;
   const subtitle = {
-    daftar: 'Daftar QR, pesanan, dan lisensi Anda dalam satu menu.',
+    daftar: adminFree
+      ? 'QR buatan admin memakai fitur Premium tanpa biaya: warna sendiri, tanpa logo, dan link bisa diganti.'
+      : 'Daftar QR, pesanan, dan lisensi Anda dalam satu menu.',
     pilih: renewQr
       ? `Pilih paket untuk QR: ${renewQr.link}. Satu pembayaran berlaku untuk satu QR code.`
       : 'Paket gratis langsung bisa dipakai. Paket Premium Gold berlaku untuk satu QR code dan dibayar lewat transfer (DANA atau rekening bank).',
@@ -177,7 +181,7 @@ export default function UserQrPage() {
             <p className="mt-1 max-w-2xl text-[13px] text-secondary sm:text-[14px]">{subtitle}</p>
           </div>
           {view === 'daftar' ? (
-            <Button variant="primary" icon={QrCode} className="self-start whitespace-nowrap sm:self-auto" onClick={() => navigate('/dashboard/qr?view=pilih')}>
+            <Button variant="primary" icon={QrCode} className="self-start whitespace-nowrap sm:self-auto" onClick={() => navigate(adminFree ? '/dashboard/qr?view=buat' : '/dashboard/qr?view=pilih')}>
               Buat QR baru
             </Button>
           ) : (
@@ -198,9 +202,11 @@ export default function UserQrPage() {
               <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
                 <p className="text-[14px] text-primary">Belum ada QR tersimpan.</p>
                 <p className="mt-1 text-[13px] text-secondary">
-                  Buat QR pertama Anda. Gratis, atau pilih Premium Gold untuk satu QR dengan warna sendiri dan tanpa logo.
+                  {adminFree
+                    ? 'Buat QR pertama. Warna, logo, dan link bisa diatur tanpa biaya.'
+                    : 'Buat QR pertama Anda. Gratis, atau pilih Premium Gold untuk satu QR dengan warna sendiri dan tanpa logo.'}
                 </p>
-                <Button variant="primary" icon={QrCode} className="mt-4" onClick={() => navigate('/dashboard/qr?view=pilih')}>
+                <Button variant="primary" icon={QrCode} className="mt-4" onClick={() => navigate(adminFree ? '/dashboard/qr?view=buat' : '/dashboard/qr?view=pilih')}>
                   Buat QR baru
                 </Button>
               </div>
@@ -210,10 +216,13 @@ export default function UserQrPage() {
                 logoUrl={logoUrl}
                 onChanged={loadAll}
                 onUpgrade={(qr) => navigate(`/dashboard/qr?view=pilih&qr=${qr.id}`)}
+                adminFree={adminFree}
               />
             )}
           </section>
 
+          {/* Admin tidak memesan paket, jadi tabel pesanan dan lisensi disembunyikan. */}
+          {!adminFree && (
           <section className="mt-6 sm:mt-8">
             <h2 className="mb-3 text-[14px] font-semibold text-primary sm:text-[15px]">Pesanan dan lisensi</h2>
             <OrderTable
@@ -229,6 +238,7 @@ export default function UserQrPage() {
               onPdf={downloadNotaPdf}
             />
           </section>
+          )}
         </>
       )}
 
@@ -273,6 +283,7 @@ export default function UserQrPage() {
               renewQr={renewQr}
               onOrder={placeOrder}
               orderBusy={busy === paket}
+              freePremium={adminFree && !planObj}
             />
           )}
         </div>

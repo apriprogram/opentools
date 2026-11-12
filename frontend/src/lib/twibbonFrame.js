@@ -56,3 +56,81 @@ export async function prepareFrame(file, { maxSide = 1080, maxChars = 900000 } =
   }
   throw new Error('Gambar terlalu besar. Pakai gambar yang lebih sederhana atau lebih kecil.');
 }
+
+const imageFromUrl = (src) =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onerror = () => reject(new Error('Gambar bingkai tidak bisa dibuka.'));
+    img.onload = () => resolve(img);
+    img.src = src;
+  });
+
+/** Apakah gambar bingkai (data URL) punya area transparan untuk foto. */
+export async function frameHasHole(dataUrl) {
+  return hasHole(await imageFromUrl(dataUrl));
+}
+
+/**
+ * Buat area foto di bingkai yang belum transparan: mulai dari titik yang diketuk, semua piksel bersebelahan
+ * yang warnanya mirip dijadikan tembus pandang (seperti alat "tongkat ajaib" di aplikasi desain).
+ * x, y: posisi ketukan di kotak pratinjau persegi (0 sampai 1). tolerance: seberapa mirip warnanya (0 sampai 100).
+ */
+export async function punchHole(dataUrl, { x, y, tolerance = 40, maxChars = 900000 } = {}) {
+  const img = await imageFromUrl(dataUrl);
+  const { canvas, ctx } = draw(img, Math.max(img.naturalWidth, img.naturalHeight));
+  const { width, height } = canvas;
+
+  // Pratinjau menampilkan gambar utuh di dalam kotak persegi, jadi gambar yang tidak persegi punya tepi kosong.
+  const boxW = width >= height ? 1 : width / height;
+  const boxH = height >= width ? 1 : height / width;
+  const ix = (x - (1 - boxW) / 2) / boxW;
+  const iy = (y - (1 - boxH) / 2) / boxH;
+  if (ix < 0 || ix >= 1 || iy < 0 || iy >= 1) throw new Error('Ketuk di dalam gambar bingkainya.');
+
+  const image = ctx.getImageData(0, 0, width, height);
+  const d = image.data;
+  const sx = Math.min(width - 1, Math.floor(ix * width));
+  const sy = Math.min(height - 1, Math.floor(iy * height));
+  const seed = (sy * width + sx) * 4;
+  if (d[seed + 3] < 16) throw new Error('Bagian itu sudah transparan. Ketuk bagian lain.');
+  const r0 = d[seed];
+  const g0 = d[seed + 1];
+  const b0 = d[seed + 2];
+  const limit = tolerance * tolerance * 3;
+
+  const total = width * height;
+  const seen = new Uint8Array(total);
+  const stack = new Int32Array(total);
+  let top = 0;
+  let cleared = 0;
+  stack[top++] = sy * width + sx;
+  seen[sy * width + sx] = 1;
+  while (top) {
+    const p = stack[--top];
+    const i = p * 4;
+    if (d[i + 3] >= 16) {
+      const dr = d[i] - r0;
+      const dg = d[i + 1] - g0;
+      const db = d[i + 2] - b0;
+      if (dr * dr + dg * dg + db * db > limit) continue;
+    }
+    d[i + 3] = 0;
+    cleared += 1;
+    const px = p % width;
+    if (px > 0 && !seen[p - 1]) { seen[p - 1] = 1; stack[top++] = p - 1; }
+    if (px < width - 1 && !seen[p + 1]) { seen[p + 1] = 1; stack[top++] = p + 1; }
+    if (p >= width && !seen[p - width]) { seen[p - width] = 1; stack[top++] = p - width; }
+    if (p < total - width && !seen[p + width]) { seen[p + width] = 1; stack[top++] = p + width; }
+  }
+  if (cleared / total > 0.9) {
+    throw new Error('Hampir seluruh gambar ikut terhapus. Kecilkan kepekaan warna, lalu coba lagi.');
+  }
+  ctx.putImageData(image, 0, 0);
+
+  for (const quality of [0.92, 0.82, 0.7]) {
+    let out = canvas.toDataURL('image/webp', quality);
+    if (!out.startsWith('data:image/webp')) out = canvas.toDataURL('image/png');
+    if (out.length <= maxChars) return { dataUrl: out, transparent: true, width, height, cleared: cleared / total };
+  }
+  throw new Error('Gambar terlalu besar setelah diubah. Pakai gambar yang lebih kecil.');
+}

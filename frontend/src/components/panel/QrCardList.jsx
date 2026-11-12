@@ -18,17 +18,18 @@ const STATUS_TEXT = {
 };
 
 // Daftar QR milik pengguna. QR yang paket berbayarnya aktif tampil dengan gaya Premium Gold.
-export default function QrCardList({ items, logoUrl, onChanged, onUpgrade }) {
+// adminFree: QR milik super admin, fitur Premium tanpa pesanan, jadi tombol beli dan perpanjang disembunyikan.
+export default function QrCardList({ items, logoUrl, onChanged, onUpgrade, adminFree = false }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((qr) => (
-        <QrCard key={qr.id} qr={qr} logoUrl={logoUrl} onChanged={onChanged} onUpgrade={onUpgrade} />
+        <QrCard key={qr.id} qr={qr} logoUrl={logoUrl} onChanged={onChanged} onUpgrade={onUpgrade} adminFree={adminFree} />
       ))}
     </div>
   );
 }
 
-function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
+function QrCard({ qr, logoUrl, onChanged, onUpgrade, adminFree }) {
   const { addToast: toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [zoomed, setZoomed] = useState(false);
@@ -118,12 +119,12 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
         />
         <div className="min-w-0 flex-1">
           <p className={`select-none text-[11px] font-semibold uppercase tracking-wider ${premium ? 'text-[#5C4512]' : 'text-tertiary'}`}>
-            {premium ? 'Premium Gold' : 'Gratis'}
+            {adminFree ? 'Tools Admin' : premium ? 'Premium Gold' : 'Gratis'}
           </p>
           <p className={`mt-1 break-all text-[14px] font-medium leading-[20px] line-clamp-2 ${tone}`} title={qr.link}>
             {qr.link}
           </p>
-          <p className={`mt-2 text-[12px] ${muted}`}>{STATUS_TEXT[qr.status] || 'Paket gratis'}</p>
+          <p className={`mt-2 text-[12px] ${muted}`}>{adminFree ? 'Fitur Premium, tanpa batas waktu' : STATUS_TEXT[qr.status] || 'Paket gratis'}</p>
           {qr.disabled && (
             <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-medium text-white">
               <PowerOff size={11} strokeWidth={2} aria-hidden="true" /> Dinonaktifkan
@@ -146,7 +147,7 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
         {premium && (
           <Button size="sm" variant="secondary" icon={PencilLine} onClick={() => setEditing(true)}>Edit QR</Button>
         )}
-        {qr.status !== 'nonaktif' && (
+        {!adminFree && qr.status !== 'nonaktif' && (
           <Button size="sm" variant={qr.status === 'gratis' ? 'primary' : 'secondary'} icon={Crown} onClick={() => onUpgrade(qr)}>
             {qr.status === 'gratis' ? 'Jadikan Premium' : 'Perpanjang'}
           </Button>
@@ -174,7 +175,7 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
           svg={svg}
           link={qr.link}
           title="QR kamu"
-          caption={`${STATUS_TEXT[qr.status] || 'Paket gratis'}${qr.disabled ? ' · Dinonaktifkan' : ''}`}
+          caption={`${adminFree ? 'Tools Admin' : STATUS_TEXT[qr.status] || 'Paket gratis'}${qr.disabled ? ' · Dinonaktifkan' : ''}`}
           background={bg}
           onClose={() => setZoomed(false)}
           onPng={downloadPng}

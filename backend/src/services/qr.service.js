@@ -472,6 +472,21 @@ export const setLicenseActive = async (code, active) => {
 };
 
 // Admin: hapus pesanan beserta bukti dan lisensinya. Akun pembeli ikut kehilangan datanya.
+// Data ringkas semua pesanan untuk halaman Statistik admin (tanpa data pribadi dan tanpa bukti bayar).
+export const adminOrderStats = async () => {
+  const rows = await query(
+    "SELECT plan, amount, status, verify_status, created_at, paid_at FROM qr_orders ORDER BY created_at ASC LIMIT 20000"
+  );
+  return rows.map((row) => ({
+    plan: row.plan,
+    amount: Number(row.amount || 0),
+    status: row.status,
+    verifyStatus: row.verify_status || "none",
+    createdAt: iso(row.created_at),
+    paidAt: row.paid_at ? iso(row.paid_at) : null
+  }));
+};
+
 export const deleteOrder = async (code) => {
   const conn = await pool.getConnection();
   try {

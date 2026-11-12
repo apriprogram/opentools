@@ -50,3 +50,9 @@ export async function updateTwibbon(id, { title, description, frameBase64 }) {
 export async function deleteTwibbon(id) {
   await api.delete(`/twibbon/campaigns/${encodeURIComponent(id)}`, { headers: authHeaders() });
 }
+
+// Super admin: semua Twibbon beserta pembuatnya (tanpa gambar bingkai).
+export async function adminFetchTwibbons() {
+  const res = await api.get('/admin/twibbons', { headers: authHeaders() });
+  return res.data.twibbons;
+}

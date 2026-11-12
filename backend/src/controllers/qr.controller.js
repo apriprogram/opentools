@@ -22,6 +22,15 @@ export const getPlans = async (req, res) => {
   }
 };
 
+// Data statistik pesanan untuk super admin.
+export const adminGetOrderStats = async (req, res) => {
+  try {
+    res.json({ success: true, plans: Object.values(qr.PLANS), orders: await qr.adminOrderStats() });
+  } catch (error) {
+    return fail(res, error, "Order stats");
+  }
+};
+
 // Pengaturan metode pembayaran (khusus super admin).
 export const adminGetPaymentSettings = async (req, res) => {
   try {

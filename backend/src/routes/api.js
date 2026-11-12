@@ -8,7 +8,8 @@ import {
   convertBatch,
   getJobStatus,
   downloadResult,
-  downloadAllZip
+  downloadAllZip,
+  adminToolStats
 } from "../controllers/converter.controller.js";
 import {
   createCampaign,
@@ -19,7 +20,8 @@ import {
   getCampaign,
   trackView,
   trackUsage,
-  deleteCampaign
+  deleteCampaign,
+  adminCampaigns
 } from "../controllers/twibbon.controller.js";
 import {
   getPlans,
@@ -36,11 +38,12 @@ import {
   adminGetNota,
   adminGetNotaPdf,
   adminGetPaymentSettings,
-  adminSavePaymentSettings
+  adminSavePaymentSettings,
+  adminGetOrderStats
 } from "../controllers/qr.controller.js";
 import { requireAdmin } from "../middleware/admin.middleware.js";
 import { adminLogin } from "../controllers/admin.controller.js";
-import { register, login as accountLogin, logout as accountLogout, me as currentUser } from "../controllers/auth.controller.js";
+import { register, login as accountLogin, logout as accountLogout, me as currentUser, adminUsers, adminImpersonate, adminRemoveUser } from "../controllers/auth.controller.js";
 import { myQr, saveQr, updateQr, setQrActive, removeQr, myOrders, myLicenses, myProof, myNota, myNotaPdf, setWhatsapp, updateProfile, changePassword } from "../controllers/me.controller.js";
 import { requireUser } from "../middleware/auth.middleware.js";
 import { proofUploadSingle } from "../middleware/proof.middleware.js";
@@ -137,9 +140,19 @@ router.post("/admin/qr/orders/:code/confirm", requireAdmin, adminConfirmOrder);
 router.post("/admin/qr/orders/:code/cancel", requireAdmin, adminCancelOrder);
 router.post("/admin/qr/orders/:code/license", requireAdmin, express.json(), adminSetLicense);
 router.delete("/admin/qr/orders/:code", requireAdmin, adminDeleteOrder);
+// Admin: daftar pengguna, dan masuk sebagai pengguna tanpa password pengguna itu
+router.get("/admin/users", requireAdmin, adminUsers);
+router.post("/admin/users/:id/impersonate", requireAdmin, adminImpersonate);
+router.delete("/admin/users/:id", requireAdmin, adminRemoveUser);
+// Admin: pemakaian konverter dan kompresor untuk halaman Statistik
+router.get("/admin/tools/stats", requireAdmin, adminToolStats);
+// Admin: data ringkas pesanan untuk halaman Statistik
+router.get("/admin/qr/stats", requireAdmin, adminGetOrderStats);
 // Admin: pengaturan metode pembayaran (DANA dan transfer bank)
 router.get("/admin/settings/payment", requireAdmin, adminGetPaymentSettings);
 router.put("/admin/settings/payment", requireAdmin, express.json({ limit: "20kb" }), adminSavePaymentSettings);
+// Admin: data Twibbon semua pengguna
+router.get("/admin/twibbons", requireAdmin, adminCampaigns);
 // Admin: data Linktree semua pengguna (hanya baca)
 router.get("/admin/linktrees", requireAdmin, adminListLinktrees);
 router.get("/admin/linktrees/:id", requireAdmin, adminGetLinktree);

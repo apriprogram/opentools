@@ -6,7 +6,26 @@ import { CATEGORIES_CONFIG, COMPRESSORS_CONFIG, visibleCategories } from "../con
 import { createJob, getJob } from "../services/job.service.js";
 import { runConversion } from "../services/converter.service.js";
 import { tempDir } from "../middleware/upload.middleware.js";
-import { recordUpload, recordDownload } from "../services/stats.service.js";
+import { recordUpload, recordDownload, listToolUsage } from "../services/stats.service.js";
+
+// Nama tiap alat (id -> label) dari konfigurasi konverter dan kompresor, untuk ditampilkan di Statistik admin.
+const toolLabels = () => {
+  const labels = { custom: "Konversi umum", batch: "Konversi banyak file", general: "Konversi umum" };
+  for (const group of [...CATEGORIES_CONFIG, ...COMPRESSORS_CONFIG]) {
+    for (const tool of group.tools || []) labels[tool.id] = tool.label;
+  }
+  return labels;
+};
+
+// Data pemakaian konverter dan kompresor untuk super admin.
+export const adminToolStats = async (req, res) => {
+  try {
+    res.json({ success: true, usage: await listToolUsage(), tools: toolLabels() });
+  } catch (error) {
+    console.error("Tool stats error:", error);
+    res.status(500).json({ success: false, message: "Statistik alat tidak bisa dimuat." });
+  }
+};
 
 /**
  * GET /api/v1/tools
