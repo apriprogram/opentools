@@ -1,4 +1,5 @@
 import { pool } from "./mysql.js";
+import { newScanCode } from "../services/scan.service.js";
 
 // Tabel dibuat otomatis saat server start (CREATE TABLE IF NOT EXISTS). Aman dijalankan berulang.
 const STATEMENTS = [
@@ -113,6 +114,13 @@ const STATEMENTS = [
     clicks INT UNSIGNED NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL,
     KEY idx_linktree_items_tree (linktree_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+  // Pengaturan aplikasi yang diubah super admin dari panel (misalnya metode pembayaran). Nilai berupa JSON.
+  `CREATE TABLE IF NOT EXISTS app_settings (
+    name VARCHAR(64) PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at DATETIME NOT NULL
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
 ];
 
@@ -141,6 +149,31 @@ async function ensureColumn(table, column, definition) {
   );
   if (Number(rows[0].n) === 0) {
     await pool.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
+  }
+}
+
+async function ensureIndex(table, indexName, definition) {
+  const [rows] = await pool.query(
+    `SELECT COUNT(*) AS n FROM information_schema.STATISTICS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?`,
+    [table, indexName]
+  );
+  if (Number(rows[0].n) === 0) {
+    await pool.query(`ALTER TABLE \`${table}\` ADD ${definition}`);
+  }
+}
+
+// QR yang dibuat sebelum ada QR dinamis belum punya kode pindai. Beri kode, dan catat kapan QR itu menjadi dinamis
+// (gambar QR yang diunduh sebelum waktu itu masih berisi link langsung).
+async function backfillScanCodes() {
+  const [rows] = await pool.query("SELECT id FROM user_qr WHERE code IS NULL");
+  const now = new Date();
+  for (const row of rows) {
+    await pool.query("UPDATE user_qr SET code = ?, dynamic_at = COALESCE(dynamic_at, ?) WHERE id = ? AND code IS NULL", [
+      newScanCode(),
+      now,
+      row.id
+    ]);
   }
 }
 
@@ -174,4 +207,10 @@ export async function ensureSchema() {
   // Tema Linktree bisa berisi gambar latar (ratusan KB). TEXT hanya muat 65 KB, jadi datanya terpotong
   // dan tema kembali ke bawaan. MEDIUMTEXT muat sampai 16 MB.
   await ensureColumnType("linktrees", "theme", "mediumtext", "MEDIUMTEXT NULL");
+  // QR dinamis: kode pindai (alamat /api/q/<kode>), status nonaktif dari pemilik, dan waktu QR mulai dinamis.
+  await ensureColumn("user_qr", "code", "VARCHAR(12) NULL");
+  await ensureColumn("user_qr", "disabled", "TINYINT(1) NOT NULL DEFAULT 0");
+  await ensureColumn("user_qr", "dynamic_at", "DATETIME NULL");
+  await ensureIndex("user_qr", "uq_user_qr_code", "UNIQUE KEY `uq_user_qr_code` (`code`)");
+  await backfillScanCodes();
 }

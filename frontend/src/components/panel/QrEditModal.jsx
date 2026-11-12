@@ -3,7 +3,8 @@ import { Link2, PencilLine, RotateCcw, Save } from 'lucide-react';
 import Button from '../ui/Button';
 import { useToast } from '../ui/Toast';
 import DetailModal from './DetailModal';
-import { buildQrSvg, contrastRatio, normalizeLink } from '../../lib/qrCode';
+import { buildQrSvg, contrastRatio, embeddedLink, normalizeLink, qrContent } from '../../lib/qrCode';
+import { tanggal } from './OrderParts';
 import { updateMyQr } from '../../services/authApi';
 
 const COLOR_INPUT = 'h-9 w-9 shrink-0 cursor-pointer rounded-sm border border-border bg-transparent p-0.5';
@@ -23,8 +24,9 @@ function ColorField({ id, label, value, onChange }) {
 }
 
 // Edit ulang QR Premium: link tujuan, warna QR, warna latar, dan logo.
-// Mengganti warna atau logo tidak mengubah tujuan QR. Mengganti link mengubah pola QR,
-// jadi QR lama yang sudah dicetak tetap menuju link lama dan perlu diunduh ulang.
+// QR di akun bersifat dinamis: gambarnya berisi alamat pindai, jadi mengganti link tidak mengubah pola QR
+// dan QR yang sudah dicetak langsung menuju link baru. Pengecualian: gambar yang diunduh sebelum QR itu
+// menjadi dinamis (legacyStatic) masih berisi link langsung.
 export default function QrEditModal({ qr, onClose, onSaved }) {
   const { addToast: toast } = useToast();
   const [link, setLink] = useState(qr.link);
@@ -39,16 +41,21 @@ export default function QrEditModal({ qr, onClose, onSaved }) {
   const svg = useMemo(() => {
     if (!target) return '';
     try {
-      return buildQrSvg({ text: target, fg, bg, logo, size: 512 });
+      return buildQrSvg({ text: qrContent({ link: target, code: qr.code }), fg, bg, logo, size: 512 });
     } catch {
       return ''; // teks terlalu panjang untuk QR
     }
-  }, [target, fg, bg, logo]);
+  }, [target, qr.code, fg, bg, logo]);
+
+  // Gambar yang diunduh sebelum QR ini menjadi dinamis masih berisi link lama.
+  const legacyNote = qr.legacyStatic && qr.dynamicAt ? ` Gambar QR yang diunduh sebelum ${tanggal(qr.dynamicAt)} masih menuju link lama, jadi unduh ulang sekali.` : '';
 
   let linkError = '';
   if (!target) linkError = 'Link wajib diisi.';
-  else if (/\s/.test(target)) linkError = 'Link tidak boleh mengandung spasi. Isi alamat tujuannya saja, misalnya https://contoh.com/halaman.';
   else if (!svg) linkError = 'Link terlalu panjang untuk dijadikan QR.';
+  // Link yang tersimpan bersama kata lain (misalnya label yang ikut tersalin): tawarkan untuk memakai link-nya saja.
+  const linkInside = embeddedLink(link);
+  const hasSpace = !linkError && /\s/.test(target);
 
   const sameColor = fg.toLowerCase() === bg.toLowerCase();
   const lowContrast = !sameColor && contrastRatio(fg, bg) < 3;
@@ -68,7 +75,9 @@ export default function QrEditModal({ qr, onClose, onSaved }) {
       toast({
         type: 'success',
         title: 'QR disimpan',
-        message: linkChanged ? 'Link QR berubah. Unduh ulang QR, karena QR yang lama masih menuju link lama.' : 'Unduh ulang QR untuk memakai tampilan yang baru.',
+        message: linkChanged
+          ? `Link diganti. QR yang sudah dicetak langsung menuju link baru.${legacyNote}`
+          : 'Unduh ulang QR untuk memakai tampilan yang baru.',
       });
       onSaved();
     } catch (err) {
@@ -116,6 +125,18 @@ export default function QrEditModal({ qr, onClose, onSaved }) {
         <p id="qr-edit-link-note" className={`mt-1 text-[11px] leading-relaxed sm:text-[12px] ${linkError ? 'text-danger' : 'text-tertiary'}`}>
           {linkError || 'Alamat yang terbuka saat QR dipindai.'}
         </p>
+        {hasSpace && (
+          <div className="mt-2 flex flex-col gap-2 rounded-md bg-amber-500/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="min-w-0 text-[12px] leading-relaxed text-amber-700 dark:text-amber-400">
+              {linkInside
+                ? 'Isian ini berisi link dan kata lain. Saat dipindai, hasilnya teks biasa dan link tidak langsung terbuka.'
+                : 'Isian ini mengandung spasi, jadi saat dipindai tampil sebagai teks biasa, bukan link.'}
+            </p>
+            {linkInside && (
+              <Button size="sm" variant="secondary" onClick={() => setLink(linkInside)} className="shrink-0">Pakai link saja</Button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
@@ -150,8 +171,8 @@ export default function QrEditModal({ qr, onClose, onSaved }) {
           )}
 
           {linkChanged && !linkError ? (
-            <p className="rounded-md bg-amber-500/10 px-2.5 py-2 text-[12px] leading-relaxed text-amber-700 dark:text-amber-400">
-              Link berubah, jadi pola QR ikut berubah. QR lama yang sudah dicetak atau dibagikan tetap menuju link lama. Unduh dan pasang ulang QR setelah disimpan.
+            <p className="rounded-md bg-emerald-500/10 px-2.5 py-2 text-[12px] leading-relaxed text-emerald-700 dark:text-emerald-400">
+              Gambar QR tidak berubah. Setelah disimpan, QR yang sudah dicetak langsung menuju link baru.{legacyNote}
             </p>
           ) : (
             <p className="text-[11px] leading-relaxed text-tertiary sm:text-[12px]">

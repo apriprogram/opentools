@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { query } from "../db/mysql.js";
+import { newScanCode } from "./scan.service.js";
 
 // QR tersimpan milik pengguna. Satu pembelian berlaku untuk satu QR (per QR code).
 // QR yang belum punya lisensi berstatus gratis: hitam-putih dengan logo.
@@ -8,12 +9,21 @@ const FREE_BG = "#FFFFFF";
 
 const iso = (d) => (d instanceof Date ? d.toISOString() : d);
 
+const QR_COLUMNS = "id, link, fg, bg, logo, code, disabled, dynamic_at, created_at";
+
+// code: kode pindai untuk alamat /api/q/<kode> yang tertanam di gambar QR.
+// disabled: QR dinonaktifkan pemiliknya (saat dipindai tampil halaman "tidak aktif").
+// legacyStatic: QR dibuat sebelum ada QR dinamis, jadi gambar yang diunduh sebelum dynamicAt masih berisi link langsung.
 const toQr = (row) => ({
   id: row.id,
   link: row.link,
   fg: row.fg,
   bg: row.bg,
   logo: Boolean(row.logo),
+  code: row.code || null,
+  disabled: Number(row.disabled) === 1,
+  dynamicAt: row.dynamic_at ? iso(row.dynamic_at) : null,
+  legacyStatic: Boolean(row.dynamic_at) && new Date(row.dynamic_at).getTime() - new Date(row.created_at).getTime() > 60 * 1000,
   createdAt: iso(row.created_at)
 });
 
@@ -31,7 +41,7 @@ const qrStatus = (licenses, now) => {
 
 export const listUserQr = async (user) => {
   const rows = await query(
-    "SELECT id, link, fg, bg, logo, created_at FROM user_qr WHERE user_id = ? ORDER BY created_at DESC LIMIT 200",
+    `SELECT ${QR_COLUMNS} FROM user_qr WHERE user_id = ? ORDER BY created_at DESC LIMIT 200`,
     [user.id]
   );
   if (!rows.length) return [];
@@ -52,12 +62,17 @@ export const listUserQr = async (user) => {
 // QR dari generator selalu gratis. Paket berbayar dibuat lewat pesanan, satu pesanan untuk satu QR.
 export const createUserQr = async (user, { link }) => {
   const id = crypto.randomUUID();
+  const code = newScanCode();
   const createdAt = new Date();
   await query(
-    "INSERT INTO user_qr (id, user_id, link, fg, bg, logo, plan_expires_at, created_at) VALUES (?, ?, ?, ?, ?, 1, NULL, ?)",
-    [id, user.id, link, FREE_FG, FREE_BG, createdAt]
+    "INSERT INTO user_qr (id, user_id, link, fg, bg, logo, plan_expires_at, code, dynamic_at, created_at) VALUES (?, ?, ?, ?, ?, 1, NULL, ?, ?, ?)",
+    [id, user.id, link, FREE_FG, FREE_BG, code, createdAt, createdAt]
   );
-  return { ...toQr({ id, link, fg: FREE_FG, bg: FREE_BG, logo: 1, created_at: createdAt }), status: "gratis", planExpiresAt: null };
+  return {
+    ...toQr({ id, link, fg: FREE_FG, bg: FREE_BG, logo: 1, code, disabled: 0, dynamic_at: createdAt, created_at: createdAt }),
+    status: "gratis",
+    planExpiresAt: null
+  };
 };
 
 const httpError = (status, message) => {
@@ -70,7 +85,7 @@ const httpError = (status, message) => {
 // Hanya untuk QR yang paket Premium-nya masih aktif. QR gratis tetap hitam putih dengan logo.
 export const updateUserQrDesign = async (user, id, { link, fg, bg, logo }) => {
   const rows = await query(
-    "SELECT id, link, fg, bg, logo, created_at FROM user_qr WHERE id = ? AND user_id = ? LIMIT 1",
+    `SELECT ${QR_COLUMNS} FROM user_qr WHERE id = ? AND user_id = ? LIMIT 1`,
     [String(id), user.id]
   );
   if (!rows.length) throw httpError(404, "QR tidak ditemukan.");
@@ -89,6 +104,17 @@ export const updateUserQrDesign = async (user, id, { link, fg, bg, logo }) => {
     user.id
   ]);
   return { ...toQr({ ...rows[0], link: nextLink, fg, bg, logo: logo ? 1 : 0 }), ...state };
+};
+
+// Nonaktifkan atau aktifkan lagi QR milik sendiri. QR nonaktif menampilkan halaman "tidak aktif" saat dipindai.
+// Berlaku untuk semua QR di akun (gratis maupun Premium).
+export const setUserQrActive = async (user, id, active) => {
+  const result = await query("UPDATE user_qr SET disabled = ? WHERE id = ? AND user_id = ?", [active ? 0 : 1, String(id), user.id]);
+  if (!Number(result.affectedRows || 0)) {
+    const exists = await query("SELECT id FROM user_qr WHERE id = ? AND user_id = ? LIMIT 1", [String(id), user.id]);
+    if (!exists.length) throw httpError(404, "QR tidak ditemukan.");
+  }
+  return { id: String(id), disabled: !active };
 };
 
 export const deleteUserQr = async (userId, id) => {

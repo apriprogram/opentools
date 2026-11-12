@@ -30,6 +30,32 @@ export function normalizeLink(input) {
   return value;
 }
 
+/** Alamat pindai QR dinamis: server meneruskannya ke link tujuan, atau menampilkan halaman "tidak aktif". */
+export function scanUrl(code) {
+  if (!code || typeof window === 'undefined') return '';
+  return `${window.location.origin}/api/q/${code}`;
+}
+
+/**
+ * Teks yang ditanam ke gambar QR. QR di akun punya kode pindai, jadi isinya alamat pindai (bisa dinonaktifkan
+ * dan diganti link-nya tanpa mengubah gambar). Tanpa kode (pratinjau sebelum disimpan), isinya link langsung.
+ */
+export function qrContent({ link, code } = {}) {
+  return scanUrl(code) || String(link || '');
+}
+
+/**
+ * Link (http atau https) yang terselip di antara kata lain, misalnya "Premium Gold https://contoh.com".
+ * Biasanya terjadi karena label ikut tersalin saat menyalin link. Kosong bila isinya sudah link saja,
+ * atau bila ada lebih dari satu link sehingga tidak jelas mana yang dimaksud.
+ */
+export function embeddedLink(input) {
+  const value = String(input || '').trim();
+  if (!/\s/.test(value)) return '';
+  const found = value.match(/https?:\/\/[^\s]+/gi) || [];
+  return found.length === 1 ? found[0] : '';
+}
+
 /** Hitung kontras WCAG sederhana (1 - 21). Dipakai untuk memberi peringatan jika QR sulit dipindai. */
 export function contrastRatio(hexA, hexB) {
   const lum = (hex) => {

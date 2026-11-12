@@ -15,6 +15,8 @@ import PlanPicker, { WhatsappStep } from '../../components/panel/PlanPicker';
 import PaymentInstruction from '../../components/panel/PaymentInstruction';
 import ProofModal from '../../components/panel/ProofModal';
 import NotaModal from '../../components/panel/NotaModal';
+import QrEditModal from '../../components/panel/QrEditModal';
+import { toggleQrActive } from '../../components/panel/qrActions';
 import { proofDetails } from '../../components/panel/OrderParts';
 
 const TITLE = { daftar: 'QR Generator', pilih: 'Buat QR baru', wa: 'Satu langkah lagi', bayar: 'Pembayaran' };
@@ -51,6 +53,8 @@ export default function UserQrPage() {
   const [waInput, setWaInput] = useState('');
   const [proofCode, setProofCode] = useState(null);
   const [notaCode, setNotaCode] = useState(null);
+  // QR yang sedang diedit dari menu aksi tabel pesanan.
+  const [editQr, setEditQr] = useState(null);
 
   const loadAll = () =>
     Promise.all([fetchMyQr(), fetchMyOrders(), fetchMyLicenses()])
@@ -154,7 +158,7 @@ export default function UserQrPage() {
     daftar: 'Daftar QR, pesanan, dan lisensi Anda dalam satu menu.',
     pilih: renewQr
       ? `Pilih paket untuk QR: ${renewQr.link}. Satu pembayaran berlaku untuk satu QR code.`
-      : 'Paket gratis langsung bisa dipakai. Paket Premium Gold berlaku untuk satu QR code dan dibayar lewat transfer DANA.',
+      : 'Paket gratis langsung bisa dipakai. Paket Premium Gold berlaku untuk satu QR code dan dibayar lewat transfer (DANA atau rekening bank).',
     wa: 'Nomor WhatsApp dipakai admin untuk menghubungi Anda. Nomor disimpan di akun dan tidak perlu diisi lagi.',
     bayar: 'Transfer sesuai nominal, lalu unggah bukti. Pesanan yang lunas tampil di tabel pesanan.',
   }[view];
@@ -215,6 +219,11 @@ export default function UserQrPage() {
             <OrderTable
               orders={orders}
               expiryByKey={expiryByKey}
+              qrList={qrList || []}
+              onEditQr={setEditQr}
+              onToggleQr={async (qr) => {
+                if (await toggleQrActive(qr, toast)) loadAll();
+              }}
               onProof={setProofCode}
               onNota={setNotaCode}
               onPdf={downloadNotaPdf}
@@ -290,6 +299,16 @@ export default function UserQrPage() {
       )}
 
       {notaCode && <NotaModal code={notaCode} onClose={() => setNotaCode(null)} />}
+      {editQr && (
+        <QrEditModal
+          qr={editQr}
+          onClose={() => setEditQr(null)}
+          onSaved={() => {
+            setEditQr(null);
+            loadAll();
+          }}
+        />
+      )}
       {proofCode && (
         <ProofModal
           code={proofCode}

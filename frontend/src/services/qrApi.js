@@ -86,3 +86,14 @@ export async function adminDeleteQrOrder(code) {
   const res = await api.delete(`/admin/qr/orders/${encodeURIComponent(code)}`, { headers: authHeaders() });
   return res.data;
 }
+
+// Pengaturan metode pembayaran (super admin).
+export async function adminFetchPaymentSettings() {
+  const res = await api.get('/admin/settings/payment', { headers: authHeaders() });
+  return res.data.settings;
+}
+
+export async function adminSavePaymentSettings(settings) {
+  const res = await api.put('/admin/settings/payment', settings, { headers: authHeaders() });
+  return res.data.settings;
+}

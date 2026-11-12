@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Crown, Download, PencilLine, Trash2 } from 'lucide-react';
+import { Crown, Download, PencilLine, Power, PowerOff, Trash2 } from 'lucide-react';
 import QrEditModal from './QrEditModal';
 import { QrModal } from './LicenseQr';
 import Button from '../ui/Button';
 import Countdown from '../ui/Countdown';
 import { useToast } from '../ui/Toast';
-import { buildQrSvg, svgToPngBlob, downloadBlob } from '../../lib/qrCode';
+import { buildQrSvg, qrContent, svgToPngBlob, downloadBlob } from '../../lib/qrCode';
+import { toggleQrActive } from './qrActions';
 import { deleteMyQr } from '../../services/authApi';
 import { tanggal } from './OrderParts';
 
@@ -40,10 +41,13 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
   // Logo hanya disembunyikan jika paket berbayar aktif dan pengguna memang mematikannya.
   const logoDataUrl = premium && !qr.logo ? null : logoUrl;
 
+  // Gambar QR berisi alamat pindai (QR dinamis), bukan link langsung.
+  const content = qrContent(qr);
+
   const svg = useMemo(() => {
     try {
       return buildQrSvg({
-        text: qr.link,
+        text: content,
         fg,
         bg,
         logoDataUrl,
@@ -52,9 +56,13 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
     } catch {
       return '';
     }
-  }, [qr.link, fg, bg, logoDataUrl]);
+  }, [content, fg, bg, logoDataUrl]);
 
   const base = `qr-${qr.id.slice(0, 8)}`;
+
+  const toggleActive = async () => {
+    if (await toggleQrActive(qr, toast)) onChanged();
+  };
 
   const downloadPng = async () => {
     try {
@@ -109,13 +117,18 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
           dangerouslySetInnerHTML={{ __html: svg }}
         />
         <div className="min-w-0 flex-1">
-          <p className={`text-[11px] font-semibold uppercase tracking-wider ${premium ? 'text-[#5C4512]' : 'text-tertiary'}`}>
+          <p className={`select-none text-[11px] font-semibold uppercase tracking-wider ${premium ? 'text-[#5C4512]' : 'text-tertiary'}`}>
             {premium ? 'Premium Gold' : 'Gratis'}
           </p>
           <p className={`mt-1 break-all text-[14px] font-medium leading-[20px] line-clamp-2 ${tone}`} title={qr.link}>
             {qr.link}
           </p>
           <p className={`mt-2 text-[12px] ${muted}`}>{STATUS_TEXT[qr.status] || 'Paket gratis'}</p>
+          {qr.disabled && (
+            <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-medium text-white">
+              <PowerOff size={11} strokeWidth={2} aria-hidden="true" /> Dinonaktifkan
+            </p>
+          )}
           {premium && qr.planExpiresAt ? (
             <p className={`text-[12px] ${muted}`}>
               Sisa <Countdown expiresAt={qr.planExpiresAt} className={`font-semibold ${tone}`} />
@@ -138,15 +151,30 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
             {qr.status === 'gratis' ? 'Jadikan Premium' : 'Perpanjang'}
           </Button>
         )}
+        {/* Nonaktif: saat dipindai, QR menampilkan halaman "Link sudah tidak aktif" */}
+        <Button size="sm" variant="secondary" icon={qr.disabled ? Power : PowerOff} onClick={toggleActive}>
+          {qr.disabled ? 'Aktifkan' : 'Nonaktifkan'}
+        </Button>
         <Button size="sm" variant="ghost" icon={Trash2} onClick={remove}>Hapus</Button>
       </div>
+
+      {qr.disabled && (
+        <p className={`text-[12px] leading-relaxed ${muted}`}>
+          QR ini sedang nonaktif. Saat dipindai, yang tampil halaman "Link sudah tidak aktif", bukan link di atas.
+        </p>
+      )}
+      {qr.legacyStatic && qr.dynamicAt && (
+        <p className={`text-[12px] leading-relaxed ${muted}`}>
+          Gambar QR yang diunduh sebelum {tanggal(qr.dynamicAt)} masih berisi link langsung. Unduh ulang supaya bisa dinonaktifkan dan diganti link-nya tanpa cetak ulang.
+        </p>
+      )}
 
       {zoomed && (
         <QrModal
           svg={svg}
           link={qr.link}
           title="QR kamu"
-          caption={STATUS_TEXT[qr.status] || 'Paket gratis'}
+          caption={`${STATUS_TEXT[qr.status] || 'Paket gratis'}${qr.disabled ? ' · Dinonaktifkan' : ''}`}
           background={bg}
           onClose={() => setZoomed(false)}
           onPng={downloadPng}

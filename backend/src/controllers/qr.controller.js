@@ -1,5 +1,6 @@
 import * as qr from "../services/qr.service.js";
 import { renderNotaHtml, renderNotaPdf } from "../services/nota.service.js";
+import { getPaymentSettings, savePaymentSettings } from "../services/settings.service.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -9,12 +10,36 @@ const fail = (res, error, label) => {
   return res.status(500).json({ success: false, message: "Internal server error" });
 };
 
-export const getPlans = (req, res) => {
-  res.json({
-    success: true,
-    plans: Object.values(qr.PLANS),
-    payment: qr.getPaymentInfo()
-  });
+export const getPlans = async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      plans: Object.values(qr.PLANS),
+      payment: await qr.getPaymentInfo()
+    });
+  } catch (error) {
+    return fail(res, error, "QR plans");
+  }
+};
+
+// Pengaturan metode pembayaran (khusus super admin).
+export const adminGetPaymentSettings = async (req, res) => {
+  try {
+    res.json({ success: true, settings: await getPaymentSettings() });
+  } catch (error) {
+    return fail(res, error, "Payment settings");
+  }
+};
+
+export const adminSavePaymentSettings = async (req, res) => {
+  try {
+    const body = req.body || {};
+    const whatsapp = qr.normalizeWhatsapp(body.whatsapp);
+    const settings = await savePaymentSettings({ dana: body.dana, bank: body.bank, whatsapp: whatsapp || "" });
+    res.json({ success: true, settings });
+  } catch (error) {
+    return fail(res, error, "Save payment settings");
+  }
 };
 
 export const createOrder = async (req, res) => {
@@ -32,7 +57,7 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Nomor WhatsApp tidak valid. Contoh: 081234567890" });
     }
     const order = await qr.createOrder({ plan, name: cleanName, email: cleanEmail, whatsapp, design, qrId });
-    res.status(201).json({ success: true, order, payment: qr.getPaymentInfo() });
+    res.status(201).json({ success: true, order, payment: await qr.getPaymentInfo() });
   } catch (error) {
     return fail(res, error, "Create QR order");
   }

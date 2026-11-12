@@ -47,9 +47,6 @@ export const updateQr = async (req, res) => {
     if (hasLink && (!link || link.length > LINK_MAX)) {
       return res.status(400).json({ success: false, message: "Link wajib diisi (maksimal 2048 karakter)." });
     }
-    if (hasLink && /\s/.test(link)) {
-      return res.status(400).json({ success: false, message: "Link tidak boleh mengandung spasi." });
-    }
     const fg = String(req.body?.fg || "");
     const bg = String(req.body?.bg || "");
     if (!COLOR_RE.test(fg) || !COLOR_RE.test(bg)) {
@@ -60,6 +57,19 @@ export const updateQr = async (req, res) => {
     }
     const saved = await me.updateUserQrDesign(req.user, req.params.id, { link, fg, bg, logo: req.body?.logo !== false });
     return res.json({ success: true, qr: saved });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
+// Nonaktifkan atau aktifkan lagi QR milik sendiri.
+export const setQrActive = async (req, res) => {
+  try {
+    if (typeof req.body?.active !== "boolean") {
+      return res.status(400).json({ success: false, message: "Status aktif wajib diisi." });
+    }
+    const qr = await me.setUserQrActive(req.user, req.params.id, req.body.active);
+    return res.json({ success: true, qr });
   } catch (error) {
     return fail(res, error);
   }

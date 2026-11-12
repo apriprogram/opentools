@@ -55,7 +55,7 @@ export default function QrPricingPage() {
         <div className="mb-6">
           <h1 className="text-[24px] font-semibold leading-[32px] tracking-tight text-primary sm:text-[28px]">Paket QR Generator</h1>
           <p className="mt-1 text-[14px] leading-[22px] text-secondary">
-            Daftar akun, pilih paket, lalu bayar via transfer DANA. Bukti transfer diunggah di dashboard, dan lisensi aktif otomatis jika bukti valid.
+            Daftar akun, pilih paket, lalu bayar lewat transfer (DANA atau rekening bank). Bukti transfer diunggah di dashboard, dan lisensi aktif otomatis jika bukti valid.
           </p>
         </div>
 

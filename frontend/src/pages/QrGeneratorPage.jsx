@@ -10,6 +10,8 @@ import { useToast } from '../components/ui/Toast';
 import {
   loadLogoDataUrl,
   normalizeLink,
+  embeddedLink,
+  qrContent,
   buildQrSvg,
   contrastRatio,
   svgToPngBlob,
@@ -38,6 +40,9 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
   const [useLogo, setUseLogo] = useState(renewQr ? renewQr.logo !== false : true);
   const [logoDataUrl, setLogoDataUrl] = useState(null);
   const [saving, setSaving] = useState(false);
+  // QR yang baru disimpan ke akun. Selama link belum diubah lagi, pratinjau dan unduhan memakai alamat pindainya
+  // (QR dinamis), supaya gambar yang diunduh bisa dinonaktifkan atau diganti link-nya nanti.
+  const [savedQr, setSavedQr] = useState(null);
 
   const isPaid = Boolean(orderPlan);
   // Mode gratis: warna tetap hitam-putih dan logo hitam selalu tampil.
@@ -47,16 +52,21 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
     logo: isPaid ? useLogo : true,
   };
   const target = normalizeLink(link);
+  // Link yang tersalin bersama kata lain: saat dipindai hasilnya teks biasa, bukan link yang langsung terbuka.
+  const linkInside = embeddedLink(link);
 
   useEffect(() => {
     loadLogoDataUrl().then(setLogoDataUrl).catch(() => setLogoDataUrl(null));
   }, []);
 
+  const isSaved = Boolean(savedQr) && savedQr.link === target;
+  const content = isSaved ? qrContent(savedQr) : target;
+
   const svg = useMemo(() => {
     if (!target) return '';
     try {
       return buildQrSvg({
-        text: target,
+        text: content,
         fg: colors.fg,
         bg: colors.bg,
         logoDataUrl: colors.logo ? logoDataUrl : null,
@@ -66,7 +76,7 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
       return ''; // teks terlalu panjang untuk QR
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target, colors.fg, colors.bg, colors.logo, logoDataUrl]);
+  }, [target, content, colors.fg, colors.bg, colors.logo, logoDataUrl]);
 
   const tooLong = Boolean(target) && !svg;
 
@@ -90,8 +100,9 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
     if (!target) return;
     setSaving(true);
     try {
-      await saveMyQr({ link: target, fg: FREE_FG, bg: FREE_BG, logo: true });
-      toast({ type: 'success', title: 'QR disimpan', message: 'Lihat dan unduh lagi di daftar QR.' });
+      const saved = await saveMyQr({ link: target, fg: FREE_FG, bg: FREE_BG, logo: true });
+      setSavedQr(saved);
+      toast({ type: 'success', title: 'QR disimpan', message: 'QR ini sekarang bisa dinonaktifkan atau dikelola dari daftar QR.' });
     } catch (err) {
       toast({ type: 'error', title: 'Gagal menyimpan', message: err?.response?.data?.message || 'Coba lagi beberapa saat.' });
     } finally {
@@ -160,6 +171,14 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
               />
               {link && target !== link.trim() && (
                 <p className="text-[12px] text-secondary mt-2">Akan dibuat sebagai: {target}</p>
+              )}
+              {linkInside && (
+                <div className="mt-2 flex flex-col gap-2 rounded-md bg-amber-500/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="min-w-0 text-[12px] leading-relaxed text-amber-700 dark:text-amber-400">
+                    Isian ini berisi link dan kata lain. Saat dipindai, hasilnya teks biasa dan link tidak langsung terbuka.
+                  </p>
+                  <Button size="sm" variant="secondary" onClick={() => setLink(linkInside)} className="shrink-0">Pakai link saja</Button>
+                </div>
               )}
               {tooLong && <p className="text-[12px] text-danger mt-2">Teks terlalu panjang untuk QR Code. Persingkat link Anda.</p>}
             </div>
@@ -273,9 +292,16 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
                   {orderBusy ? 'Membuat pesanan...' : `Lanjut bayar ${rupiah(orderPlan.price)}`}
                 </Button>
               ) : user ? (
-                <Button variant="secondary" icon={Save} className="w-full mt-2" disabled={!svg || saving} onClick={saveToAccount}>
-                  {saving ? 'Menyimpan...' : 'Simpan ke akun'}
-                </Button>
+                <>
+                  <Button variant="secondary" icon={Save} className="w-full mt-2" disabled={!svg || saving || isSaved} onClick={saveToAccount}>
+                    {saving ? 'Menyimpan...' : isSaved ? 'Tersimpan di akun' : 'Simpan ke akun'}
+                  </Button>
+                  {svg && !isSaved && (
+                    <p className="mt-2 text-center text-[12px] leading-relaxed text-secondary">
+                      Simpan ke akun sebelum mengunduh, supaya QR bisa dinonaktifkan nanti.
+                    </p>
+                  )}
+                </>
               ) : (
                 <Link to="/masuk" className="mt-3 block text-center text-[13px] text-secondary underline hover:text-primary">
                   Masuk untuk menyimpan QR ke akun

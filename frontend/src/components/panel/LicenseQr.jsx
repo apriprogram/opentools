@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Copy, CheckCheck, ExternalLink, Download, X } from 'lucide-react';
 import Button from '../ui/Button';
 import { useToast } from '../ui/Toast';
-import { buildQrSvg, svgToPngBlob, downloadBlob } from '../../lib/qrCode';
+import { buildQrSvg, qrContent, svgToPngBlob, downloadBlob } from '../../lib/qrCode';
 
 // Link aktivasi lisensi: membuka halaman QR Generator dan memeriksa kode lisensi di browser itu.
 export const licenseLink = (licenseKey) => {
@@ -27,12 +27,12 @@ export default function LicenseQr({ licenseKey, design = null, code = '' }) {
   const svg = useMemo(() => {
     try {
       return own
-        ? buildQrSvg({ text: design.link, fg: design.fg, bg: design.bg, logo: design.logo !== false, size: 512 })
+        ? buildQrSvg({ text: qrContent(design), fg: design.fg, bg: design.bg, logo: design.logo !== false, size: 512 })
         : buildQrSvg({ text: link, fg: '#111111', bg: '#FFFFFF', size: 512 });
     } catch {
       return '';
     }
-  }, [own, link, design?.link, design?.fg, design?.bg, design?.logo]);
+  }, [own, link, design?.link, design?.code, design?.fg, design?.bg, design?.logo]);
 
   useEffect(() => {
     if (!copied) return undefined;
@@ -77,7 +77,10 @@ export default function LicenseQr({ licenseKey, design = null, code = '' }) {
           dangerouslySetInnerHTML={{ __html: svg }}
         />
         <div className="min-w-0">
-          <p className="text-[11px] text-tertiary">{own ? 'QR dan link tujuan' : 'Barcode cek lisensi (membuka OpenTools)'}</p>
+          <p className="text-[11px] text-tertiary">
+            {own ? 'QR dan link tujuan' : 'Barcode cek lisensi (membuka OpenTools)'}
+            {own && design.disabled && <span className="ml-1.5 font-medium text-danger">· Dinonaktifkan</span>}
+          </p>
           <a
             href={link}
             target="_blank"

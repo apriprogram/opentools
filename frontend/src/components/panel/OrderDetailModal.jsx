@@ -6,7 +6,7 @@ import LicenseQr from './LicenseQr';
 import DetailModal, { DetailSection } from './DetailModal';
 import { useProofImage } from './ProofModal';
 import { LicenseChip, OrderStatusChip, PlanChip, ProofChip, WhatsappPill } from './Chips';
-import { buildQrSvg, downloadBlob, loadLogoDataUrl, svgToPngBlob } from '../../lib/qrCode';
+import { buildQrSvg, downloadBlob, loadLogoDataUrl, qrContent, svgToPngBlob } from '../../lib/qrCode';
 
 const rupiah = (n) => (n === null || n === undefined ? null : `Rp${Number(n).toLocaleString('id-ID')}`);
 const waktu = (d) => (d ? new Date(d).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : null);
@@ -43,7 +43,7 @@ function OrderQr({ code, design }) {
   const svg = useMemo(() => {
     if (!design?.link) return '';
     try {
-      return buildQrSvg({ text: design.link, fg: design.fg, bg: design.bg, logoDataUrl: design.logo ? logoUrl : null, size: 512 });
+      return buildQrSvg({ text: qrContent(design), fg: design.fg, bg: design.bg, logoDataUrl: design.logo ? logoUrl : null, size: 512 });
     } catch {
       return '';
     }
@@ -88,6 +88,14 @@ function OrderQr({ code, design }) {
           <dt className="text-[11px] text-tertiary sm:text-[12px]">Logo di tengah</dt>
           <dd className="mt-0.5 font-medium text-primary">{design.logo ? 'Pakai logo' : 'Tanpa logo'}</dd>
         </div>
+        {design.code && (
+          <div>
+            <dt className="text-[11px] text-tertiary sm:text-[12px]">Status QR</dt>
+            <dd className={`mt-0.5 font-medium ${design.disabled ? 'text-danger' : 'text-primary'}`}>
+              {design.disabled ? 'Dinonaktifkan pemilik' : 'Aktif'}
+            </dd>
+          </div>
+        )}
         <div className="col-span-2">
           <Button size="sm" variant="secondary" icon={Download} onClick={download}>Unduh QR (PNG)</Button>
         </div>

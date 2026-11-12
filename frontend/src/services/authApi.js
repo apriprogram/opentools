@@ -67,6 +67,12 @@ export async function updateMyQr(id, { link, fg, bg, logo }) {
   return res.data.qr;
 }
 
+// Nonaktifkan (active: false) atau aktifkan lagi QR milik sendiri.
+export async function setMyQrActive(id, active) {
+  const res = await api.put(`/me/qr/${encodeURIComponent(id)}/active`, { active }, { headers: authHeaders() });
+  return res.data.qr;
+}
+
 export async function deleteMyQr(id) {
   await api.delete(`/me/qr/${encodeURIComponent(id)}`, { headers: authHeaders() });
 }

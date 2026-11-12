@@ -26,6 +26,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import UserQrPage from './pages/panel/UserQrPage';
 import AdminPanelPage from './pages/panel/AdminPanelPage';
 import AdminLinktreePage from './pages/panel/AdminLinktreePage';
+import AdminSettingsPage from './pages/panel/AdminSettingsPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -126,6 +127,7 @@ function AppContent() {
           <Route path="/dashboard/linktree/:id" element={<RequireRole role="user"><LinktreeEditorPage /></RequireRole>} />
           <Route path="/admin" element={<RequireRole role="superadmin"><AdminPanelPage /></RequireRole>} />
           <Route path="/admin/linktree" element={<RequireRole role="superadmin"><AdminLinktreePage /></RequireRole>} />
+          <Route path="/admin/pengaturan" element={<RequireRole role="superadmin"><AdminSettingsPage /></RequireRole>} />
           <Route path="/admin/qr" element={<Navigate to="/admin" replace />} />
         </Routes>
       </div>

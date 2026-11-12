@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import apiRouter from "./routes/api.js";
 import { ensureSchema } from "./db/schema.js";
+import { scanQr } from "./controllers/scan.controller.js";
 import { ensureSuperAdmin } from "./services/auth.service.js";
 
 
@@ -33,6 +34,10 @@ app.use((req, res, next) => {
 
 // API Routes
 app.use("/api/v1", apiRouter);
+
+// Alamat yang tertanam di gambar QR pengguna. Pendek supaya pola QR tidak terlalu rapat.
+// Sengaja di bawah /api, karena di server produksi hanya alamat /api yang diteruskan ke aplikasi Node.
+app.get("/api/q/:code", scanQr);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

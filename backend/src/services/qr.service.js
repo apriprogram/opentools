@@ -8,6 +8,8 @@ import {
   decideProof
 } from "./proof.service.js";
 import { buildNotaData, notaPeriod, formatNotaNumber } from "./nota.service.js";
+import { getPaymentInfo } from "./settings.service.js";
+import { newScanCode } from "./scan.service.js";
 
 // Paket QR Generator (pembayaran transfer, dikonfirmasi admin atau otomatis dari bukti).
 export const PLANS = {
@@ -33,12 +35,15 @@ export const normalizeWhatsapp = (input) => {
   return /^628\d{7,11}$/.test(digits) ? digits : null;
 };
 
-export const getPaymentInfo = () => ({
-  method: "Transfer DANA",
-  number: process.env.PAY_DANA_NUMBER || "085188009152",
-  name: process.env.PAY_DANA_NAME || "",
-  whatsapp: process.env.PAY_WHATSAPP || "6282181361433"
-});
+// Info pembayaran untuk pembeli (metode yang aktif) diatur super admin dari panel, lihat settings.service.js.
+export { getPaymentInfo };
+
+// Baris pembayaran di nota. Satu metode: nomor dan nama ditulis terpisah. Lebih dari satu: digabung dalam satu kalimat.
+const notaPayment = (pay) => {
+  if (pay.methods.length <= 1) return { method: pay.method, number: pay.number, name: pay.name };
+  const parts = pay.methods.map((m) => `${m.title} ke ${m.number}${m.name ? ` a.n. ${m.name}` : ""}`);
+  return { method: parts.join(", atau "), number: "", name: "" };
+};
 
 // Kolom pesanan tanpa data gambar (proof_data), agar daftar pesanan tetap ringan.
 const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_number, nota_number, status, license_key, created_at, paid_at, qr_payload, user_qr_id,
@@ -48,7 +53,9 @@ const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_n
   (SELECT q.link FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_link,
   (SELECT q.fg FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_fg,
   (SELECT q.bg FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_bg,
-  (SELECT q.logo FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_logo`;
+  (SELECT q.logo FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_logo,
+  (SELECT q.code FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_code,
+  (SELECT q.disabled FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_disabled`;
 
 // Status lisensi pesanan lunas: aktif, nonaktif (dimatikan admin), atau berakhir.
 const licenseStateOf = (row) => {
@@ -88,7 +95,10 @@ const qrDesignOf = (row) => {
       link: String(row.live_link),
       fg: HEX_RE.test(row.live_fg) ? row.live_fg : "#000000",
       bg: HEX_RE.test(row.live_bg) ? row.live_bg : "#FFFFFF",
-      logo: Number(row.live_logo) !== 0
+      logo: Number(row.live_logo) !== 0,
+      // Kode pindai: gambar QR berisi alamat /api/q/<kode>, bukan link langsung.
+      code: row.live_code || null,
+      disabled: Number(row.live_disabled) === 1
     };
   }
   const p = parseQrPayload(row.qr_payload);
@@ -186,11 +196,11 @@ const notaFromRows = async (rows) => {
   if (!rows.length) throw httpError(404, "Pesanan tidak ditemukan");
   const order = toOrder(rows[0]);
   const notaNumber = order.notaNumber || (await assignNotaNumber(order.code, order.createdAt));
-  const pay = getPaymentInfo();
+  const pay = await getPaymentInfo();
   return buildNotaData(order, {
     notaNumber,
     planDays: PLANS[order.plan]?.days || 0,
-    dana: { method: pay.method, number: pay.number, name: pay.name }
+    dana: notaPayment(pay)
   });
 };
 
@@ -261,7 +271,8 @@ export const submitProof = async ({ code, email, buffer }) => {
     decision = decideProof({
       analysis: result.ok ? result.data : null,
       order: { amount: order.amount, createdAt: order.created_at },
-      danaNumber: getPaymentInfo().number
+      // Bukti boleh menuju salah satu tujuan yang aktif (nomor DANA atau rekening bank).
+      recipientNumbers: (await getPaymentInfo()).methods.map((m) => m.number)
     });
   }
 
@@ -359,8 +370,8 @@ const bindQrForOrder = async (conn, { order, design, now }) => {
   }
   const id = crypto.randomUUID();
   await conn.query(
-    "INSERT INTO user_qr (id, user_id, link, fg, bg, logo, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    [id, userId, design.link, design.fg, design.bg, design.logo ? 1 : 0, now]
+    "INSERT INTO user_qr (id, user_id, link, fg, bg, logo, code, dynamic_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [id, userId, design.link, design.fg, design.bg, design.logo ? 1 : 0, newScanCode(), now, now]
   );
   return id;
 };

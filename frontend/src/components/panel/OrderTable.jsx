@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Eye, FileText, Receipt } from 'lucide-react';
+import { Download, Eye, FileText, PencilLine, Power, PowerOff, Receipt } from 'lucide-react';
 import Countdown from '../ui/Countdown';
 import LicenseQr from './LicenseQr';
 import { ProofThumb } from './ProofModal';
@@ -28,7 +28,9 @@ const searchText = (o) => [o.code, o.planLabel, o.notaNumber, o.qrLink, o.licens
 
 // Tabel pesanan: status bayar, bukti, lisensi (barcode dan link), dan nota.
 // Dilengkapi cari, filter, urutkan, jumlah per halaman, dan halaman. Aksi tiap baris ada di menu titik tiga.
-export default function OrderTable({ orders, expiryByKey = {}, onProof, onNota, onPdf }) {
+// qrList dan onEditQr: bila pesanan terikat pada QR Premium yang masih aktif, menu aksinya punya "Edit QR".
+// onToggleQr: nonaktifkan atau aktifkan lagi QR yang terikat pada pesanan.
+export default function OrderTable({ orders, expiryByKey = {}, qrList = [], onProof, onNota, onPdf, onEditQr, onToggleQr }) {
   const table = useTableControls(orders, { searchText, filters: FILTERS, sorts: SORTS });
   const hasOrders = Boolean(orders && orders.length);
 
@@ -68,6 +70,9 @@ export default function OrderTable({ orders, expiryByKey = {}, onProof, onNota, 
                   number={table.start + i + 1}
                   order={o}
                   expiresAt={expiryByKey[o.licenseKey] || null}
+                  qr={o.qrId ? (qrList || []).find((q) => q.id === o.qrId) || null : null}
+                  onEditQr={onEditQr}
+                  onToggleQr={onToggleQr}
                   onProof={onProof}
                   onNota={onNota}
                   onPdf={onPdf}
@@ -83,15 +88,24 @@ export default function OrderTable({ orders, expiryByKey = {}, onProof, onNota, 
   );
 }
 
-function OrderRow({ number, order: o, expiresAt, onProof, onNota, onPdf }) {
+function OrderRow({ number, order: o, expiresAt, qr, onProof, onNota, onPdf, onEditQr, onToggleQr }) {
   const paid = o.status === 'paid';
   const cancelled = o.status === 'cancelled';
   const uploaded = o.proofUploadedAt
     ? new Date(o.proofUploadedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
     : null;
 
+  // Link, warna, dan logo hanya bisa diedit untuk QR Premium yang masih aktif.
+  const canEdit = Boolean(onEditQr) && qr?.status === 'aktif';
+
   const menuItems = [
     o.status === 'pending' && { label: 'Bayar', icon: Receipt, to: `/dashboard/qr?kode=${o.code}` },
+    canEdit && { label: 'Edit QR', icon: PencilLine, onClick: () => onEditQr(qr) },
+    Boolean(onToggleQr) && qr && paid && {
+      label: qr.disabled ? 'Aktifkan QR' : 'Nonaktifkan QR',
+      icon: qr.disabled ? Power : PowerOff,
+      onClick: () => onToggleQr(qr),
+    },
     o.hasProof && { label: 'Lihat bukti', icon: Eye, onClick: () => onProof(o.code) },
     { label: 'Lihat nota', icon: FileText, onClick: () => onNota(o.code) },
     { label: 'Unduh nota PDF', icon: Download, onClick: () => onPdf(o.code) },

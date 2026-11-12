@@ -34,12 +34,14 @@ import {
   adminDeleteOrder,
   adminGetProof,
   adminGetNota,
-  adminGetNotaPdf
+  adminGetNotaPdf,
+  adminGetPaymentSettings,
+  adminSavePaymentSettings
 } from "../controllers/qr.controller.js";
 import { requireAdmin } from "../middleware/admin.middleware.js";
 import { adminLogin } from "../controllers/admin.controller.js";
 import { register, login as accountLogin, logout as accountLogout, me as currentUser } from "../controllers/auth.controller.js";
-import { myQr, saveQr, updateQr, removeQr, myOrders, myLicenses, myProof, myNota, myNotaPdf, setWhatsapp, updateProfile, changePassword } from "../controllers/me.controller.js";
+import { myQr, saveQr, updateQr, setQrActive, removeQr, myOrders, myLicenses, myProof, myNota, myNotaPdf, setWhatsapp, updateProfile, changePassword } from "../controllers/me.controller.js";
 import { requireUser } from "../middleware/auth.middleware.js";
 import { proofUploadSingle } from "../middleware/proof.middleware.js";
 import {
@@ -104,6 +106,7 @@ router.get("/auth/me", requireUser, currentUser);
 router.get("/me/qr", requireUser, myQr);
 router.post("/me/qr", requireUser, express.json(), saveQr);
 router.put("/me/qr/:id", requireUser, express.json(), updateQr);
+router.put("/me/qr/:id/active", requireUser, express.json(), setQrActive);
 router.delete("/me/qr/:id", requireUser, removeQr);
 router.get("/me/orders", requireUser, myOrders);
 router.get("/me/licenses", requireUser, myLicenses);
@@ -134,6 +137,9 @@ router.post("/admin/qr/orders/:code/confirm", requireAdmin, adminConfirmOrder);
 router.post("/admin/qr/orders/:code/cancel", requireAdmin, adminCancelOrder);
 router.post("/admin/qr/orders/:code/license", requireAdmin, express.json(), adminSetLicense);
 router.delete("/admin/qr/orders/:code", requireAdmin, adminDeleteOrder);
+// Admin: pengaturan metode pembayaran (DANA dan transfer bank)
+router.get("/admin/settings/payment", requireAdmin, adminGetPaymentSettings);
+router.put("/admin/settings/payment", requireAdmin, express.json({ limit: "20kb" }), adminSavePaymentSettings);
 // Admin: data Linktree semua pengguna (hanya baca)
 router.get("/admin/linktrees", requireAdmin, adminListLinktrees);
 router.get("/admin/linktrees/:id", requireAdmin, adminGetLinktree);

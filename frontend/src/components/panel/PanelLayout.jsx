@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { QrCode, Link2, ClipboardList, Database, ImagePlus, LogOut, Eye, Menu, Moon, Sun, X } from 'lucide-react';
+import { QrCode, Link2, ClipboardList, Database, ImagePlus, LogOut, Eye, Menu, Moon, Settings, Sun, X } from 'lucide-react';
 import { NotificationBell, ProfileMenu } from './HeaderMenus';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -24,6 +24,7 @@ const MENUS = {
       items: [
         { label: 'Konfirmasi Pesanan', to: '/admin', icon: ClipboardList, end: true },
         { label: 'Data Linktree', to: '/admin/linktree', icon: Database },
+        { label: 'Pengaturan', to: '/admin/pengaturan', icon: Settings },
       ],
     },
     { section: 'Dashboard user', items: USER_ITEMS },
