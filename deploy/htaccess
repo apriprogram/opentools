@@ -15,3 +15,12 @@
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
 </IfModule>
+
+# index.html selalu dicek ulang ke server, supaya versi baru langsung tampil setelah deploy.
+# Tanpa aturan ini browser menyimpan index.html lama dan pengunjung melihat versi sebelumnya.
+# File di /assets aman disimpan lama karena namanya berubah setiap build.
+<IfModule mod_headers.c>
+  <FilesMatch "^index\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
