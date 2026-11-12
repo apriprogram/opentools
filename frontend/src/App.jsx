@@ -32,6 +32,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { recordVisit } from './services/converterApi';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { ToastProvider } from './components/ui/Toast';
+import VersionWatcher from './components/ui/VersionWatcher';
 import './i18n';
 
 // Halaman panel hanya bisa dibuka oleh peran yang sesuai. Peran lain diarahkan ke panelnya.
@@ -90,6 +91,8 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-page text-primary flex flex-col font-sans selection:bg-accent-black selection:text-white">
       {/* Navbar */}
+      {/* Tab yang masih memakai versi lama dimuat ulang setelah ada deploy */}
+      <VersionWatcher />
       {!isPanel && <Navbar onOpenBatchModal={handleOpenBatch} />}
 
       {/* Dynamic Pages */}
