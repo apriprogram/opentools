@@ -53,6 +53,8 @@ export default {
         // Menu aksi titik tiga: melayang di atas tabel, jadi shadow-nya lebih terlihat.
         'menu': '0 14px 32px -8px rgba(17, 17, 20, 0.22), 0 4px 10px -4px rgba(17, 17, 20, 0.12)',
         'menu-dark': '0 16px 40px -8px rgba(0, 0, 0, 0.75), 0 4px 12px -4px rgba(0, 0, 0, 0.55)',
+        // Tab aktif pada tab-bar model pil.
+        'tab': '0 1px 2px rgba(17, 17, 20, 0.10), 0 0 0 1px rgba(17, 17, 20, 0.05)',
         'none': 'none',
       },
       fontFamily: {

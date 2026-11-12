@@ -91,7 +91,7 @@ const STATEMENTS = [
     title VARCHAR(120) NOT NULL,
     bio VARCHAR(300) NULL,
     avatar MEDIUMTEXT NULL,
-    theme TEXT NULL,
+    theme MEDIUMTEXT NULL,
     published TINYINT(1) NOT NULL DEFAULT 0,
     views INT UNSIGNED NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL,
@@ -144,6 +144,18 @@ async function ensureColumn(table, column, definition) {
   }
 }
 
+// Ubah tipe kolom yang sudah ada jika masih memakai tipe lama (misalnya TEXT menjadi MEDIUMTEXT).
+async function ensureColumnType(table, column, wantedType, definition) {
+  const [rows] = await pool.query(
+    `SELECT DATA_TYPE FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+    [table, column]
+  );
+  if (rows.length && String(rows[0].DATA_TYPE).toLowerCase() !== wantedType) {
+    await pool.query(`ALTER TABLE \`${table}\` MODIFY COLUMN \`${column}\` ${definition}`);
+  }
+}
+
 export async function ensureSchema() {
   for (const sql of STATEMENTS) {
     await pool.query(sql);
@@ -155,4 +167,11 @@ export async function ensureSchema() {
   await ensureColumn("users", "wa_number", "VARCHAR(20) NULL");
   // Lisensi terikat pada satu QR (per QR code).
   await ensureColumn("qr_licenses", "user_qr_id", "VARCHAR(36) NULL");
+  // Twibbon terikat ke akun (tabel users). Twibbon lama yang dibuat sebelum ada akun dibiarkan kosong.
+  await ensureColumn("twibbon_campaigns", "user_id", "INT UNSIGNED NULL");
+  // Ikon tautan Linktree: "preset:<nama>" atau gambar kecil (data URL).
+  await ensureColumn("linktree_items", "icon", "TEXT NULL");
+  // Tema Linktree bisa berisi gambar latar (ratusan KB). TEXT hanya muat 65 KB, jadi datanya terpotong
+  // dan tema kembali ke bawaan. MEDIUMTEXT muat sampai 16 MB.
+  await ensureColumnType("linktrees", "theme", "mediumtext", "MEDIUMTEXT NULL");
 }

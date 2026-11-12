@@ -41,18 +41,18 @@ export default function Dropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-[44px] min-w-[140px] px-3.5 bg-card border border-border hover:border-border-hover focus:border-border-focus rounded-md flex items-center justify-between gap-3 text-[14px] font-medium text-primary transition-smooth focus:outline-none"
+        className="h-[44px] min-w-[140px] px-3.5 bg-card border border-border hover:border-border-hover focus:border-border-focus rounded-md flex items-center justify-between gap-3 text-[14px] font-medium text-primary transition-smooth focus:outline-none focus-visible:border-blue-500"
       >
         <span>{selectedLabel}</span>
         <ChevronDown
           size={16}
-          strokeWidth={2}
-          className={`text-secondary transition-transform duration-150 ${isOpen ? 'rotate-180 text-primary' : ''}`}
+          strokeWidth={1.75}
+          className={`text-tertiary transition-transform duration-150 motion-reduce:transition-none ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-30 mt-1.5 w-[160px] bg-card rounded-md border border-border shadow-subtle-dropdown py-1 max-h-[220px] overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute right-0 z-30 mt-1.5 w-[168px] max-h-[240px] overflow-y-auto rounded-md border border-border bg-card p-1 shadow-menu animate-in fade-in zoom-in-95 duration-150 motion-reduce:animate-none dark:shadow-menu-dark">
           {options.map((opt) => {
             const optVal = typeof opt === 'string' ? opt : opt.value;
             const optLabel = typeof opt === 'string' ? opt.toUpperCase() : opt.label;
@@ -66,14 +66,12 @@ export default function Dropdown({
                   onChange(optVal);
                   setIsOpen(false);
                 }}
-                className={`w-full px-3.5 py-2 text-left text-[13px] flex items-center justify-between transition-colors ${
-                  isSelected
-                    ? 'bg-card-muted font-semibold text-primary'
-                    : 'text-secondary hover:text-primary hover:bg-card-muted/60'
+                className={`flex min-h-[34px] w-full items-center justify-between gap-2 rounded-sm px-2.5 py-1.5 text-left text-[13px] transition-smooth hover:bg-card-muted focus:bg-card-muted focus:outline-none ${
+                  isSelected ? 'font-medium text-primary' : 'text-secondary hover:text-primary'
                 }`}
               >
                 <span>{optLabel}</span>
-                {isSelected && <Check size={14} className="text-primary" />}
+                {isSelected && <Check size={14} strokeWidth={2} className="shrink-0 text-blue-500" />}
               </button>
             );
           })}

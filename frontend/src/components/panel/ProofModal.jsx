@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { fetchMyProof } from '../../services/authApi';
 
 // Bukti transfer. Pengguna memakai fetchMyProof; super admin mengirim fetcher sendiri (endpoint admin).
 // Gambar diambil saat dibutuhkan dan dibersihkan saat komponen dilepas.
-const useProofImage = (code, fetcher) => {
+export const useProofImage = (code, fetcher) => {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const fetcherRef = useRef(fetcher);
@@ -55,15 +56,17 @@ export default function ProofModal({ code, onClose, fetcher = fetchMyProof, deta
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') closeRef.current();
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      closeRef.current();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, []);
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4"
       onClick={() => closeRef.current()}
       role="dialog"
       aria-modal="true"
@@ -101,6 +104,7 @@ export default function ProofModal({ code, onClose, fetcher = fetchMyProof, deta
           </dl>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

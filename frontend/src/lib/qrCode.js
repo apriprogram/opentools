@@ -1,34 +1,24 @@
 import QRCode from 'qrcode';
 
-// Logo default QR (hasil trace dari logo yang diunggah pengguna), disimpan di public/qr-logo.svg
+// Logo untuk tampilan (sidebar panel dan lainnya).
 export const QR_LOGO_URL = '/qr-logo.svg';
 
-let logoCache = null;
+// Bentuk logo di tengah QR: satu path vektor, jadi warnanya bisa mengikuti warna QR.
+export const LOGO_VIEWBOX = '0 0 423 257';
+export const LOGO_PATH =
+  'M231 185l27 -23c8,-7 13,-13 15,-19 3,-6 3,-11 3,-17l-3 -31 0 0 139 -93c7,-5 11,-1 11,5l0 16c0,12 -5,19 -13,25l-52 34 55 -8c8,-1 10,0 10,5l0 15c0,8 -8,17 -16,18l-64 8 50 25c5,2 3,7 0,10l-13 11c-5,4 -15,3 -19,1l-38 -19 20 39c2,4 0,5 -4,5l-25 0c-3,0 -7,0 -9,-5l-7 -14c-5,5 -10,11 -16,17l-48 41c-9,8 -20,17 -22,26 -3,-9 -14,-18 -23,-26l-48 -41c-6,-6 -11,-12 -15,-17l-8 14c-2,5 -6,5 -9,5l-25 0c-4,0 -6,-1 -4,-5l21 -39 -38 19c-5,2 -15,3 -19,-1l-14 -11c-3,-3 -5,-8 0,-10l51 -25 -64 -8c-9,-1 -17,-10 -17,-18l0 -15c0,-5 2,-6 11,-5l54 8 -52 -34c-8,-6 -13,-13 -13,-25l0 -16c0,-6 4,-10 11,-5l139 93 0 0 -3 31c0,6 0,11 3,17 3,6 7,12 15,19l27 23c12,10 20,19 20,26 0,-7 8,-16 19,-26z';
 
-/**
- * Ambil logo hitam sebagai data URI (agar tetap tampil saat SVG dirender ke PNG).
- * Logo dibuat hitam di semua paket supaya sesuai QR hitam putih (paket gratis) dan tidak berwarna biru.
- */
-export async function loadLogoDataUrl() {
-  if (!logoCache) {
-    logoCache = fetch(QR_LOGO_URL)
-      .then((res) => {
-        if (!res.ok) throw new Error('Logo tidak ditemukan');
-        return res.text();
-      })
-      .then((text) => {
-        const black = text.replace(/fill="#[0-9a-fA-F]{6}"/g, 'fill="#000000"');
-        return `data:image/svg+xml;base64,${toBase64(black)}`;
-      });
-  }
-  return logoCache;
+/** Logo sebagai SVG mandiri dengan warna tertentu. */
+export function logoSvg(color = '#000000') {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${LOGO_VIEWBOX}"><path d="${LOGO_PATH}" fill="${color}"/></svg>`;
 }
 
-function toBase64(text) {
-  const bytes = new TextEncoder().encode(text);
-  let binary = '';
-  bytes.forEach((b) => { binary += String.fromCharCode(b); });
-  return btoa(binary);
+/**
+ * Logo sebagai data URI. Dipakai halaman sebagai penanda "logo siap ditampilkan".
+ * Di dalam QR, logo digambar langsung sebagai vektor dan warnanya mengikuti warna QR (lihat buildQrSvg).
+ */
+export async function loadLogoDataUrl(color = '#000000') {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(logoSvg(color))}`;
 }
 
 /** Pastikan teks link punya skema. Contoh: "garudanexa.com" -> "https://garudanexa.com". */
@@ -58,10 +48,12 @@ export function contrastRatio(hexA, hexB) {
 
 /**
  * Bangun SVG QR code.
- * opts: { text, fg, bg, logoDataUrl (opsional), size (px, default 512) }
- * Logo ditaruh di tengah dengan kotak latar putih; level koreksi H agar tetap bisa dipindai.
+ * opts: { text, fg, bg, logo (opsional), logoDataUrl (opsional), size (px, default 512) }
+ * Logo tampil jika logo bernilai true, atau jika logoDataUrl diisi (cara lama).
+ * Logo ditaruh di tengah di atas kotak berwarna latar, dan warnanya mengikuti warna QR (fg).
+ * Level koreksi H dipakai agar QR tetap bisa dipindai.
  */
-export function buildQrSvg({ text, fg = '#000000', bg = '#FFFFFF', logoDataUrl = null, size = 512 }) {
+export function buildQrSvg({ text, fg = '#000000', bg = '#FFFFFF', logo: showLogo, logoDataUrl = null, size = 512 }) {
   const qr = QRCode.create(text, { errorCorrectionLevel: 'H' });
   const n = qr.modules.size;
   const quiet = 4;
@@ -78,14 +70,14 @@ export function buildQrSvg({ text, fg = '#000000', bg = '#FFFFFF', logoDataUrl =
   }
 
   let logo = '';
-  if (logoDataUrl) {
+  if (showLogo ?? Boolean(logoDataUrl)) {
     const logoSize = total * 0.24; // 24% dari lebar QR (dalam satuan modul)
     const pad = 0.6;
     const x = (total - logoSize) / 2;
     const y = (total - logoSize) / 2;
     logo = `
   <rect x="${(x - pad).toFixed(3)}" y="${(y - pad).toFixed(3)}" width="${(logoSize + pad * 2).toFixed(3)}" height="${(logoSize + pad * 2).toFixed(3)}" rx="1.2" fill="${bg}"/>
-  <image href="${logoDataUrl}" x="${x.toFixed(3)}" y="${y.toFixed(3)}" width="${logoSize.toFixed(3)}" height="${logoSize.toFixed(3)}" preserveAspectRatio="xMidYMid meet"/>`;
+  <svg x="${x.toFixed(3)}" y="${y.toFixed(3)}" width="${logoSize.toFixed(3)}" height="${logoSize.toFixed(3)}" viewBox="${LOGO_VIEWBOX}" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision"><path d="${LOGO_PATH}" fill="${fg}"/></svg>`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${size}" height="${size}" viewBox="0 0 ${total} ${total}" shape-rendering="crispEdges">

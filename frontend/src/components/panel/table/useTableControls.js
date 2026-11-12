@@ -38,6 +38,13 @@ export function useTableControls(rows, { searchText, filters = [], sorts = [], i
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, search, filter, sort]);
 
+  // Jumlah data per filter (tanpa pencarian), ditampilkan di tab filter.
+  const filterCounts = useMemo(() => {
+    const list = rows || [];
+    return Object.fromEntries(filters.map((f) => [f.id, f.test ? list.filter(f.test).length : list.length]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows]);
+
   // Ganti pencarian, filter, urutan, atau jumlah per halaman: kembali ke halaman pertama.
   useEffect(() => {
     setPage(1);
@@ -53,6 +60,7 @@ export function useTableControls(rows, { searchText, filters = [], sorts = [], i
     setSearch,
     filter,
     setFilter,
+    filterCounts,
     sort,
     setSort,
     perPage,

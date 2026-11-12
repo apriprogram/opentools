@@ -6,23 +6,36 @@ import { httpError } from "./qr.service.js";
 // sedangkan membuat dan mengedit wajib masuk akun.
 export const MAX_TREES_PER_USER = 50;
 export const MAX_ITEMS = 100;
-export const SOCIAL_PLATFORMS = ["website", "instagram", "youtube", "tiktok", "facebook", "x", "linkedin", "github", "whatsapp", "email"];
+export const SOCIAL_PLATFORMS = [
+  "website", "instagram", "youtube", "tiktok", "facebook", "x", "threads", "linkedin", "github",
+  "whatsapp", "telegram", "shopee", "email"
+];
 
 const SLUG_RE = /^[a-z0-9][a-z0-9_-]{2,29}$/;
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 const ITEM_TYPES = ["link", "header", "social"];
 const BG_TYPES = ["color", "gradient", "image"];
-const BUTTON_STYLES = ["fill", "outline", "shadow"];
+const BUTTON_STYLES = ["fill", "outline", "shadow", "soft", "glass", "liquid"];
+const SOCIAL_STYLES = ["outline", "plain", "fill", "brand", "liquid"];
+// Huruf halaman. Harus sama dengan daftar di frontend (components/linktree/fonts.js).
+const FONT_IDS = ["poppins", "inter", "jakarta", "montserrat", "outfit", "nunito", "space", "playfair", "bebas", "caveat"];
 const BUTTON_RADII = ["pill", "rounded", "square"];
 const IMAGE_DATA_RE = /^data:image\/(png|jpeg|webp);base64,/;
 const AVATAR_MAX = 600000; // karakter data URL, sekitar 400 KB
-const BG_IMAGE_MAX = 1400000; // karakter data URL, sekitar 1 MB
+// Gambar latar disimpan di dalam tema. Batasnya dijaga di bawah 1 MB supaya satu perintah simpan
+// tetap muat dalam batas paket MySQL bawaan.
+const BG_IMAGE_MAX = 800000; // karakter data URL, sekitar 600 KB
+const ICON_MAX = 40000; // karakter data URL, sekitar 30 KB (ikon 96 px)
+const ICON_PRESET_RE = /^preset:[a-z0-9-]{1,30}$/;
 
 const DEFAULT_THEME = {
   preset: "putih",
   bg: { type: "color", color: "#FFFFFF", color2: "#E0E7FF", image: null },
   text: "#111111",
   button: { style: "fill", radius: "pill", color: "#111111", textColor: "#FFFFFF" },
+  avatar: { outline: true },
+  social: { style: "outline" },
+  font: "poppins",
 };
 
 const iso = (d) => (d instanceof Date ? d.toISOString() : d);
@@ -33,6 +46,8 @@ export const sanitizeTheme = (input) => {
   const hex = (v, fallback) => (typeof v === "string" && HEX_RE.test(v) ? v : fallback);
   const bg = t.bg && typeof t.bg === "object" ? t.bg : {};
   const button = t.button && typeof t.button === "object" ? t.button : {};
+  const avatar = t.avatar && typeof t.avatar === "object" ? t.avatar : {};
+  const social = t.social && typeof t.social === "object" ? t.social : {};
   const type = BG_TYPES.includes(bg.type) ? bg.type : "color";
   const image =
     type === "image" && typeof bg.image === "string" && IMAGE_DATA_RE.test(bg.image) && bg.image.length <= BG_IMAGE_MAX
@@ -53,6 +68,10 @@ export const sanitizeTheme = (input) => {
       color: hex(button.color, DEFAULT_THEME.button.color),
       textColor: hex(button.textColor, DEFAULT_THEME.button.textColor),
     },
+    // Foto profil: pakai garis tepi atau tidak. Ikon sosial: garis, polos, berlatar, atau warna brand.
+    avatar: { outline: avatar.outline !== false },
+    social: { style: SOCIAL_STYLES.includes(social.style) ? social.style : "outline" },
+    font: FONT_IDS.includes(t.font) ? t.font : "poppins",
   };
 };
 
@@ -68,6 +87,15 @@ const cleanTitle = (value, max = 120) => {
   const text = String(value || "").trim();
   if (!text || text.length > max) throw httpError(400, `Judul wajib diisi (maksimal ${max} karakter).`);
   return text;
+};
+
+// Ikon tautan: pilihan bawaan ("preset:<nama>") atau gambar kecil yang diunggah (data URL).
+const sanitizeIcon = (value) => {
+  if (!value) return null;
+  if (typeof value !== "string") throw httpError(400, "Ikon tautan tidak valid.");
+  if (ICON_PRESET_RE.test(value)) return value;
+  if (IMAGE_DATA_RE.test(value) && value.length <= ICON_MAX) return value;
+  throw httpError(400, "Ikon tautan harus dipilih dari daftar, atau gambar PNG, JPEG, atau WebP berukuran kecil.");
 };
 
 // Alamat link: http, https, mailto, atau tel. Tanpa skema, dianggap https.
@@ -99,15 +127,15 @@ const sanitizeItems = (items) => {
     if (it.type === "header") {
       const title = String(it.title || "").trim().slice(0, 200);
       if (!title) throw httpError(400, "Teks header tidak boleh kosong.");
-      return { id, type: "header", title, url: null, platform: null, enabled, position };
+      return { id, type: "header", title, url: null, platform: null, icon: null, enabled, position };
     }
     if (it.type === "social") {
       if (!SOCIAL_PLATFORMS.includes(it.platform)) throw httpError(400, "Platform ikon sosial tidak dikenal.");
-      return { id, type: "social", title: null, url: normalizeUrl(it.url, it.platform), platform: it.platform, enabled, position };
+      return { id, type: "social", title: null, url: normalizeUrl(it.url, it.platform), platform: it.platform, icon: null, enabled, position };
     }
     const title = String(it.title || "").trim().slice(0, 200);
     if (!title) throw httpError(400, "Judul tautan wajib diisi.");
-    return { id, type: "link", title, url: normalizeUrl(it.url), platform: null, enabled, position };
+    return { id, type: "link", title, url: normalizeUrl(it.url), platform: null, icon: sanitizeIcon(it.icon), enabled, position };
   });
 };
 
@@ -125,6 +153,7 @@ const toItem = (r) => ({
   title: r.title,
   url: r.url,
   platform: r.platform,
+  icon: r.icon || null,
   enabled: Boolean(r.enabled),
   position: r.position,
   clicks: Number(r.clicks || 0),
@@ -154,12 +183,12 @@ const toPublic = (r, items) => ({
   items: items
     .map(toItem)
     .filter((i) => i.enabled)
-    .map(({ id, type, title, url, platform }) => ({ id, type, title, url, platform })),
+    .map(({ id, type, title, url, platform, icon }) => ({ id, type, title, url, platform, icon })),
 });
 
 const loadItems = (treeId) =>
   query(
-    "SELECT id, type, title, url, platform, enabled, position, clicks FROM linktree_items WHERE linktree_id = ? ORDER BY position ASC, created_at ASC",
+    "SELECT id, type, title, url, platform, icon, enabled, position, clicks FROM linktree_items WHERE linktree_id = ? ORDER BY position ASC, created_at ASC",
     [treeId]
   );
 
@@ -190,13 +219,13 @@ const replaceItems = async (conn, treeId, items, now) => {
   for (const it of items) {
     if (it.id && keep.has(it.id)) {
       await conn.query(
-        "UPDATE linktree_items SET type = ?, title = ?, url = ?, platform = ?, position = ?, enabled = ? WHERE id = ? AND linktree_id = ?",
-        [it.type, it.title, it.url, it.platform, it.position, it.enabled, it.id, treeId]
+        "UPDATE linktree_items SET type = ?, title = ?, url = ?, platform = ?, icon = ?, position = ?, enabled = ? WHERE id = ? AND linktree_id = ?",
+        [it.type, it.title, it.url, it.platform, it.icon, it.position, it.enabled, it.id, treeId]
       );
     } else {
       await conn.query(
-        "INSERT INTO linktree_items (id, linktree_id, type, title, url, platform, position, enabled, clicks, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?)",
-        [crypto.randomUUID(), treeId, it.type, it.title, it.url, it.platform, it.position, it.enabled, now]
+        "INSERT INTO linktree_items (id, linktree_id, type, title, url, platform, icon, position, enabled, clicks, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)",
+        [crypto.randomUUID(), treeId, it.type, it.title, it.url, it.platform, it.icon, it.position, it.enabled, now]
       );
     }
   }
@@ -267,14 +296,12 @@ export const updateLinktree = async (userId, id, body = {}) => {
     sets.push("published = ?");
     params.push(body.published ? 1 : 0);
   }
-  if (body.theme !== undefined) {
-    sets.push("theme = ?");
-    params.push(JSON.stringify(sanitizeTheme(body.theme)));
-  }
-  if (body.avatar !== undefined) {
-    sets.push("avatar = ?");
-    params.push(sanitizeAvatar(body.avatar));
-  }
+  // Tema (bisa berisi gambar latar) dan foto profil disimpan dengan perintah terpisah.
+  // Keduanya berukuran besar; kalau digabung dalam satu perintah, ukurannya bisa melewati
+  // batas paket MySQL (max_allowed_packet, bawaannya 1 MB di banyak server).
+  const large = [];
+  if (body.theme !== undefined) large.push(["theme", JSON.stringify(sanitizeTheme(body.theme))]);
+  if (body.avatar !== undefined) large.push(["avatar", sanitizeAvatar(body.avatar)]);
   const items = body.items !== undefined ? sanitizeItems(body.items) : null;
 
   const conn = await pool.getConnection();
@@ -284,6 +311,9 @@ export const updateLinktree = async (userId, id, body = {}) => {
     sets.push("updated_at = ?");
     params.push(now);
     await conn.query(`UPDATE linktrees SET ${sets.join(", ")} WHERE id = ? AND user_id = ?`, [...params, String(id), userId]);
+    for (const [column, value] of large) {
+      await conn.query(`UPDATE linktrees SET ${column} = ? WHERE id = ? AND user_id = ?`, [value, String(id), userId]);
+    }
     if (items) await replaceItems(conn, String(id), items, now);
     await conn.commit();
   } catch (error) {
@@ -309,6 +339,50 @@ export const deleteLinktree = async (userId, id) => {
   } finally {
     conn.release();
   }
+};
+
+// Super admin: semua Linktree dari semua akun, beserta pemiliknya. Hanya untuk dilihat.
+const toOwner = (r) => ({
+  id: r.user_id,
+  name: r.owner_name || "",
+  email: r.owner_email || "",
+  whatsapp: r.owner_whatsapp || "",
+});
+
+const ADMIN_TREE_SELECT = `SELECT t.id, t.user_id, t.slug, t.title, t.bio, t.published, t.views, t.created_at, t.updated_at,
+  u.name AS owner_name, u.email AS owner_email, u.wa_number AS owner_whatsapp,
+  (SELECT COUNT(*) FROM linktree_items i WHERE i.linktree_id = t.id AND i.type = 'link') AS link_count,
+  (SELECT COUNT(*) FROM linktree_items i WHERE i.linktree_id = t.id) AS item_count,
+  (SELECT COALESCE(SUM(i.clicks), 0) FROM linktree_items i WHERE i.linktree_id = t.id) AS clicks
+  FROM linktrees t LEFT JOIN users u ON u.id = t.user_id`;
+
+const toAdminTree = (r) => ({
+  id: r.id,
+  slug: r.slug,
+  title: r.title,
+  bio: r.bio || "",
+  published: Boolean(r.published),
+  views: Number(r.views || 0),
+  linkCount: Number(r.link_count || 0),
+  itemCount: Number(r.item_count || 0),
+  clicks: Number(r.clicks || 0),
+  createdAt: iso(r.created_at),
+  updatedAt: iso(r.updated_at),
+  owner: toOwner(r),
+});
+
+export const adminListLinktrees = async () => {
+  const rows = await query(`${ADMIN_TREE_SELECT} ORDER BY t.created_at DESC LIMIT 1000`);
+  return rows.map(toAdminTree);
+};
+
+// Detail satu Linktree: data di atas, ditambah foto profil dan semua itemnya.
+export const adminGetLinktree = async (id) => {
+  const rows = await query(`${ADMIN_TREE_SELECT} WHERE t.id = ? LIMIT 1`, [String(id)]);
+  if (!rows.length) throw httpError(404, "Linktree tidak ditemukan.");
+  const extra = await query("SELECT avatar FROM linktrees WHERE id = ? LIMIT 1", [rows[0].id]);
+  const items = await loadItems(rows[0].id);
+  return { ...toAdminTree(rows[0]), avatar: extra[0]?.avatar || null, items: items.map(toItem) };
 };
 
 const findPublished = async (slug) => {

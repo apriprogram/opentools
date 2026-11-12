@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCheck, Copy, Download, ExternalLink, Trash2, X } from 'lucide-react';
+import { CheckCheck, Copy, Download, ExternalLink, EyeOff, Globe, Trash2, X } from 'lucide-react';
+import Switch from '../ui/Switch';
 import Button from '../ui/Button';
 import { useToast } from '../ui/Toast';
 import { readImageAsDataUrl } from '../../lib/imageUpload';
@@ -57,8 +58,8 @@ export default function SettingsTab({ draft, update, publicSlug, published, onDe
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <section className="rounded-2xl border border-border bg-card p-5">
+    <div className="flex flex-col gap-3 sm:gap-4">
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
         <h2 className="text-[15px] font-semibold text-primary">Profil</h2>
         <div className="mt-4 grid gap-4">
           <div>
@@ -110,7 +111,7 @@ export default function SettingsTab({ draft, update, publicSlug, published, onDe
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
         <h2 className="text-[15px] font-semibold text-primary">Alamat dan terbit</h2>
         <div className="mt-4 grid gap-4">
           <div>
@@ -129,22 +130,47 @@ export default function SettingsTab({ draft, update, publicSlug, published, onDe
             {!slugOk && <p className="mt-1 text-[12px] text-danger">Alamat harus 3 sampai 30 karakter: huruf kecil, angka, - dan _.</p>}
           </div>
 
-          <label className="flex cursor-pointer items-start gap-3 text-[14px] text-primary">
-            <input
-              type="checkbox"
-              checked={draft.published}
-              onChange={(e) => update({ published: e.target.checked })}
-              className="mt-1 h-4 w-4 accent-black"
-            />
-            <span>
-              Terbitkan halaman
-              <span className="block text-[12px] text-tertiary">Halaman bisa dibuka siapa saja lewat alamat di atas.</span>
+          {/* Status terbit: kartu berwarna dengan sakelar besar, supaya tidak terlewat. */}
+          <div
+            className={`flex items-center gap-3 rounded-2xl border p-3 transition-smooth sm:p-4 ${
+              draft.published ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-amber-500/50 bg-amber-500/10'
+            }`}
+          >
+            <span
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white ${
+                draft.published ? 'bg-emerald-500' : 'bg-amber-500'
+              }`}
+            >
+              {draft.published ? <Globe size={18} strokeWidth={1.75} aria-hidden="true" /> : <EyeOff size={18} strokeWidth={1.75} aria-hidden="true" />}
             </span>
-          </label>
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] font-semibold text-primary sm:text-[14px]">
+                {draft.published ? 'Halaman diterbitkan' : 'Halaman masih draf'}
+              </p>
+              <p className="text-[11px] text-secondary sm:text-[12px]">
+                {draft.published
+                  ? 'Siapa saja bisa membuka halaman ini lewat alamat di atas.'
+                  : 'Orang lain belum bisa membuka halaman ini. Nyalakan sakelar untuk menerbitkan.'}
+              </p>
+              {draft.published !== published && (
+                <p className="mt-1 text-[11px] font-medium text-amber-700 dark:text-amber-400 sm:text-[12px]">
+                  Belum diterapkan. Tekan Simpan untuk {draft.published ? 'menerbitkan' : 'menjadikannya draf'}.
+                </p>
+              )}
+            </div>
+            <Switch
+              size="md"
+              tone="green"
+              checked={draft.published}
+              onChange={(next) => update({ published: next })}
+              label="Terbitkan halaman"
+              title={draft.published ? 'Klik untuk menjadikan draf' : 'Klik untuk menerbitkan'}
+            />
+          </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
         <h2 className="text-[15px] font-semibold text-primary">Bagikan</h2>
         {published ? (
           <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_160px]">
@@ -160,14 +186,14 @@ export default function SettingsTab({ draft, update, publicSlug, published, onDe
                 <Button size="sm" variant="ghost" icon={Download} onClick={downloadPng}>QR PNG</Button>
               </div>
             </div>
-            <div className="flex aspect-square items-center justify-center rounded-xl border border-border bg-white p-2 [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+            <div className="flex aspect-square max-w-[180px] items-center justify-center rounded-md border border-border bg-white p-2 [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
           </div>
         ) : (
           <p className="mt-3 text-[13px] text-secondary">Terbitkan dan simpan Linktree dulu agar bisa dibagikan.</p>
         )}
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
         <h2 className="text-[15px] font-semibold text-primary">Hapus Linktree</h2>
         <p className="mt-1 text-[13px] text-secondary">Semua tautan dan statistik Linktree ini ikut terhapus. Tindakan ini tidak bisa dibatalkan.</p>
         <div className="mt-4">

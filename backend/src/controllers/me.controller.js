@@ -1,7 +1,8 @@
 import * as qr from "../services/qr.service.js";
 import * as me from "../services/me.service.js";
 import { renderNotaHtml, renderNotaPdf } from "../services/nota.service.js";
-import { updateUserWhatsapp } from "../services/auth.service.js";
+import { updateUserWhatsapp, updateUserProfile, changeUserPassword } from "../services/auth.service.js";
+import { bearerToken } from "../middleware/auth.middleware.js";
 
 const LINK_MAX = 2048;
 const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
@@ -33,6 +34,24 @@ export const saveQr = async (req, res) => {
     }
     const saved = await me.createUserQr(req.user, { link, fg, bg, logo: req.body?.logo !== false });
     return res.status(201).json({ success: true, qr: saved });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
+// Ubah warna dan logo QR milik sendiri (hanya QR Premium yang aktif).
+export const updateQr = async (req, res) => {
+  try {
+    const fg = String(req.body?.fg || "");
+    const bg = String(req.body?.bg || "");
+    if (!COLOR_RE.test(fg) || !COLOR_RE.test(bg)) {
+      return res.status(400).json({ success: false, message: "Format warna tidak valid." });
+    }
+    if (fg.toLowerCase() === bg.toLowerCase()) {
+      return res.status(400).json({ success: false, message: "Warna QR dan warna latar tidak boleh sama." });
+    }
+    const saved = await me.updateUserQrDesign(req.user, req.params.id, { fg, bg, logo: req.body?.logo !== false });
+    return res.json({ success: true, qr: saved });
   } catch (error) {
     return fail(res, error);
   }
@@ -77,6 +96,67 @@ export const setWhatsapp = async (req, res) => {
     }
     const user = await updateUserWhatsapp(req.user.id, whatsapp);
     return res.json({ success: true, user });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
+// Ubah profil akun: nama dan nomor WhatsApp.
+export const updateProfile = async (req, res) => {
+  try {
+    const name = String(req.body?.name || "").trim();
+    if (name.length < 2 || name.length > 120) {
+      return res.status(400).json({ success: false, message: "Nama wajib diisi (minimal 2 karakter)." });
+    }
+    const rawWhatsapp = String(req.body?.whatsapp || "").trim();
+    const whatsapp = rawWhatsapp ? qr.normalizeWhatsapp(rawWhatsapp) : "";
+    // Akun user wajib punya nomor WhatsApp (dipakai untuk pesanan). Super admin boleh kosong.
+    if ((rawWhatsapp && !whatsapp) || (!rawWhatsapp && req.user.role !== "superadmin")) {
+      return res.status(400).json({ success: false, message: "Nomor WhatsApp tidak valid. Contoh: 081234567890." });
+    }
+    const user = await updateUserProfile(req.user.id, { name, whatsapp });
+    return res.json({ success: true, user });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
+// Ganti password. Dibatasi 5 kali salah per 15 menit untuk tiap akun.
+const PASSWORD_MAX_FAILURES = 5;
+const PASSWORD_WINDOW_MS = 15 * 60 * 1000;
+const passwordFailures = new Map();
+
+export const changePassword = async (req, res) => {
+  try {
+    const key = req.user.id;
+    const record = passwordFailures.get(key);
+    if (record && Date.now() - record.first > PASSWORD_WINDOW_MS) passwordFailures.delete(key);
+    if ((passwordFailures.get(key)?.count || 0) >= PASSWORD_MAX_FAILURES) {
+      return res.status(429).json({ success: false, message: "Terlalu banyak percobaan. Coba lagi dalam 15 menit." });
+    }
+    const currentPassword = String(req.body?.currentPassword || "");
+    const newPassword = String(req.body?.newPassword || "");
+    if (!currentPassword) {
+      return res.status(400).json({ success: false, message: "Password saat ini wajib diisi." });
+    }
+    if (newPassword.length < 8 || newPassword.length > 200) {
+      return res.status(400).json({ success: false, message: "Password baru minimal 8 karakter." });
+    }
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ success: false, message: "Password baru harus berbeda dari password saat ini." });
+    }
+    try {
+      await changeUserPassword(req.user.id, currentPassword, newPassword, bearerToken(req));
+    } catch (error) {
+      if (error.status === 400) {
+        const rec = passwordFailures.get(key);
+        if (rec) rec.count += 1;
+        else passwordFailures.set(key, { count: 1, first: Date.now() });
+      }
+      throw error;
+    }
+    passwordFailures.delete(key);
+    return res.json({ success: true });
   } catch (error) {
     return fail(res, error);
   }

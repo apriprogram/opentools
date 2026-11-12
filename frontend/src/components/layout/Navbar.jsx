@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeftRight, Sparkles, ChevronDown, Video, Image as ImageIcon, FileText, FileCode2, Music, Star, Moon, Sun, Globe, Menu, X, QrCode, LogIn, LayoutDashboard } from 'lucide-react';
+import { ArrowLeftRight, Sparkles, ChevronDown, Video, Image as ImageIcon, FileText, FileCode2, Music, Moon, Sun, Globe, Menu, X, QrCode, LogIn, LayoutDashboard } from 'lucide-react';
 import { fetchTools, fetchCompressors } from '../../services/converterApi';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getStoredSession } from '../../services/authApi';
 import { useTranslation } from 'react-i18next';
+import BrandLogo from '../ui/BrandLogo';
 
 export default function Navbar({ onOpenBatchModal }) {
   const location = useLocation();
@@ -80,8 +81,8 @@ export default function Navbar({ onOpenBatchModal }) {
       <div className="w-full px-4 sm:px-6 md:px-8 h-[64px] flex items-center justify-between">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-[28px] h-[28px] flex items-center justify-center">
-            <img src="/logo_opentools.png" alt="OpenTools Logo" className="w-full h-full object-contain brightness-0 dark:invert" />
+          <div className="flex h-[24px] w-[36px] items-center justify-center">
+            <BrandLogo className="h-full w-full text-primary" title="Logo Garudanexa" />
           </div>
           <div className="flex flex-col">
             <span className="text-[15px] font-semibold text-primary tracking-tight leading-[18px]">
@@ -191,12 +192,9 @@ export default function Navbar({ onOpenBatchModal }) {
                           key={tool.id}
                           to={`/convert/${tool.id}`}
                           onClick={() => setActiveMenu(null)}
-                          className={`text-[13px] text-secondary hover:text-primary hover:bg-card-muted px-2 py-1.5 rounded-sm transition-colors flex items-center justify-between group border ${tool.popular ? 'border-yellow-500 hover:border-yellow-600' : 'border-transparent'}`}
+                          className="flex items-center rounded-sm px-2 py-1.5 text-[13px] text-secondary transition-colors hover:bg-card-muted hover:text-primary"
                         >
                           <span className="truncate">{tool.label}</span>
-                          {tool.popular && (
-                            <Star size={14} strokeWidth={2} className="text-yellow-400 fill-yellow-400 shrink-0 ml-2" />
-                          )}
                         </Link>
                       ))}
                     </div>
@@ -227,12 +225,9 @@ export default function Navbar({ onOpenBatchModal }) {
                           key={tool.id}
                           to={`/compress/${tool.id}`}
                           onClick={() => setActiveMenu(null)}
-                          className={`text-[13px] text-secondary hover:text-primary hover:bg-card-muted px-2 py-1.5 rounded-sm transition-colors flex items-center justify-between group border ${tool.popular ? 'border-yellow-500 hover:border-yellow-600' : 'border-transparent'}`}
+                          className="flex items-center rounded-sm px-2 py-1.5 text-[13px] text-secondary transition-colors hover:bg-card-muted hover:text-primary"
                         >
                           <span className="truncate">{tool.label}</span>
-                          {tool.popular && (
-                            <Star size={14} strokeWidth={2} className="text-yellow-400 fill-yellow-400 shrink-0 ml-2" />
-                          )}
                         </Link>
                       ))}
                     </div>

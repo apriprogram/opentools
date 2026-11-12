@@ -50,6 +50,23 @@ export const deleteLinktree = async (req, res) => {
   }
 };
 
+// Super admin: melihat semua Linktree yang dibuat pengguna (hanya baca).
+export const adminListLinktrees = async (req, res) => {
+  try {
+    res.json({ success: true, linktrees: await lt.adminListLinktrees() });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
+export const adminGetLinktree = async (req, res) => {
+  try {
+    res.json({ success: true, linktree: await lt.adminGetLinktree(req.params.id) });
+  } catch (error) {
+    return fail(res, error);
+  }
+};
+
 // Publik: halaman Linktree, pencatatan kunjungan, dan klik tautan.
 export const publicLinktree = async (req, res) => {
   try {

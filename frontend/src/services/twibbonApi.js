@@ -1,69 +1,52 @@
-// Relatif terhadap domain yang sedang dibuka (lokal maupun production)
-const API_BASE = '/api/v1/twibbon';
+import api from './api';
+import { authHeaders } from './authApi';
 
-export const login = async (name, email) => {
-  const res = await fetch(`${API_BASE}/auth`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email })
-  });
-  const data = await res.json();
-  if (data.success && data.user) {
-    localStorage.setItem('twibbon_user', JSON.stringify(data.user));
-    return data.user;
-  }
-  throw new Error(data.message || 'Login failed');
-};
+// Publik: daftar Twibbon, satu Twibbon, dan pencatatan dilihat serta dipakai.
+export async function getCampaigns() {
+  const res = await api.get('/twibbon/campaigns');
+  return res.data.campaigns;
+}
 
-export const getCurrentUser = () => {
-  const user = localStorage.getItem('twibbon_user');
-  return user ? JSON.parse(user) : null;
-};
+export async function getCampaignBySlug(slug) {
+  const res = await api.get(`/twibbon/campaigns/${encodeURIComponent(slug)}`);
+  return res.data.campaign;
+}
 
-export const createCampaign = async (campaignData) => {
-  const res = await fetch(`${API_BASE}/campaigns`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(campaignData)
-  });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.message || 'Create campaign failed');
-  return data.campaign;
-};
+export async function trackCampaignView(id) {
+  const res = await api.post(`/twibbon/campaigns/${encodeURIComponent(id)}/view`);
+  return res.data.success;
+}
 
-export const getCampaigns = async () => {
-  const res = await fetch(`${API_BASE}/campaigns`);
-  const data = await res.json();
-  if (!data.success) throw new Error(data.message || 'Fetch campaigns failed');
-  return data.campaigns;
-};
+export async function trackCampaignUsage(id) {
+  const res = await api.post(`/twibbon/campaigns/${encodeURIComponent(id)}/usage`);
+  return res.data.success;
+}
 
-export const getCampaignBySlug = async (slug) => {
-  const res = await fetch(`${API_BASE}/campaigns/${slug}`);
-  const data = await res.json();
-  if (!data.success) throw new Error(data.message || 'Campaign not found');
-  return data.campaign;
-};
+// Akun: Twibbon milik pengguna yang masuk. Satu akun bisa membuat banyak Twibbon.
+export async function fetchMyTwibbons() {
+  const res = await api.get('/twibbon/mine', { headers: authHeaders() });
+  return res.data.campaigns;
+}
 
-export const trackCampaignView = async (id) => {
-  const res = await fetch(`${API_BASE}/campaigns/${id}/view`, { method: 'POST' });
-  const data = await res.json();
-  return data.success;
-};
+export async function fetchMyTwibbon(id) {
+  const res = await api.get(`/twibbon/mine/${encodeURIComponent(id)}`, { headers: authHeaders() });
+  return res.data.campaign;
+}
 
-export const trackCampaignUsage = async (id) => {
-  const res = await fetch(`${API_BASE}/campaigns/${id}/usage`, { method: 'POST' });
-  const data = await res.json();
-  return data.success;
-};
+export async function createTwibbon({ title, description, slug, frameBase64 }) {
+  const res = await api.post('/twibbon/campaigns', { title, description, slug, frameBase64 }, { headers: authHeaders() });
+  return res.data.campaign;
+}
 
-export const deleteCampaign = async (id, creatorId) => {
-  const res = await fetch(`${API_BASE}/campaigns/${id}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ creatorId })
-  });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.message || 'Failed to delete campaign');
-  return data.success;
-};
+// frameBase64 hanya dikirim bila gambarnya diganti.
+export async function updateTwibbon(id, { title, description, frameBase64 }) {
+  const body = { title, description };
+  if (frameBase64) body.frameBase64 = frameBase64;
+  const res = await api.put(`/twibbon/campaigns/${encodeURIComponent(id)}`, body, { headers: authHeaders() });
+  return res.data.campaign;
+}
+
+// Hapus Twibbon milik sendiri. Super admin boleh menghapus Twibbon mana pun.
+export async function deleteTwibbon(id) {
+  await api.delete(`/twibbon/campaigns/${encodeURIComponent(id)}`, { headers: authHeaders() });
+}

@@ -1,10 +1,8 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { PER_PAGE_OPTIONS } from './useTableControls';
-import { SelectField } from './TableToolbar';
 
 const PAGE_BTN =
-  'flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-[12px] font-medium tabular-nums transition-smooth disabled:cursor-not-allowed disabled:opacity-40';
+  'flex h-7 min-w-7 items-center justify-center rounded-sm border px-1.5 text-[11px] font-medium sm:h-8 sm:min-w-8 sm:rounded-md sm:px-2 sm:text-[12px] tabular-nums transition-smooth disabled:cursor-not-allowed disabled:opacity-40';
 const PAGE_IDLE = 'border-border text-secondary hover:border-border-hover hover:text-primary';
 const PAGE_ACTIVE = 'border-accent-black bg-accent-black text-card';
 
@@ -21,26 +19,16 @@ const pageList = (current, count) => {
   return out;
 };
 
-// Baris bawah tabel: jumlah data, pilihan jumlah per halaman, dan tombol halaman.
+// Baris bawah tabel: jumlah data dan tombol halaman. Jumlah per halaman diatur di atas tabel.
 export default function TablePagination({ table, label = 'data' }) {
   const from = table.total === 0 ? 0 : table.start + 1;
   const to = Math.min(table.start + table.perPage, table.total);
-  const perPageOptions = PER_PAGE_OPTIONS.map((n) => ({ id: String(n), label: `${n} per halaman` }));
 
   return (
-    <div className="flex flex-col gap-3 border-t border-border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-      <div className="flex items-center justify-between gap-3 sm:justify-start">
-        <p className="text-[12px] text-secondary sm:text-[13px]">
-          {table.total === 0 ? `Tidak ada ${label}` : `Menampilkan ${from}–${to} dari ${table.total} ${label}`}
-        </p>
-        <SelectField
-          label="Jumlah per halaman"
-          value={String(table.perPage)}
-          onChange={(v) => table.setPerPage(Number(v))}
-          options={perPageOptions}
-          className="w-[150px] shrink-0"
-        />
-      </div>
+    <div className="flex flex-col gap-2 border-t border-border p-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:p-4">
+      <p className="text-[11px] text-secondary sm:text-[13px]">
+        {table.total === 0 ? `Tidak ada ${label}` : `Menampilkan ${from}–${to} dari ${table.total} ${label}`}
+      </p>
 
       <nav aria-label="Halaman tabel" className="flex items-center justify-between gap-1.5 sm:justify-end">
         <button
@@ -54,7 +42,7 @@ export default function TablePagination({ table, label = 'data' }) {
         </button>
 
         {/* Ponsel: cukup "Hal 2 / 5". Layar lebih besar: nomor halaman. */}
-        <span className="text-[12px] tabular-nums text-secondary sm:hidden">Hal {table.page} / {table.pageCount}</span>
+        <span className="text-[11px] tabular-nums text-secondary sm:hidden">Hal {table.page} / {table.pageCount}</span>
         <div className="hidden items-center gap-1.5 sm:flex">
           {pageList(table.page, table.pageCount).map((p) =>
             typeof p === 'string' ? (

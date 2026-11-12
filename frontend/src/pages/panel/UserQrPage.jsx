@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, QrCode } from 'lucide-react';
-import PanelLayout from '../../components/panel/PanelLayout';
+import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -164,6 +164,7 @@ export default function UserQrPage() {
         <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">{headerTitle}</h1>
+            <PanelCrumb />
             <p className="mt-1 max-w-2xl text-[13px] text-secondary sm:text-[14px]">{subtitle}</p>
           </div>
           {view === 'daftar' ? (

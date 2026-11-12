@@ -26,6 +26,17 @@ export async function deleteLinktree(id) {
   await api.delete(`/linktree/${encodeURIComponent(id)}`, { headers: authHeaders() });
 }
 
+// Super admin: semua Linktree dari semua akun (hanya baca).
+export async function adminFetchLinktrees() {
+  const res = await api.get('/admin/linktrees', { headers: authHeaders() });
+  return res.data.linktrees;
+}
+
+export async function adminFetchLinktree(id) {
+  const res = await api.get(`/admin/linktrees/${encodeURIComponent(id)}`, { headers: authHeaders() });
+  return res.data.linktree;
+}
+
 // Publik: halaman Linktree dan pencatatan kunjungan.
 export async function fetchPublicLinktree(slug) {
   const res = await api.get(`/linktree/public/${encodeURIComponent(slug)}`);

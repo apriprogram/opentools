@@ -1,22 +1,94 @@
-import { Globe, Instagram, Youtube, Music2, Facebook, Twitter, Linkedin, Github, MessageCircle, Mail } from 'lucide-react';
+import { brandIcon, BRANDS } from './brandIcons';
+import {
+  Globe, Mail,
+  Link2, ShoppingBag, ShoppingCart, Store, Utensils, Coffee, MapPin, Phone, Calendar, Clock, Star, Heart, Gift, Tag,
+  Percent, CreditCard, Wallet, Camera, Image, Video, Music, Play, BookOpen, FileText, Download, Briefcase,
+  GraduationCap, Home, User, Users, Send, Ticket, Truck, Package,
+} from 'lucide-react';
 
 export const MAX_ITEMS = 100;
+
+// Pilihan ikon untuk tautan. Disimpan sebagai "preset:<id>". ID hanya huruf kecil, angka, dan tanda -.
+export const LINK_ICONS = [
+  { id: 'link', label: 'Tautan', icon: Link2 },
+  { id: 'globe', label: 'Website', icon: Globe },
+  { id: 'store', label: 'Toko', icon: Store },
+  { id: 'shopping-bag', label: 'Belanja', icon: ShoppingBag },
+  { id: 'shopping-cart', label: 'Keranjang', icon: ShoppingCart },
+  { id: 'package', label: 'Paket', icon: Package },
+  { id: 'truck', label: 'Pengiriman', icon: Truck },
+  { id: 'tag', label: 'Harga', icon: Tag },
+  { id: 'percent', label: 'Promo', icon: Percent },
+  { id: 'gift', label: 'Hadiah', icon: Gift },
+  { id: 'ticket', label: 'Tiket', icon: Ticket },
+  { id: 'credit-card', label: 'Pembayaran', icon: CreditCard },
+  { id: 'wallet', label: 'Dompet', icon: Wallet },
+  { id: 'utensils', label: 'Makanan', icon: Utensils },
+  { id: 'coffee', label: 'Minuman', icon: Coffee },
+  { id: 'map-pin', label: 'Lokasi', icon: MapPin },
+  { id: 'phone', label: 'Telepon', icon: Phone },
+  { id: 'whatsapp', label: 'WhatsApp', icon: brandIcon('whatsapp') },
+  { id: 'telegram', label: 'Telegram', icon: brandIcon('telegram') },
+  { id: 'mail', label: 'Email', icon: Mail },
+  { id: 'send', label: 'Kirim pesan', icon: Send },
+  { id: 'calendar', label: 'Jadwal', icon: Calendar },
+  { id: 'clock', label: 'Jam buka', icon: Clock },
+  { id: 'star', label: 'Unggulan', icon: Star },
+  { id: 'heart', label: 'Favorit', icon: Heart },
+  { id: 'camera', label: 'Foto', icon: Camera },
+  { id: 'image', label: 'Galeri', icon: Image },
+  { id: 'video', label: 'Video', icon: Video },
+  { id: 'play', label: 'Putar', icon: Play },
+  { id: 'music', label: 'Musik', icon: Music },
+  { id: 'book', label: 'Katalog', icon: BookOpen },
+  { id: 'file', label: 'Dokumen', icon: FileText },
+  { id: 'download', label: 'Unduh', icon: Download },
+  { id: 'briefcase', label: 'Portofolio', icon: Briefcase },
+  { id: 'school', label: 'Kursus', icon: GraduationCap },
+  { id: 'home', label: 'Beranda', icon: Home },
+  { id: 'user', label: 'Profil', icon: User },
+  { id: 'users', label: 'Komunitas', icon: Users },
+  { id: 'instagram', label: 'Instagram', icon: brandIcon('instagram') },
+  { id: 'youtube', label: 'YouTube', icon: brandIcon('youtube') },
+  { id: 'tiktok', label: 'TikTok', icon: brandIcon('tiktok') },
+  { id: 'facebook', label: 'Facebook', icon: brandIcon('facebook') },
+  { id: 'x', label: 'X', icon: brandIcon('x') },
+  { id: 'threads', label: 'Threads', icon: brandIcon('threads') },
+  { id: 'linkedin', label: 'LinkedIn', icon: brandIcon('linkedin') },
+  { id: 'shopee', label: 'Shopee', icon: brandIcon('shopee') },
+  { id: 'github', label: 'GitHub', icon: brandIcon('github') },
+];
+export const LINK_ICON_BY_ID = Object.fromEntries(LINK_ICONS.map((i) => [i.id, i]));
 export const SLUG_RE = /^[a-z0-9][a-z0-9_-]{2,29}$/;
 
 // Ikon sosial. Platform harus sama dengan daftar di server.
+// Ikonnya memakai bentuk logo brand masing-masing; color adalah warna resmi brand (untuk gaya "warna brand").
+const brand = (id) => ({ icon: brandIcon(id), color: BRANDS[id].color });
 export const SOCIAL = [
-  { id: 'website', label: 'Website', icon: Globe, placeholder: 'https://website-anda.com' },
-  { id: 'instagram', label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/akun' },
-  { id: 'youtube', label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/@akun' },
-  { id: 'tiktok', label: 'TikTok', icon: Music2, placeholder: 'https://tiktok.com/@akun' },
-  { id: 'facebook', label: 'Facebook', icon: Facebook, placeholder: 'https://facebook.com/akun' },
-  { id: 'x', label: 'X (Twitter)', icon: Twitter, placeholder: 'https://x.com/akun' },
-  { id: 'linkedin', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/in/akun' },
-  { id: 'github', label: 'GitHub', icon: Github, placeholder: 'https://github.com/akun' },
-  { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, placeholder: 'https://wa.me/628xxxxxxxxxx' },
-  { id: 'email', label: 'Email', icon: Mail, placeholder: 'nama@email.com' },
+  { id: 'website', label: 'Website', icon: Globe, color: null, placeholder: 'https://website-anda.com' },
+  { id: 'instagram', label: 'Instagram', ...brand('instagram'), placeholder: 'https://instagram.com/akun' },
+  { id: 'youtube', label: 'YouTube', ...brand('youtube'), placeholder: 'https://youtube.com/@akun' },
+  { id: 'tiktok', label: 'TikTok', ...brand('tiktok'), placeholder: 'https://tiktok.com/@akun' },
+  { id: 'facebook', label: 'Facebook', ...brand('facebook'), placeholder: 'https://facebook.com/akun' },
+  { id: 'x', label: 'X (Twitter)', ...brand('x'), placeholder: 'https://x.com/akun' },
+  { id: 'threads', label: 'Threads', ...brand('threads'), placeholder: 'https://threads.net/@akun' },
+  { id: 'linkedin', label: 'LinkedIn', ...brand('linkedin'), placeholder: 'https://linkedin.com/in/akun' },
+  { id: 'github', label: 'GitHub', ...brand('github'), placeholder: 'https://github.com/akun' },
+  { id: 'whatsapp', label: 'WhatsApp', ...brand('whatsapp'), placeholder: 'https://wa.me/628xxxxxxxxxx' },
+  { id: 'telegram', label: 'Telegram', ...brand('telegram'), placeholder: 'https://t.me/akun' },
+  { id: 'shopee', label: 'Shopee', ...brand('shopee'), placeholder: 'https://shopee.co.id/toko' },
+  { id: 'email', label: 'Email', icon: Mail, color: null, placeholder: 'nama@email.com' },
 ];
 export const SOCIAL_BY_ID = Object.fromEntries(SOCIAL.map((s) => [s.id, s]));
+
+// Gaya ikon sosial di halaman.
+export const SOCIAL_STYLE_OPTIONS = [
+  { id: 'outline', label: 'Garis lingkaran' },
+  { id: 'plain', label: 'Tanpa lingkaran' },
+  { id: 'fill', label: 'Latar' },
+  { id: 'brand', label: 'Warna brand' },
+  { id: 'liquid', label: 'Liquid glass' },
+];
 
 // Tema siap pakai. Semuanya gratis.
 export const THEME_PRESETS = [
@@ -80,6 +152,9 @@ export const BUTTON_STYLE_OPTIONS = [
   { id: 'fill', label: 'Solid' },
   { id: 'outline', label: 'Garis' },
   { id: 'shadow', label: 'Bayangan' },
+  { id: 'soft', label: 'Lembut' },
+  { id: 'glass', label: 'Kaca' },
+  { id: 'liquid', label: 'Liquid glass' },
 ];
 
 export const BUTTON_RADIUS_OPTIONS = [
@@ -110,6 +185,7 @@ export const newItem = (type) => ({
   title: type === 'header' ? 'Header baru' : type === 'link' ? 'Tautan baru' : '',
   url: '',
   platform: type === 'social' ? 'instagram' : null,
+  icon: null,
   enabled: true,
 });
 
@@ -127,6 +203,7 @@ export const toDraft = (tree) => ({
     title: i.title || '',
     url: i.url || '',
     platform: i.platform || null,
+    icon: i.type === 'link' ? i.icon || null : null,
     enabled: i.enabled !== false,
   })),
 });
@@ -144,6 +221,7 @@ export const draftPayload = (draft) => ({
     title: i.title,
     url: i.url,
     platform: i.platform,
+    icon: i.type === 'link' ? i.icon || null : null,
     enabled: i.enabled,
   })),
 });

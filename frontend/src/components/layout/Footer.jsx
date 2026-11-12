@@ -1,7 +1,7 @@
 import React from 'react';
-import { ArrowLeftRight, Github } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import BrandLogo from '../ui/BrandLogo';
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -14,29 +14,13 @@ export default function Footer() {
           
           {/* Logo & Info */}
           <div className="flex flex-col items-center md:items-start gap-3">
-            <a href="https://apriprogram.web.id" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 group">
-              <div className="w-[32px] h-[32px] flex items-center justify-center">
-                <img src="/logo_opentools.png" alt="OpenTools Logo" className="w-full h-full object-contain" />
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-[24px] w-[36px] items-center justify-center">
+                <BrandLogo className="h-full w-full text-primary" title="Logo Garudanexa" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-[14px] font-semibold text-primary tracking-tight leading-[16px] hover:underline">
-                  Apriprogram
-                </span>
-              </div>
-            </a>
-            <div className="flex flex-col gap-2 mt-1">
-              <p className="text-[13px] text-secondary text-center md:text-left">
-                {t('footer.support', 'Dukung pengembangan Open Source ini:')}
-              </p>
-              <a 
-                href="https://github.com/apriprogram/opentools.git" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="inline-flex items-center justify-center md:justify-start gap-2 text-[13px] font-medium text-primary bg-card-muted hover:bg-border px-3 py-2 rounded-md transition-colors border border-border w-fit mx-auto md:mx-0"
-              >
-                <Github size={16} />
-                <span>GitHub Repository</span>
-              </a>
+              <span className="text-[14px] font-semibold leading-[16px] tracking-tight text-primary">
+                PT. Garuda Nexa Bahtera
+              </span>
             </div>
           </div>
 
@@ -49,9 +33,7 @@ export default function Footer() {
             </div>
             <div>
               &copy; {currentYear}{' '}
-              <a href="https://apriprogram.web.id" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline transition-colors font-medium">
-                Apriprogram
-              </a>. {t('footer.rights', 'Hak cipta dilindungi undang-undang.')}
+              <span className="font-medium text-primary">PT. Garuda Nexa Bahtera</span>. {t('footer.rights', 'Hak cipta dilindungi undang-undang.')}
             </div>
           </div>
 

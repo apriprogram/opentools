@@ -1,3 +1,53 @@
+// Ikon kecil dari gambar perangkat: dipotong persegi, diperkecil ke 96 px, dan latar transparan dipertahankan (PNG).
+// Kalau PNG-nya masih terlalu besar, dipakai JPEG dengan latar putih.
+export function readIconAsDataUrl(file, { side = 96, maxChars = 40000 } = {}) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      reject(new Error('File harus berupa gambar (JPG, PNG, atau WebP).'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('File tidak bisa dibaca.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Gambar tidak bisa dibuka.'));
+      img.onload = () => {
+        const crop = Math.min(img.naturalWidth, img.naturalHeight);
+        const sx = (img.naturalWidth - crop) / 2;
+        const sy = (img.naturalHeight - crop) / 2;
+        const size = Math.max(1, Math.min(side, crop));
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, sx, sy, crop, crop, 0, 0, size, size);
+        const png = canvas.toDataURL('image/png');
+        if (png.length <= maxChars) {
+          resolve(png);
+          return;
+        }
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, size, size);
+        let quality = 0.9;
+        let url = canvas.toDataURL('image/jpeg', quality);
+        while (url.length > maxChars && quality > 0.4) {
+          quality -= 0.1;
+          url = canvas.toDataURL('image/jpeg', quality);
+        }
+        if (url.length > maxChars) {
+          reject(new Error('Gambar masih terlalu besar. Pilih gambar lain.'));
+          return;
+        }
+        resolve(url);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // Ubah gambar dari perangkat menjadi data URL JPEG yang sudah diperkecil.
 // square: potong tengah menjadi persegi (untuk foto profil). maxChars: batas ukuran teks hasil.
 export function readImageAsDataUrl(file, { maxSide = 1200, maxChars = 1400000, square = false } = {}) {

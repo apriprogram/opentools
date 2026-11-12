@@ -75,6 +75,18 @@ export const parseQrDesign = (design) => {
   return { link, fg, bg, logo: design?.logo !== false };
 };
 
+// Desain QR yang disimpan di pesanan (link, warna, dan pakai logo atau tidak), untuk ditampilkan lagi.
+const qrDesignOf = (row) => {
+  const p = parseQrPayload(row.qr_payload);
+  if (!p?.link) return null;
+  return {
+    link: String(p.link),
+    fg: HEX_RE.test(p.fg) ? p.fg : "#000000",
+    bg: HEX_RE.test(p.bg) ? p.bg : "#FFFFFF",
+    logo: p.logo !== false
+  };
+};
+
 const toOrder = (row, { withLicense = false } = {}) => ({
   code: row.code,
   plan: row.plan,
@@ -99,7 +111,9 @@ const toOrder = (row, { withLicense = false } = {}) => ({
   hasProof: Boolean(row.has_proof),
   qrId: row.user_qr_id || null,
   qrLink: parseQrPayload(row.qr_payload)?.link || null,
-  licenseState: row.status === "paid" ? licenseStateOf(row) : null
+  qrDesign: qrDesignOf(row),
+  licenseState: row.status === "paid" ? licenseStateOf(row) : null,
+  licenseExpiresAt: withLicense && row.status === "paid" && row.license_expires_at ? iso(row.license_expires_at) : null
 });
 
 export const createOrder = async ({ plan, name, email, whatsapp, design, qrId }) => {

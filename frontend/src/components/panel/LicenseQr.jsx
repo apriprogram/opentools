@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Copy, CheckCheck, ExternalLink, Download, X } from 'lucide-react';
 import Button from '../ui/Button';
 import { useToast } from '../ui/Toast';
@@ -109,15 +110,17 @@ function QrModal({ svg, link, licenseKey, onClose, onPng, onSvg, onCopy, copied 
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') closeRef.current();
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      closeRef.current();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, []);
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4"
       onClick={() => closeRef.current()}
       role="dialog"
       aria-modal="true"
@@ -149,6 +152,7 @@ function QrModal({ svg, link, licenseKey, onClose, onPng, onSvg, onCopy, copied 
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

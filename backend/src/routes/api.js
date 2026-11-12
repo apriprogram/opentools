@@ -11,8 +11,10 @@ import {
   downloadAllZip
 } from "../controllers/converter.controller.js";
 import {
-  login,
   createCampaign,
+  myCampaigns,
+  myCampaign,
+  updateCampaign,
   getAllCampaigns,
   getCampaign,
   trackView,
@@ -37,7 +39,7 @@ import {
 import { requireAdmin } from "../middleware/admin.middleware.js";
 import { adminLogin } from "../controllers/admin.controller.js";
 import { register, login as accountLogin, logout as accountLogout, me as currentUser } from "../controllers/auth.controller.js";
-import { myQr, saveQr, removeQr, myOrders, myLicenses, myProof, myNota, myNotaPdf, setWhatsapp } from "../controllers/me.controller.js";
+import { myQr, saveQr, updateQr, removeQr, myOrders, myLicenses, myProof, myNota, myNotaPdf, setWhatsapp, updateProfile, changePassword } from "../controllers/me.controller.js";
 import { requireUser } from "../middleware/auth.middleware.js";
 import { proofUploadSingle } from "../middleware/proof.middleware.js";
 import {
@@ -48,7 +50,9 @@ import {
   deleteLinktree,
   publicLinktree,
   publicView,
-  publicClick
+  publicClick,
+  adminListLinktrees,
+  adminGetLinktree
 } from "../controllers/linktree.controller.js";
 
 const router = express.Router();
@@ -74,14 +78,16 @@ router.get("/convert/:jobId/status", getJobStatus);
 router.get("/convert/:jobId/download", downloadResult);
 router.post("/convert/download-all", downloadAllZip);
 
-// Twibbon endpoints
-router.post("/twibbon/auth", express.json({limit: '10mb'}), login);
-router.post("/twibbon/campaigns", express.json({limit: '50mb'}), createCampaign);
+// Twibbon: membuat, mengubah, dan menghapus wajib masuk akun. Daftar dan halaman pakai bisa dibuka siapa saja.
+router.get("/twibbon/mine", requireUser, myCampaigns);
+router.get("/twibbon/mine/:id", requireUser, myCampaign);
+router.post("/twibbon/campaigns", requireUser, express.json({ limit: "2mb" }), createCampaign);
+router.put("/twibbon/campaigns/:id", requireUser, express.json({ limit: "2mb" }), updateCampaign);
+router.delete("/twibbon/campaigns/:id", deleteCampaign);
 router.get("/twibbon/campaigns", getAllCampaigns);
 router.get("/twibbon/campaigns/:slug", getCampaign);
 router.post("/twibbon/campaigns/:id/view", trackView);
 router.post("/twibbon/campaigns/:id/usage", trackUsage);
-router.delete("/twibbon/campaigns/:id", express.json(), deleteCampaign);
 
 // QR Generator: paket berbayar (transfer manual) dan verifikasi lisensi
 router.get("/qr/plans", getPlans);
@@ -97,6 +103,7 @@ router.post("/auth/logout", accountLogout);
 router.get("/auth/me", requireUser, currentUser);
 router.get("/me/qr", requireUser, myQr);
 router.post("/me/qr", requireUser, express.json(), saveQr);
+router.put("/me/qr/:id", requireUser, express.json(), updateQr);
 router.delete("/me/qr/:id", requireUser, removeQr);
 router.get("/me/orders", requireUser, myOrders);
 router.get("/me/licenses", requireUser, myLicenses);
@@ -104,6 +111,8 @@ router.get("/me/orders/:code/proof", requireUser, myProof);
 router.get("/me/orders/:code/nota", requireUser, myNota);
 router.get("/me/orders/:code/nota.pdf", requireUser, myNotaPdf);
 router.put("/me/whatsapp", requireUser, express.json(), setWhatsapp);
+router.put("/me/profile", requireUser, express.json(), updateProfile);
+router.put("/me/password", requireUser, express.json(), changePassword);
 
 // Linktree: akun wajib masuk untuk membuat dan mengedit. Halaman publik bisa dibuka siapa saja.
 router.get("/linktree", requireUser, listLinktrees);
@@ -112,7 +121,7 @@ router.get("/linktree/public/:slug", publicLinktree);
 router.post("/linktree/public/:slug/view", publicView);
 router.post("/linktree/public/:slug/click/:itemId", publicClick);
 router.get("/linktree/:id", requireUser, getLinktree);
-router.put("/linktree/:id", requireUser, express.json({ limit: "3mb" }), updateLinktree);
+router.put("/linktree/:id", requireUser, express.json({ limit: "6mb" }), updateLinktree);
 router.delete("/linktree/:id", requireUser, deleteLinktree);
 
 // Admin: masuk dengan username + password, lalu kirim token di header x-admin-key
@@ -125,5 +134,8 @@ router.post("/admin/qr/orders/:code/confirm", requireAdmin, adminConfirmOrder);
 router.post("/admin/qr/orders/:code/cancel", requireAdmin, adminCancelOrder);
 router.post("/admin/qr/orders/:code/license", requireAdmin, express.json(), adminSetLicense);
 router.delete("/admin/qr/orders/:code", requireAdmin, adminDeleteOrder);
+// Admin: data Linktree semua pengguna (hanya baca)
+router.get("/admin/linktrees", requireAdmin, adminListLinktrees);
+router.get("/admin/linktrees/:id", requireAdmin, adminGetLinktree);
 
 export default router;

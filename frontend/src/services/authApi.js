@@ -61,6 +61,12 @@ export async function saveMyQr({ link, fg, bg, logo }) {
   return res.data.qr;
 }
 
+// Ubah warna dan logo QR (hanya QR dengan paket Premium yang aktif).
+export async function updateMyQr(id, { fg, bg, logo }) {
+  const res = await api.put(`/me/qr/${encodeURIComponent(id)}`, { fg, bg, logo }, { headers: authHeaders() });
+  return res.data.qr;
+}
+
 export async function deleteMyQr(id) {
   await api.delete(`/me/qr/${encodeURIComponent(id)}`, { headers: authHeaders() });
 }
@@ -99,6 +105,17 @@ export async function fetchMyNotaPdf(code) {
     responseType: 'blob',
   });
   return res.data;
+}
+
+// Ubah profil akun: nama dan nomor WhatsApp.
+export async function updateMyProfile({ name, whatsapp }) {
+  const res = await api.put('/me/profile', { name, whatsapp }, { headers: authHeaders() });
+  return res.data.user;
+}
+
+// Ganti password akun. Sesi di perangkat lain otomatis keluar.
+export async function changeMyPassword({ currentPassword, newPassword }) {
+  await api.put('/me/password', { currentPassword, newPassword }, { headers: authHeaders() });
 }
 
 // Simpan atau ubah nomor WhatsApp akun.

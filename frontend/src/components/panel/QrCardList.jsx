@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import { Crown, Download, Trash2 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Crown, Download, Palette, Trash2 } from 'lucide-react';
+import QrEditModal from './QrEditModal';
 import Button from '../ui/Button';
 import Countdown from '../ui/Countdown';
 import { useToast } from '../ui/Toast';
@@ -27,6 +28,7 @@ export default function QrCardList({ items, logoUrl, onChanged, onUpgrade }) {
 
 function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
   const { addToast: toast } = useToast();
+  const [editing, setEditing] = useState(false);
   const premium = qr.status === 'aktif';
 
   // Paket gratis: QR hitam putih dengan logo hitam. Berlaku juga untuk QR yang lisensinya sudah berakhir atau dinonaktifkan.
@@ -108,6 +110,10 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
       <div className="mt-auto flex flex-wrap gap-2">
         <Button size="sm" variant="primary" icon={Download} onClick={downloadPng} disabled={!svg}>PNG</Button>
         <Button size="sm" variant="secondary" icon={Download} onClick={downloadSvg} disabled={!svg}>SVG</Button>
+        {/* Warna dan logo hanya bisa diedit ulang untuk QR Premium yang aktif. QR gratis tetap hitam putih. */}
+        {premium && (
+          <Button size="sm" variant="secondary" icon={Palette} onClick={() => setEditing(true)}>Edit warna</Button>
+        )}
         {qr.status !== 'nonaktif' && (
           <Button size="sm" variant={qr.status === 'gratis' ? 'primary' : 'secondary'} icon={Crown} onClick={() => onUpgrade(qr)}>
             {qr.status === 'gratis' ? 'Jadikan Premium' : 'Perpanjang'}
@@ -115,6 +121,17 @@ function QrCard({ qr, logoUrl, onChanged, onUpgrade }) {
         )}
         <Button size="sm" variant="ghost" icon={Trash2} onClick={remove}>Hapus</Button>
       </div>
+
+      {editing && (
+        <QrEditModal
+          qr={qr}
+          onClose={() => setEditing(false)}
+          onSaved={() => {
+            setEditing(false);
+            onChanged();
+          }}
+        />
+      )}
     </div>
   );
 }

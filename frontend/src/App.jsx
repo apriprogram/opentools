@@ -7,7 +7,6 @@ import Home from './pages/Home';
 import ConvertersPage from './pages/ConvertersPage';
 import CompressorsPage from './pages/CompressorsPage';
 import ConvertPage from './pages/ConvertPage';
-import TwibbonCreatePage from './pages/TwibbonCreatePage';
 import CampaignsListPage from './pages/CampaignsListPage';
 import TwibbonViewPage from './pages/TwibbonViewPage';
 import OverviewPage from './pages/OverviewPage';
@@ -17,6 +16,8 @@ import TermsOfServicePage from './pages/TermsOfServicePage';
 import LinktreeLandingPage from './pages/LinktreeLandingPage';
 import LinktreePublicPage from './pages/LinktreePublicPage';
 import UserLinktreePage from './pages/panel/UserLinktreePage';
+import UserTwibbonPage from './pages/panel/UserTwibbonPage';
+import TwibbonEditorPage from './pages/panel/TwibbonEditorPage';
 import LinktreeEditorPage from './pages/panel/LinktreeEditorPage';
 import QrGeneratorPage from './pages/QrGeneratorPage';
 import QrPricingPage from './pages/QrPricingPage';
@@ -24,6 +25,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import UserQrPage from './pages/panel/UserQrPage';
 import AdminPanelPage from './pages/panel/AdminPanelPage';
+import AdminLinktreePage from './pages/panel/AdminLinktreePage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -35,8 +37,9 @@ import './i18n';
 // Halaman panel hanya bisa dibuka oleh peran yang sesuai. Peran lain diarahkan ke panelnya.
 function RequireRole({ role, children }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return <div className="p-10 text-center text-[13px] text-tertiary">Memuat...</div>;
-  if (!user) return <Navigate to="/masuk" replace />;
+  if (!user) return <Navigate to={`/masuk?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   if (user.role !== role) return <Navigate to={user.role === 'superadmin' ? '/admin' : '/dashboard/qr'} replace />;
   return children;
 }
@@ -92,7 +95,7 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/converters" element={<ConvertersPage />} />
           <Route path="/compressors" element={<CompressorsPage />} />
-          <Route path="/twibbon/create" element={<TwibbonCreatePage />} />
+          <Route path="/twibbon/create" element={<Navigate to="/dashboard/twibbon/baru" replace />} />
           <Route path="/campaigns" element={<CampaignsListPage />} />
           <Route path="/c/:slug" element={<TwibbonViewPage />} />
           <Route path="/overview" element={<OverviewPage />} />
@@ -110,9 +113,13 @@ function AppContent() {
           <Route path="/dashboard" element={<Navigate to="/dashboard/qr" replace />} />
           <Route path="/dashboard/qr" element={<RequireRole role="user"><UserQrPage /></RequireRole>} />
           <Route path="/dashboard/pesan" element={<RedirectPesan />} />
+          <Route path="/dashboard/twibbon" element={<RequireRole role="user"><UserTwibbonPage /></RequireRole>} />
+          <Route path="/dashboard/twibbon/baru" element={<RequireRole role="user"><TwibbonEditorPage /></RequireRole>} />
+          <Route path="/dashboard/twibbon/:id" element={<RequireRole role="user"><TwibbonEditorPage /></RequireRole>} />
           <Route path="/dashboard/linktree" element={<RequireRole role="user"><UserLinktreePage /></RequireRole>} />
           <Route path="/dashboard/linktree/:id" element={<RequireRole role="user"><LinktreeEditorPage /></RequireRole>} />
           <Route path="/admin" element={<RequireRole role="superadmin"><AdminPanelPage /></RequireRole>} />
+          <Route path="/admin/linktree" element={<RequireRole role="superadmin"><AdminLinktreePage /></RequireRole>} />
           <Route path="/admin/qr" element={<Navigate to="/admin" replace />} />
         </Routes>
       </div>

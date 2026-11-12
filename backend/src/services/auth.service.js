@@ -41,6 +41,27 @@ export const updateUserWhatsapp = async (userId, whatsapp) => {
   return publicUser(rows[0]);
 };
 
+// Ubah nama dan nomor WhatsApp akun. Email dan username tidak diubah di sini.
+export const updateUserProfile = async (userId, { name, whatsapp }) => {
+  await query("UPDATE users SET name = ?, wa_number = ? WHERE id = ?", [name, whatsapp || null, userId]);
+  const rows = await query("SELECT id, name, email, username, wa_number, role FROM users WHERE id = ? LIMIT 1", [userId]);
+  return publicUser(rows[0]);
+};
+
+// Ganti password akun. Password saat ini wajib benar. Sesi di perangkat lain dikeluarkan,
+// sesi yang sedang dipakai (currentToken) tetap berlaku.
+// Password super admin diatur lewat env server, jadi tidak bisa diganti dari sini.
+export const changeUserPassword = async (userId, currentPassword, newPassword, currentToken) => {
+  const rows = await query("SELECT password_hash, role FROM users WHERE id = ? LIMIT 1", [userId]);
+  if (!rows.length) throw httpError(404, "Akun tidak ditemukan.");
+  if (rows[0].role === "superadmin") {
+    throw httpError(403, "Password super admin diatur di pengaturan server, bukan dari halaman ini.");
+  }
+  if (!verifyPassword(currentPassword, rows[0].password_hash)) throw httpError(400, "Password saat ini salah.");
+  await query("UPDATE users SET password_hash = ? WHERE id = ?", [hashPassword(newPassword), userId]);
+  await query("DELETE FROM sessions WHERE user_id = ? AND token_hash <> ?", [userId, hashToken(currentToken || "")]);
+};
+
 // Masuk memakai email (untuk pengguna) atau username (untuk super admin).
 export const checkLogin = async (login, password) => {
   const rows = await query(

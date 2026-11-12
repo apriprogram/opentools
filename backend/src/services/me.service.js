@@ -60,6 +60,29 @@ export const createUserQr = async (user, { link }) => {
   return { ...toQr({ id, link, fg: FREE_FG, bg: FREE_BG, logo: 1, created_at: createdAt }), status: "gratis", planExpiresAt: null };
 };
 
+const httpError = (status, message) => {
+  const err = new Error(message);
+  err.status = status;
+  return err;
+};
+
+// Ubah tampilan QR (warna QR, warna latar, dan logo). Link tidak berubah.
+// Hanya untuk QR yang paket Premium-nya masih aktif. QR gratis tetap hitam putih dengan logo.
+export const updateUserQrDesign = async (user, id, { fg, bg, logo }) => {
+  const rows = await query(
+    "SELECT id, link, fg, bg, logo, created_at FROM user_qr WHERE id = ? AND user_id = ? LIMIT 1",
+    [String(id), user.id]
+  );
+  if (!rows.length) throw httpError(404, "QR tidak ditemukan.");
+  const licenses = await query("SELECT user_qr_id, expires_at, revoked FROM qr_licenses WHERE user_qr_id = ?", [rows[0].id]);
+  const state = qrStatus(licenses, new Date());
+  if (state.status !== "aktif") {
+    throw httpError(403, "Warna dan logo hanya bisa diubah untuk QR dengan paket Premium Gold yang masih aktif.");
+  }
+  await query("UPDATE user_qr SET fg = ?, bg = ?, logo = ? WHERE id = ? AND user_id = ?", [fg, bg, logo ? 1 : 0, rows[0].id, user.id]);
+  return { ...toQr({ ...rows[0], fg, bg, logo: logo ? 1 : 0 }), ...state };
+};
+
 export const deleteUserQr = async (userId, id) => {
   const result = await query("DELETE FROM user_qr WHERE id = ? AND user_id = ?", [id, userId]);
   return Number(result.affectedRows || 0) > 0;

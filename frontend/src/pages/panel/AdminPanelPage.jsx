@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Check, X, RefreshCw, Copy, Eye, FileText, Download, MessageCircle, Power, PowerOff, Trash2 } from 'lucide-react';
-import PanelLayout from '../../components/panel/PanelLayout';
+import { Check, X, RefreshCw, Copy, Eye, Power, PowerOff, Trash2, ClipboardList, Clock, CheckCircle2, Wallet } from 'lucide-react';
+import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import ProofModal from '../../components/panel/ProofModal';
-import LicenseQr from '../../components/panel/LicenseQr';
+import OrderDetailModal from '../../components/panel/OrderDetailModal';
+import { LicenseChip, OrderStatusChip, PlanChip, ProofChip, WhatsappPill } from '../../components/panel/Chips';
+import StatCards from '../../components/panel/table/StatCards';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
-import ActionMenu from '../../components/panel/table/ActionMenu';
+import ActionMenu, { IconAction } from '../../components/panel/table/ActionMenu';
 import TableToolbar from '../../components/panel/table/TableToolbar';
 import TablePagination from '../../components/panel/table/TablePagination';
 import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION } from '../../components/panel/table/useTableControls';
@@ -21,24 +23,10 @@ import {
 } from '../../services/qrApi';
 
 // Super admin hanya mengelola konfirmasi pemesanan: lihat bukti, nota, konfirmasi, atau batal.
-const LICENSE_TEXT = {
-  aktif: { text: 'Aktif', cls: 'text-success' },
-  nonaktif: { text: 'Nonaktif', cls: 'text-danger' },
-  berakhir: { text: 'Berakhir', cls: 'text-tertiary' },
-  tidak_ada: { text: 'Tidak ada', cls: 'text-tertiary' },
-};
-
-const VERIFY_LABEL = {
-  approved: { text: 'Otomatis lunas', cls: 'text-success' },
-  review: { text: 'Perlu cek manual', cls: 'text-secondary' },
-  rejected: { text: 'Ditolak', cls: 'text-danger' },
-  checking: { text: 'Diperiksa', cls: 'text-secondary' },
-};
-
 const rupiah = (n) => `Rp${Number(n).toLocaleString('id-ID')}`;
 
 // Tombol Nonaktifkan/Aktifkan di luar menu titik tiga. Di ponsel dibuat lebih kecil.
-const TOGGLE_BTN = 'whitespace-nowrap max-sm:h-7 max-sm:gap-1 max-sm:px-2 max-sm:text-[11px]';
+const TOGGLE_BTN = 'whitespace-nowrap max-sm:h-7 max-sm:gap-1 max-sm:rounded-sm max-sm:px-2 max-sm:text-[11px]';
 
 // Filter, urutan, dan teks pencarian tabel. Didefinisikan di luar komponen supaya stabil.
 const FILTERS = [
@@ -46,7 +34,7 @@ const FILTERS = [
   { id: 'review', label: 'Bukti perlu dicek', test: (o) => o.status === 'pending' && o.verifyStatus === 'review' },
   { id: 'paid', label: 'Lunas', test: (o) => o.status === 'paid' },
   { id: 'cancelled', label: 'Batal', test: (o) => o.status === 'cancelled' },
-  { id: 'all', label: 'Semua status' },
+  { id: 'all', label: 'Semua' },
 ];
 const newestFirst = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
 const SORTS = [
@@ -65,6 +53,7 @@ export default function AdminPanelPage() {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState('');
   const [proofCode, setProofCode] = useState(null);
+  const [detailCode, setDetailCode] = useState(null);
 
   const table = useTableControls(orders, { searchText, filters: FILTERS, sorts: SORTS, initialFilter: 'pending' });
 
@@ -168,23 +157,30 @@ export default function AdminPanelPage() {
     ['Diunggah', proofOrder.proofUploadedAt ? new Date(proofOrder.proofUploadedAt).toLocaleString('id-ID') : '-'],
     ['Nominal terbaca', proofOrder.verifyAmount != null ? rupiah(proofOrder.verifyAmount) : '-'],
     ['Nominal pesanan', rupiah(proofOrder.amount)],
-    ['Status bukti', VERIFY_LABEL[proofOrder.verifyStatus]?.text || (proofOrder.hasProof ? 'Sudah diunggah' : 'Belum diunggah')],
+    ['Status bukti', <ProofChip verifyStatus={proofOrder.verifyStatus} hasProof={proofOrder.hasProof} />],
     ['Catatan', proofOrder.verifyNote || '-'],
   ];
 
-  // Jumlah pesanan per filter ditampilkan di pilihan filter.
-  const filterOptions = FILTERS.map((f) => ({
-    id: f.id,
-    label: `${f.label} (${(orders || []).filter(f.test || (() => true)).length})`,
-  }));
+  // Ringkasan angka di atas tabel.
+  const all = orders || [];
+  const paidOrders = all.filter((o) => o.status === 'paid');
+  const pendingOrders = all.filter((o) => o.status === 'pending');
+  const needReview = pendingOrders.filter((o) => o.verifyStatus === 'review').length;
+  const stats = [
+    { label: 'Total pesanan', value: all.length.toLocaleString('id-ID'), icon: ClipboardList },
+    { label: 'Menunggu', value: pendingOrders.length.toLocaleString('id-ID'), icon: Clock, hint: needReview ? `${needReview} bukti perlu dicek` : 'Tidak ada bukti yang perlu dicek' },
+    { label: 'Lunas', value: paidOrders.length.toLocaleString('id-ID'), icon: CheckCircle2 },
+    { label: 'Pemasukan', value: rupiah(paidOrders.reduce((sum, o) => sum + Number(o.amount || 0), 0)), icon: Wallet, hint: 'Dari pesanan lunas' },
+  ];
 
-  // Semua aksi baris ada di menu titik tiga, kecuali Nonaktifkan/Aktifkan yang tetap tampil di luar.
+  const detailOrder = (orders || []).find((o) => o.code === detailCode) || null;
+
+  // Aksi baris ada di menu titik tiga. Lihat detail dan Nonaktifkan/Aktifkan tetap tampil di luar menu.
+  // Tombol nota (lihat dan unduh PDF) ada di modal detail.
   const menuItems = (o) => [
     o.status === 'pending' && { label: 'Konfirmasi lunas', icon: Check, onClick: () => confirm(o.code) },
     o.status === 'pending' && { label: 'Batalkan pesanan', icon: X, onClick: () => cancel(o.code) },
     o.hasProof && { label: 'Lihat bukti', icon: Eye, onClick: () => setProofCode(o.code) },
-    { label: 'Lihat nota', icon: FileText, onClick: () => viewNota(o.code) },
-    { label: 'Unduh nota PDF', icon: Download, onClick: () => downloadNotaPdf(o.code) },
     o.licenseKey && { label: 'Salin kode lisensi', icon: Copy, onClick: () => copy(o.licenseKey) },
     { label: 'Hapus pesanan', icon: Trash2, danger: true, onClick: () => removeOrder(o.code) },
   ];
@@ -194,6 +190,7 @@ export default function AdminPanelPage() {
       <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">Konfirmasi Pesanan</h1>
+          <PanelCrumb />
           <p className="mt-1 text-[13px] text-secondary sm:text-[14px]">Konfirmasi setelah transfer masuk. Kode lisensi dibuat otomatis.</p>
         </div>
         <Button variant="secondary" size="sm" icon={RefreshCw} onClick={load} disabled={loading} className="self-start sm:self-auto">
@@ -201,27 +198,28 @@ export default function AdminPanelPage() {
         </Button>
       </div>
 
+      <StatCards items={stats} />
+
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <TableToolbar table={table} filters={filterOptions} sorts={SORTS} searchPlaceholder="Cari kode, nama, email, WhatsApp, atau nota" />
+        <TableToolbar table={table} filters={FILTERS} sorts={SORTS} searchPlaceholder="Cari kode, nama, email, WhatsApp, atau nota" />
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1040px] border-collapse">
+          <table className="w-full min-w-[880px] border-collapse">
             <thead className="bg-card-muted">
               <tr>
                 <th className={TH}>No</th>
-                <th className={`${TH} min-w-[130px]`}>Kode</th>
+                <th className={`${TH} min-w-[130px]`}>Pesanan</th>
                 <th className={TH}>Paket</th>
                 <th className={TH}>Transfer</th>
-                <th className={`${TH} min-w-[190px]`}>Pemesan</th>
-                <th className={`${TH} min-w-[160px]`}>Status</th>
-                <th className={TH}>Lisensi</th>
+                <th className={`${TH} min-w-[170px]`}>Pemesan</th>
+                <th className={`${TH} min-w-[170px]`}>Status dan lisensi</th>
                 <th className={TH_ACTION}>Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {table.pageRows.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center text-[13px] text-tertiary">
+                  <td colSpan={7} className="px-3 py-8 text-center text-[13px] text-tertiary">
                     {orders === null || loading ? 'Memuat...' : 'Tidak ada pesanan yang cocok.'}
                   </td>
                 </tr>
@@ -230,14 +228,21 @@ export default function AdminPanelPage() {
                 <tr key={o.code} className="group transition-smooth hover:bg-card-muted">
                   <td className={TD_NUM}>{table.start + i + 1}</td>
                   <td className={TD}>
-                    <span className="font-medium text-primary">{o.code}</span>
+                    <button
+                      type="button"
+                      onClick={() => setDetailCode(o.code)}
+                      title="Lihat detail pesanan"
+                      className="font-medium text-primary transition-smooth hover:text-blue-500"
+                    >
+                      {o.code}
+                    </button>
                     <div className="text-[11px] text-tertiary">{new Date(o.createdAt).toLocaleString('id-ID')}</div>
                     {o.notaNumber && <div className="font-mono text-[11px] text-tertiary">{o.notaNumber}</div>}
                   </td>
                   <td className={TD}>
-                    <span className="text-primary">{o.planLabel}</span>
+                    <PlanChip plan={o.plan} label={o.planLabel} />
                     {o.qrLink && (
-                      <div className="max-w-[180px] truncate text-[11px] text-tertiary" title={o.qrLink}>QR: {o.qrLink}</div>
+                      <div className="mt-1 max-w-[96px] truncate text-[11px] text-tertiary" title={o.qrLink}>QR: {o.qrLink}</div>
                     )}
                   </td>
                   <td className={TD}>
@@ -246,45 +251,25 @@ export default function AdminPanelPage() {
                   <td className={TD}>
                     <span className="text-primary">{o.name}</span>
                     <div className="text-[11px] text-tertiary [overflow-wrap:anywhere] sm:text-[12px]">{o.email}</div>
-                    {o.whatsapp && (
-                      <a
-                        href={`https://wa.me/${o.whatsapp}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={`Chat WhatsApp +${o.whatsapp}`}
-                        className="mt-1.5 inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-2.5 text-[11px] font-medium tabular-nums text-primary transition-smooth hover:border-blue-500 hover:text-blue-500 sm:text-[12px]"
-                      >
-                        <MessageCircle size={13} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-success" />
-                        +{o.whatsapp}
-                      </a>
-                    )}
+                    {o.whatsapp && <div className="mt-1.5"><WhatsappPill number={o.whatsapp} /></div>}
                   </td>
                   <td className={TD}>
-                    <span className={`font-medium ${o.status === 'paid' ? 'text-success' : o.status === 'cancelled' ? 'text-danger' : 'text-primary'}`}>
-                      {o.status === 'pending' ? 'Menunggu' : o.status === 'paid' ? 'Lunas' : 'Batal'}
-                    </span>
-                    {o.status === 'paid' && LICENSE_TEXT[o.licenseState] && (
-                      <div className={`mt-1 text-[11px] font-medium sm:text-[12px] ${LICENSE_TEXT[o.licenseState].cls}`}>
-                        Lisensi: {LICENSE_TEXT[o.licenseState].text}
+                    <div className="flex flex-col items-start gap-1">
+                      <OrderStatusChip status={o.status} />
+                      {o.status === 'paid' && <LicenseChip state={o.licenseState} />}
+                      <ProofChip verifyStatus={o.verifyStatus} hasProof={o.hasProof} />
+                    </div>
+                    {/* Barcode dan link lisensi ada di modal detail, supaya tabel tetap ringkas. */}
+                    {o.status === 'paid' && o.licenseKey && (
+                      <div className="mt-1.5 whitespace-nowrap font-mono text-[11px] text-secondary" title="Kode lisensi">{o.licenseKey}</div>
+                    )}
+                    {o.status === 'paid' && o.licenseExpiresAt && (
+                      <div className="whitespace-nowrap text-[11px] text-tertiary">
+                        Berlaku s.d. {new Date(o.licenseExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </div>
                     )}
-                    {VERIFY_LABEL[o.verifyStatus] ? (
-                      <div className={`mt-1 text-[11px] font-medium sm:text-[12px] ${VERIFY_LABEL[o.verifyStatus].cls}`}>Bukti: {VERIFY_LABEL[o.verifyStatus].text}</div>
-                    ) : (
-                      <div className="mt-1 text-[11px] text-tertiary sm:text-[12px]">Bukti: belum diunggah</div>
-                    )}
-                    {o.verifyAmount != null && <div className="text-[11px] text-tertiary">Terbaca: {rupiah(o.verifyAmount)}</div>}
+                    {o.verifyAmount != null && <div className="mt-1 text-[11px] text-tertiary">Terbaca: {rupiah(o.verifyAmount)}</div>}
                     {o.verifyNote && o.status === 'pending' && <div className="max-w-[220px] text-[11px] text-tertiary">{o.verifyNote}</div>}
-                  </td>
-                  <td className={TD}>
-                    {o.status === 'paid' && o.licenseKey ? (
-                      <>
-                        <LicenseQr licenseKey={o.licenseKey} />
-                        <p className="mt-2 break-all font-mono text-[11px] text-tertiary">{o.licenseKey}</p>
-                      </>
-                    ) : (
-                      <span className="text-tertiary">-</span>
-                    )}
                   </td>
                   <td className={TD_ACTION}>
                     {/* Ponsel: tombol disusun ke bawah supaya kolom aksi tetap sempit. */}
@@ -299,7 +284,10 @@ export default function AdminPanelPage() {
                           Aktifkan
                         </Button>
                       )}
-                      <ActionMenu items={menuItems(o)} label={`Aksi untuk pesanan ${o.code}`} disabled={busy === o.code} />
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <IconAction icon={Eye} label={`Lihat detail pesanan ${o.code}`} onClick={() => setDetailCode(o.code)} />
+                        <ActionMenu items={menuItems(o)} label={`Aksi untuk pesanan ${o.code}`} disabled={busy === o.code} />
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -310,6 +298,17 @@ export default function AdminPanelPage() {
 
         <TablePagination table={table} label="pesanan" />
       </div>
+
+      {detailOrder && (
+        <OrderDetailModal
+          order={detailOrder}
+          proofFetcher={adminFetchQrProof}
+          onClose={() => setDetailCode(null)}
+          onProof={setProofCode}
+          onNota={viewNota}
+          onPdf={downloadNotaPdf}
+        />
+      )}
 
       {proofCode && (
         <ProofModal

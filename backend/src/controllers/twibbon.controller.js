@@ -1,55 +1,82 @@
 import * as twibbonService from '../services/twibbon.service.js';
 import { isAdminRequest } from '../middleware/admin.middleware.js';
+import { sessionUser } from '../middleware/auth.middleware.js';
 
-const serverError = (res, label, error) => {
+const fail = (res, label, error) => {
+  if (error.status) return res.status(error.status).json({ success: false, message: error.message });
   console.error(`${label} error:`, error);
-  return res.status(500).json({ success: false, message: 'Internal server error' });
+  return res.status(500).json({ success: false, message: 'Terjadi kesalahan di server.' });
 };
 
-export const login = async (req, res) => {
-  try {
-    const { name, email } = req.body;
-    if (!name || name.trim() === '' || !email || email.trim() === '') {
-      return res.status(400).json({ success: false, message: 'Name and Email are required' });
-    }
-    const user = await twibbonService.loginUser(name.trim(), email.trim());
-    res.json({ success: true, user });
-  } catch (error) {
-    return serverError(res, 'Login', error);
-  }
-};
-
+// Akun: buat, daftar, ambil, ubah, dan hapus Twibbon milik pengguna yang masuk.
 export const createCampaign = async (req, res) => {
   try {
-    const { title, description, slug, frameBase64, creatorId } = req.body;
-    if (!title || !slug || !frameBase64 || !creatorId) {
-      return res.status(400).json({ success: false, message: 'Missing required fields' });
-    }
-    const campaign = await twibbonService.createCampaign({ title, description, slug, frameBase64, creatorId });
+    const campaign = await twibbonService.createCampaign(req.user, req.body || {});
     res.status(201).json({ success: true, campaign });
   } catch (error) {
-    return serverError(res, 'Create campaign', error);
+    return fail(res, 'Create twibbon', error);
   }
 };
 
+export const myCampaigns = async (req, res) => {
+  try {
+    res.json({ success: true, campaigns: await twibbonService.listMyCampaigns(req.user) });
+  } catch (error) {
+    return fail(res, 'My twibbons', error);
+  }
+};
+
+export const myCampaign = async (req, res) => {
+  try {
+    res.json({ success: true, campaign: await twibbonService.getOwnedCampaign(req.user, req.params.id) });
+  } catch (error) {
+    return fail(res, 'My twibbon', error);
+  }
+};
+
+export const updateCampaign = async (req, res) => {
+  try {
+    const campaign = await twibbonService.updateCampaign(req.user, req.params.id, req.body || {});
+    res.json({ success: true, campaign });
+  } catch (error) {
+    return fail(res, 'Update twibbon', error);
+  }
+};
+
+// Hapus: pemiliknya sendiri, atau super admin (untuk moderasi).
+// Tidak ada lagi hapus dengan mengirim ID pembuat, karena ID itu dulu ikut tampil di data publik.
+export const deleteCampaign = async (req, res) => {
+  try {
+    const user = await sessionUser(req);
+    if (isAdminRequest(req) || user?.role === 'superadmin') {
+      const ok = await twibbonService.deleteCampaignById(req.params.id);
+      if (!ok) return res.status(404).json({ success: false, message: 'Twibbon tidak ditemukan.' });
+      return res.json({ success: true });
+    }
+    if (!user) return res.status(401).json({ success: false, message: 'Silakan masuk terlebih dahulu.' });
+    await twibbonService.deleteOwnedCampaign(user, req.params.id);
+    return res.json({ success: true });
+  } catch (error) {
+    return fail(res, 'Delete twibbon', error);
+  }
+};
+
+// Publik: daftar Twibbon, satu Twibbon, dan pencatatan dilihat serta dipakai.
 export const getAllCampaigns = async (req, res) => {
   try {
-    const campaigns = await twibbonService.getAllCampaigns();
-    res.json({ success: true, campaigns });
+    res.json({ success: true, campaigns: await twibbonService.getAllCampaigns() });
   } catch (error) {
-    return serverError(res, 'Get campaigns', error);
+    return fail(res, 'Get twibbons', error);
   }
 };
 
 export const getCampaign = async (req, res) => {
   try {
     const campaign = await twibbonService.getCampaignBySlug(req.params.slug);
-    if (!campaign) {
-      return res.status(404).json({ success: false, message: 'Campaign not found' });
-    }
+    if (!campaign) return res.status(404).json({ success: false, message: 'Twibbon tidak ditemukan.' });
     res.json({ success: true, campaign });
   } catch (error) {
-    return serverError(res, 'Get campaign', error);
+    return fail(res, 'Get twibbon', error);
   }
 };
 
@@ -57,9 +84,9 @@ export const trackView = async (req, res) => {
   try {
     const ok = await twibbonService.trackCampaignView(req.params.id);
     if (ok) return res.json({ success: true });
-    res.status(404).json({ success: false, message: 'Campaign not found' });
+    res.status(404).json({ success: false, message: 'Twibbon tidak ditemukan.' });
   } catch (error) {
-    return serverError(res, 'Track view', error);
+    return fail(res, 'Track view', error);
   }
 };
 
@@ -67,31 +94,8 @@ export const trackUsage = async (req, res) => {
   try {
     const ok = await twibbonService.trackCampaignUsage(req.params.id);
     if (ok) return res.json({ success: true });
-    res.status(404).json({ success: false, message: 'Campaign not found' });
+    res.status(404).json({ success: false, message: 'Twibbon tidak ditemukan.' });
   } catch (error) {
-    return serverError(res, 'Track usage', error);
-  }
-};
-
-export const deleteCampaign = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { creatorId } = req.body || {};
-
-    // Admin: header x-admin-key (ADMIN_KEY di .env) boleh menghapus campaign mana pun.
-    // Pengguna biasa hanya boleh menghapus campaign miliknya sendiri (creatorId harus cocok).
-    // Catatan: jangan pakai req.ip/localhost sebagai bypass, karena di cPanel semua request
-    // datang lewat proxy lokal sehingga selalu terbaca sebagai localhost.
-    const ok = isAdminRequest(req)
-      ? await twibbonService.deleteCampaignById(id)
-      : creatorId
-        ? await twibbonService.deleteCampaign(id, creatorId)
-        : null;
-
-    if (ok === null) return res.status(401).json({ success: false, message: 'Unauthorized' });
-    if (ok) return res.json({ success: true });
-    res.status(404).json({ success: false, message: 'Campaign not found' });
-  } catch (error) {
-    return serverError(res, 'Delete campaign', error);
+    return fail(res, 'Track usage', error);
   }
 };

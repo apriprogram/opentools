@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
-import PageContainer from '../../components/layout/PageContainer';
+import { Lock, LogIn, Mail } from 'lucide-react';
+import { AuthField, AuthShell, purposeText } from '../../components/auth/AuthParts';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { loginAccount } from '../../services/authApi';
-
-const INPUT =
-  'h-[42px] w-full px-3 rounded-md border border-border bg-card text-primary text-[14px] placeholder:text-tertiary focus:outline-none focus:border-border-focus transition-smooth';
 
 export default function LoginPage() {
   const { addToast: toast } = useToast();
@@ -48,48 +45,47 @@ export default function LoginPage() {
     }
   };
 
-  return (
-    <PageContainer>
-      <section className="mx-auto max-w-md pt-10">
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <h1 className="text-[22px] font-semibold text-primary">Masuk</h1>
-          <p className="mt-1 text-[13px] text-secondary">
-            Masuk untuk melihat QR dan lisensi Anda. Belum punya akun?{' '}
-            <Link to={nextPath ? `/daftar?next=${encodeURIComponent(nextPath)}` : paketParam ? `/daftar?paket=${paketParam}` : '/daftar'} className="underline hover:text-primary">Daftar dulu</Link>.
-          </p>
+  const registerPath = nextPath ? `/daftar?next=${encodeURIComponent(nextPath)}` : paketParam ? `/daftar?paket=${paketParam}` : '/daftar';
 
-          <form onSubmit={submit} className="mt-6 grid gap-3">
-            <div>
-              <label className="mb-1 block text-[13px] text-secondary" htmlFor="login">Email</label>
-              <input
-                id="login"
-                type="text"
-                autoComplete="username"
-                required
-                value={form.login}
-                onChange={(e) => setForm({ ...form, login: e.target.value })}
-                className={INPUT}
-                placeholder="nama@email.com"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-[13px] text-secondary" htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className={INPUT}
-              />
-            </div>
-            <Button type="submit" variant="primary" icon={LogIn} disabled={busy} className="mt-2 w-full">
-              {busy ? 'Memeriksa...' : 'Masuk'}
-            </Button>
-          </form>
-        </div>
-      </section>
-    </PageContainer>
+  return (
+    <AuthShell
+      title="Masuk ke akun"
+      subtitle={`Masuk ${purposeText(nextPath, paketParam)}.`}
+      footer={
+        <>
+          Belum punya akun?{' '}
+          <Link to={registerPath} className="font-medium text-primary underline underline-offset-2 hover:text-blue-500">Daftar gratis</Link>
+        </>
+      }
+    >
+      <form onSubmit={submit} className="grid gap-4">
+        <AuthField
+          id="login"
+          label="Email"
+          icon={Mail}
+          type="text"
+          inputMode="email"
+          autoComplete="username"
+          required
+          placeholder="nama@email.com"
+          value={form.login}
+          onChange={(e) => setForm({ ...form, login: e.target.value })}
+        />
+        <AuthField
+          id="password"
+          label="Password"
+          icon={Lock}
+          type="password"
+          autoComplete="current-password"
+          required
+          placeholder="Password kamu"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+        />
+        <Button type="submit" variant="primary" size="lg" icon={LogIn} disabled={busy || !form.login.trim() || !form.password} className="mt-1 w-full">
+          {busy ? 'Memeriksa...' : 'Masuk'}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

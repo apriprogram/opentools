@@ -7,15 +7,13 @@ import { proofLabel, rupiah, tanggal } from './OrderParts';
 import ActionMenu from './table/ActionMenu';
 import TableToolbar from './table/TableToolbar';
 import TablePagination from './table/TablePagination';
+import { LicenseChip, OrderStatusChip } from './Chips';
 import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION } from './table/useTableControls';
-
-const LICENSE_TEXT = { aktif: 'Aktif', nonaktif: 'Nonaktif', berakhir: 'Berakhir' };
-const LICENSE_CLS = { aktif: 'text-success', nonaktif: 'text-danger', berakhir: 'text-danger' };
 
 // Filter, urutan, dan teks pencarian tabel. Didefinisikan di luar komponen supaya stabil.
 const FILTERS = [
-  { id: 'all', label: 'Semua status' },
-  { id: 'pending', label: 'Menunggu pembayaran', test: (o) => o.status === 'pending' },
+  { id: 'all', label: 'Semua' },
+  { id: 'pending', label: 'Menunggu', test: (o) => o.status === 'pending' },
   { id: 'paid', label: 'Lunas', test: (o) => o.status === 'paid' },
   { id: 'cancelled', label: 'Batal', test: (o) => o.status === 'cancelled' },
 ];
@@ -126,13 +124,7 @@ function OrderRow({ number, order: o, expiresAt, onProof, onNota, onPdf }) {
       </td>
 
       <td className={TD}>
-        {paid ? (
-          <span className="font-semibold text-success">Lunas</span>
-        ) : cancelled ? (
-          <span className="font-semibold text-danger">Batal</span>
-        ) : (
-          <span className="font-medium text-primary">Menunggu pembayaran</span>
-        )}
+        <OrderStatusChip status={o.status} />
         <span className="mt-1 block text-[11px] text-tertiary sm:text-[12px]" title={o.verifyNote || ''}>{proofLabel(o)}</span>
         {uploaded && <span className="block text-[11px] text-tertiary">Diunggah {uploaded}</span>}
         {paid && o.paidAt && <span className="block text-[11px] text-tertiary">Dibayar {tanggal(o.paidAt)}</span>}
@@ -141,9 +133,7 @@ function OrderRow({ number, order: o, expiresAt, onProof, onNota, onPdf }) {
       <td className={TD}>
         {paid && o.licenseKey ? (
           <div className="space-y-2">
-            <span className={`block text-[12px] font-semibold ${LICENSE_CLS[o.licenseState] || 'text-secondary'}`}>
-              {LICENSE_TEXT[o.licenseState] || 'Lisensi'}
-            </span>
+            <LicenseChip state={o.licenseState} />
             {o.licenseState === 'aktif' && expiresAt && (
               <Countdown expiresAt={expiresAt} className="block text-[12px] font-medium text-primary sm:text-[13px]" />
             )}

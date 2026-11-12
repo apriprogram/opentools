@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
-import PanelLayout from '../../components/panel/PanelLayout';
+import { useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
+import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
+import LinktreeCard from '../../components/linktree/LinktreeCard';
 import { slugify, SLUG_RE } from '../../components/linktree/constants';
 import { fetchLinktrees, createLinktree, deleteLinktree } from '../../services/linktreeApi';
 
@@ -65,6 +66,7 @@ export default function UserLinktreePage() {
       <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">Linktree</h1>
+          <PanelCrumb />
           <p className="mt-1 max-w-2xl text-[13px] text-secondary sm:text-[14px]">
             Buat halaman berisi semua tautan Anda. Satu akun bisa membuat banyak Linktree.
           </p>
@@ -131,51 +133,12 @@ export default function UserLinktreePage() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 2xl:grid-cols-3">
           {list.map((tree) => (
-            <div key={tree.id} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:gap-4 sm:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-[15px] font-semibold text-primary">{tree.title}</p>
-                  <p className="mt-1 truncate text-[12px] text-tertiary">/l/{tree.slug}</p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${
-                    tree.published ? 'border-success/40 text-success' : 'border-border text-secondary'
-                  }`}
-                >
-                  {tree.published ? 'Diterbitkan' : 'Draf'}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <Stat label="Tautan" value={tree.linkCount} />
-                <Stat label="Klik" value={tree.clicks} />
-                <Stat label="Kunjungan" value={tree.views} />
-              </div>
-              <div className="mt-auto flex flex-wrap gap-2">
-                <Link to={`/dashboard/linktree/${tree.id}`}>
-                  <Button size="sm" variant="primary" icon={Pencil}>Edit</Button>
-                </Link>
-                {tree.published ? (
-                  <a href={`/l/${tree.slug}`} target="_blank" rel="noopener noreferrer">
-                    <Button size="sm" variant="secondary" icon={ExternalLink}>Lihat</Button>
-                  </a>
-                ) : null}
-                <Button size="sm" variant="ghost" icon={Trash2} onClick={() => remove(tree)}>Hapus</Button>
-              </div>
-            </div>
+            <LinktreeCard key={tree.id} tree={tree} onDelete={remove} />
           ))}
         </div>
       )}
     </PanelLayout>
-  );
-}
-
-function Stat({ label, value }) {
-  return (
-    <div className="rounded-xl border border-border bg-card-muted/50 py-2">
-      <p className="text-[16px] font-semibold text-primary">{value}</p>
-      <p className="text-[11px] text-tertiary">{label}</p>
-    </div>
   );
 }

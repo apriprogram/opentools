@@ -9,14 +9,14 @@ export default function StatsTab({ tree }) {
   const active = rows.filter((i) => i.enabled).length;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="grid gap-4 sm:grid-cols-3">
+    <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <Card label="Kunjungan halaman" value={tree.views} />
         <Card label="Total klik" value={totalClicks} />
         <Card label="Tautan aktif" value={active} />
       </div>
 
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-5">
         <h2 className="text-[15px] font-semibold text-primary">Klik per tautan</h2>
         {rows.length === 0 ? (
           <p className="mt-3 text-[13px] text-secondary">Belum ada tautan. Tambahkan tautan di tab Tautan.</p>
@@ -32,7 +32,7 @@ export default function StatsTab({ tree }) {
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-card-muted">
                   <div
-                    className="h-2 rounded-full bg-accent-black dark:bg-white"
+                    className="h-2 rounded-full bg-blue-500"
                     style={{ width: `${Math.round(((i.clicks || 0) / max) * 100)}%` }}
                   />
                 </div>
@@ -48,9 +48,9 @@ export default function StatsTab({ tree }) {
 
 function Card({ label, value }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
-      <p className="text-[12px] text-secondary">{label}</p>
-      <p className="mt-2 text-[24px] font-semibold text-primary">{value}</p>
+    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <p className="truncate text-[11px] text-secondary sm:text-[12px]">{label}</p>
+      <p className="mt-1 text-[18px] font-semibold tabular-nums text-primary sm:mt-2 sm:text-[24px]">{value}</p>
     </div>
   );
 }
