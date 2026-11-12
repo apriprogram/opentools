@@ -150,19 +150,9 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// Ganti password. Dibatasi 5 kali salah per 15 menit untuk tiap akun.
-const PASSWORD_MAX_FAILURES = 5;
-const PASSWORD_WINDOW_MS = 15 * 60 * 1000;
-const passwordFailures = new Map();
-
+// Ganti password.
 export const changePassword = async (req, res) => {
   try {
-    const key = req.user.id;
-    const record = passwordFailures.get(key);
-    if (record && Date.now() - record.first > PASSWORD_WINDOW_MS) passwordFailures.delete(key);
-    if ((passwordFailures.get(key)?.count || 0) >= PASSWORD_MAX_FAILURES) {
-      return res.status(429).json({ success: false, message: "Terlalu banyak percobaan. Coba lagi dalam 15 menit." });
-    }
     const currentPassword = String(req.body?.currentPassword || "");
     const newPassword = String(req.body?.newPassword || "");
     if (!currentPassword) {
@@ -174,17 +164,7 @@ export const changePassword = async (req, res) => {
     if (newPassword === currentPassword) {
       return res.status(400).json({ success: false, message: "Password baru harus berbeda dari password saat ini." });
     }
-    try {
-      await changeUserPassword(req.user.id, currentPassword, newPassword, bearerToken(req));
-    } catch (error) {
-      if (error.status === 400) {
-        const rec = passwordFailures.get(key);
-        if (rec) rec.count += 1;
-        else passwordFailures.set(key, { count: 1, first: Date.now() });
-      }
-      throw error;
-    }
-    passwordFailures.delete(key);
+    await changeUserPassword(req.user.id, currentPassword, newPassword, bearerToken(req));
     return res.json({ success: true });
   } catch (error) {
     return fail(res, error);

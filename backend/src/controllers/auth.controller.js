@@ -12,27 +12,6 @@ import { bearerToken } from "../middleware/auth.middleware.js";
 import { normalizeWhatsapp } from "../services/qr.service.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_FAILURES = 5;
-const WINDOW_MS = 15 * 60 * 1000;
-const failures = new Map();
-
-const clientKey = (req) => String(req.get("cf-connecting-ip") || req.ip || "unknown");
-
-const isBlocked = (key) => {
-  const rec = failures.get(key);
-  if (!rec) return false;
-  if (Date.now() - rec.first > WINDOW_MS) {
-    failures.delete(key);
-    return false;
-  }
-  return rec.count >= MAX_FAILURES;
-};
-
-const recordFailure = (key) => {
-  const rec = failures.get(key);
-  if (!rec || Date.now() - rec.first > WINDOW_MS) failures.set(key, { count: 1, first: Date.now() });
-  else rec.count += 1;
-};
 
 const fail = (res, error) => {
   if (error.status) return res.status(error.status).json({ success: false, message: error.message });
@@ -70,10 +49,6 @@ export const register = async (req, res) => {
 // Masuk untuk pengguna (email) dan super admin (username).
 export const login = async (req, res) => {
   try {
-    const key = clientKey(req);
-    if (isBlocked(key)) {
-      return res.status(429).json({ success: false, message: "Terlalu banyak percobaan. Coba lagi dalam 15 menit." });
-    }
     const loginId = String(req.body?.login || "").trim();
     const password = String(req.body?.password || "");
     if (!loginId || !password) {
@@ -81,10 +56,8 @@ export const login = async (req, res) => {
     }
     const row = await checkLogin(loginId, password);
     if (!row) {
-      recordFailure(key);
       return res.status(401).json({ success: false, message: "Email/username atau password salah." });
     }
-    failures.delete(key);
     const session = await createSession(row.id);
     return res.json({ success: true, token: session.token, expiresAt: session.expiresAt, user: publicUser(row) });
   } catch (error) {
