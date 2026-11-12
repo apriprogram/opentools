@@ -44,7 +44,11 @@ export const getPaymentInfo = () => ({
 const ORDER_COLUMNS = `code, plan, price, unique_code, amount, name, email, wa_number, nota_number, status, license_key, created_at, paid_at, qr_payload, user_qr_id,
   verify_status, verify_note, verify_amount, proof_uploaded_at, proof_attempts, (proof_data IS NOT NULL) AS has_proof,
   (SELECT l.revoked FROM qr_licenses l WHERE l.order_code = qr_orders.code LIMIT 1) AS license_revoked,
-  (SELECT l.expires_at FROM qr_licenses l WHERE l.order_code = qr_orders.code LIMIT 1) AS license_expires_at`;
+  (SELECT l.expires_at FROM qr_licenses l WHERE l.order_code = qr_orders.code LIMIT 1) AS license_expires_at,
+  (SELECT q.link FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_link,
+  (SELECT q.fg FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_fg,
+  (SELECT q.bg FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_bg,
+  (SELECT q.logo FROM user_qr q WHERE q.id = qr_orders.user_qr_id LIMIT 1) AS live_logo`;
 
 // Status lisensi pesanan lunas: aktif, nonaktif (dimatikan admin), atau berakhir.
 const licenseStateOf = (row) => {
@@ -77,6 +81,16 @@ export const parseQrDesign = (design) => {
 
 // Desain QR yang disimpan di pesanan (link, warna, dan pakai logo atau tidak), untuk ditampilkan lagi.
 const qrDesignOf = (row) => {
+  // Pesanan lunas: pakai desain QR yang sekarang tersimpan di akun pemesan,
+  // karena warnanya bisa sudah diubah setelah pesanan dibuat. Pesanan lain memakai desain yang dipesan.
+  if (row.status === "paid" && row.live_link) {
+    return {
+      link: String(row.live_link),
+      fg: HEX_RE.test(row.live_fg) ? row.live_fg : "#000000",
+      bg: HEX_RE.test(row.live_bg) ? row.live_bg : "#FFFFFF",
+      logo: Number(row.live_logo) !== 0
+    };
+  }
   const p = parseQrPayload(row.qr_payload);
   if (!p?.link) return null;
   return {

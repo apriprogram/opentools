@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { QrCode, Link2, ClipboardList, ImagePlus, LogOut, Eye, Menu, Moon, Sun, X } from 'lucide-react';
+import { QrCode, Link2, ClipboardList, Database, ImagePlus, LogOut, Eye, Menu, Moon, Sun, X } from 'lucide-react';
 import { NotificationBell, ProfileMenu } from './HeaderMenus';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -9,25 +9,24 @@ import { useTheme } from '../../contexts/ThemeContext';
 // Kerangka panel gaya admin: sidebar dengan bagian, header dengan tanggal dan profil, lalu konten.
 // Dipakai untuk peran user dan super admin. Menu berbeda menurut peran.
 // Di ponsel sidebar disembunyikan dan dibuka lewat tombol hamburger.
+const USER_ITEMS = [
+  { label: 'QR Generator', to: '/dashboard/qr', icon: QrCode },
+  { label: 'Linktree', to: '/dashboard/linktree', icon: Link2 },
+  { label: 'Twibbon', to: '/dashboard/twibbon', icon: ImagePlus },
+];
+
+// Super admin melihat menu admin, ditambah dashboard pengguna untuk QR, Linktree, dan Twibbon miliknya sendiri.
 const MENUS = {
-  user: [
-    {
-      section: 'Utama',
-      items: [
-        { label: 'QR Generator', to: '/dashboard/qr', icon: QrCode },
-        { label: 'Linktree', to: '/dashboard/linktree', icon: Link2 },
-        { label: 'Twibbon', to: '/dashboard/twibbon', icon: ImagePlus },
-      ],
-    },
-  ],
+  user: [{ section: 'Utama', items: USER_ITEMS }],
   superadmin: [
     {
-      section: 'Utama',
+      section: 'Admin',
       items: [
         { label: 'Konfirmasi Pesanan', to: '/admin', icon: ClipboardList, end: true },
-        { label: 'Data Linktree', to: '/admin/linktree', icon: Link2 },
+        { label: 'Data Linktree', to: '/admin/linktree', icon: Database },
       ],
     },
+    { section: 'Dashboard user', items: USER_ITEMS },
   ],
 };
 

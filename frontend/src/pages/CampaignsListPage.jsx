@@ -46,8 +46,8 @@ export default function CampaignsListPage() {
     }
   };
 
-  // Tombol buat: akun user ke panel, tamu ke halaman masuk (lalu diteruskan ke pembuat Twibbon).
-  const createButton = isAdmin ? null : user ? (
+  // Tombol buat: akun yang sudah masuk ke panel, tamu ke halaman masuk (lalu diteruskan ke pembuat Twibbon).
+  const createButton = user ? (
     <Link to={CREATE_PATH}>
       <Button variant="primary" icon={Plus}>{t('twibbon.create_btn', 'Buat Twibbon')}</Button>
     </Link>
@@ -73,7 +73,7 @@ export default function CampaignsListPage() {
             <Link to="/">
               <Button variant="secondary" icon={ArrowLeft}>{t('common.back', 'Kembali')}</Button>
             </Link>
-            {user && !isAdmin && (
+            {user && (
               <Link to="/dashboard/twibbon">
                 <Button variant="secondary" icon={LayoutDashboard}>Twibbon saya</Button>
               </Link>

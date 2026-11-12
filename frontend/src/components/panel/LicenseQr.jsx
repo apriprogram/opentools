@@ -5,27 +5,34 @@ import Button from '../ui/Button';
 import { useToast } from '../ui/Toast';
 import { buildQrSvg, svgToPngBlob, downloadBlob } from '../../lib/qrCode';
 
-// Link aktivasi lisensi: membuka halaman QR Generator dan mengaktifkan kode lisensi di browser itu.
+// Link aktivasi lisensi: membuka halaman QR Generator dan memeriksa kode lisensi di browser itu.
 export const licenseLink = (licenseKey) => {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   return `${origin}/qr?lisensi=${encodeURIComponent(licenseKey)}`;
 };
 
-// Barcode (QR) dan link untuk pesanan yang sudah lunas. Dipakai di dashboard user dan panel admin.
+// QR untuk pesanan yang sudah lunas. Dipakai di dashboard user dan panel admin.
+// Bila pesanan menyimpan desain QR (design), yang tampil adalah QR milik pemesan sendiri:
+// dipindai langsung menuju link yang dibuat, dengan warna dan logo sesuai desainnya.
+// Hanya pesanan lama tanpa desain yang masih menampilkan barcode lisensi (membuka OpenTools untuk cek lisensi).
 // Klik gambar QR membuka modal dengan ukuran besar dan tombol unduh.
-export default function LicenseQr({ licenseKey }) {
+export default function LicenseQr({ licenseKey, design = null, code = '' }) {
   const { addToast: toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
-  const link = licenseLink(licenseKey);
+  const own = Boolean(design?.link);
+  const link = own ? design.link : licenseLink(licenseKey);
+  const fileName = own ? `qr-${code || licenseKey}` : `qr-lisensi-${licenseKey}`;
 
   const svg = useMemo(() => {
     try {
-      return buildQrSvg({ text: link, fg: '#111111', bg: '#FFFFFF', size: 512 });
+      return own
+        ? buildQrSvg({ text: design.link, fg: design.fg, bg: design.bg, logo: design.logo !== false, size: 512 })
+        : buildQrSvg({ text: link, fg: '#111111', bg: '#FFFFFF', size: 512 });
     } catch {
       return '';
     }
-  }, [link]);
+  }, [own, link, design?.link, design?.fg, design?.bg, design?.logo]);
 
   useEffect(() => {
     if (!copied) return undefined;
@@ -33,23 +40,29 @@ export default function LicenseQr({ licenseKey }) {
     return () => clearTimeout(id);
   }, [copied]);
 
-  const copy = () => {
-    navigator.clipboard?.writeText(link);
-    setCopied(true);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+    } catch {
+      toast({ type: 'error', title: 'Gagal menyalin', message: 'Salin link secara manual.' });
+    }
   };
 
   const downloadPng = async () => {
     try {
       const blob = await svgToPngBlob(svg, 1024);
-      downloadBlob(blob, `qr-lisensi-${licenseKey}.png`);
+      downloadBlob(blob, `${fileName}.png`);
     } catch {
       toast({ type: 'error', title: 'Gagal mengunduh', message: 'QR tidak bisa diunduh sebagai PNG.' });
     }
   };
 
   const downloadSvg = () => {
-    downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), `qr-lisensi-${licenseKey}.svg`);
+    downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), `${fileName}.svg`);
   };
+
+  if (!svg) return null;
 
   return (
     <>
@@ -57,13 +70,14 @@ export default function LicenseQr({ licenseKey }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Perbesar barcode lisensi"
+          aria-label={own ? 'Perbesar QR' : 'Perbesar barcode lisensi'}
           title="Klik untuk memperbesar"
-          className="h-16 w-16 shrink-0 cursor-zoom-in rounded-md border border-border bg-white p-1 transition-smooth hover:border-border-focus [&>svg]:h-full [&>svg]:w-full"
+          className="h-16 w-16 shrink-0 cursor-zoom-in rounded-md border border-border p-1 transition-smooth hover:border-border-focus [&>svg]:h-full [&>svg]:w-full"
+          style={{ backgroundColor: own ? design.bg : '#FFFFFF' }}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
         <div className="min-w-0">
-          <p className="text-[11px] text-tertiary">Barcode dan link lisensi</p>
+          <p className="text-[11px] text-tertiary">{own ? 'QR dan link tujuan' : 'Barcode cek lisensi (membuka OpenTools)'}</p>
           <a
             href={link}
             target="_blank"
@@ -92,7 +106,9 @@ export default function LicenseQr({ licenseKey }) {
         <QrModal
           svg={svg}
           link={link}
-          licenseKey={licenseKey}
+          title={own ? 'QR kamu' : 'Barcode cek lisensi'}
+          caption={own ? (code ? `Pesanan ${code}` : '') : licenseKey}
+          background={own ? design.bg : '#FFFFFF'}
           onClose={() => setOpen(false)}
           onPng={downloadPng}
           onSvg={downloadSvg}
@@ -104,7 +120,7 @@ export default function LicenseQr({ licenseKey }) {
   );
 }
 
-function QrModal({ svg, link, licenseKey, onClose, onPng, onSvg, onCopy, copied }) {
+function QrModal({ svg, link, title, caption, background, onClose, onPng, onSvg, onCopy, copied }) {
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
 
@@ -124,11 +140,11 @@ function QrModal({ svg, link, licenseKey, onClose, onPng, onSvg, onCopy, copied 
       onClick={() => closeRef.current()}
       role="dialog"
       aria-modal="true"
-      aria-label={`QR lisensi ${licenseKey}`}
+      aria-label={title}
     >
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[14px] font-semibold text-primary">QR lisensi</p>
+          <p className="text-[14px] font-semibold text-primary">{title}</p>
           <button
             type="button"
             onClick={() => closeRef.current()}
@@ -139,10 +155,14 @@ function QrModal({ svg, link, licenseKey, onClose, onPng, onSvg, onCopy, copied 
           </button>
         </div>
 
-        <div className="mx-auto aspect-square w-full max-w-[320px] rounded-xl border border-border bg-white p-4 [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
+        <div
+          className="mx-auto aspect-square w-full max-w-[320px] rounded-xl border border-border p-4 [&>svg]:h-full [&>svg]:w-full"
+          style={{ backgroundColor: background }}
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
 
-        <p className="mt-4 break-all text-center font-mono text-[12px] text-primary">{licenseKey}</p>
-        <p className="mt-1 break-all text-center text-[11px] text-tertiary">{link}</p>
+        {caption && <p className="mt-4 break-all text-center font-mono text-[12px] text-primary">{caption}</p>}
+        <p className={`${caption ? 'mt-1' : 'mt-4'} break-all text-center text-[11px] text-tertiary`}>{link}</p>
 
         <div className="mt-5 grid grid-cols-2 gap-2">
           <Button variant="primary" icon={Download} onClick={onPng}>Unduh PNG</Button>

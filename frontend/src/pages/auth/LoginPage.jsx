@@ -18,8 +18,8 @@ export default function LoginPage() {
   const nextParam = params.get('next');
   const nextPath = nextParam && nextParam.startsWith('/dashboard/') ? nextParam : null;
   const afterLogin = (role) => {
-    if (role === 'superadmin') return '/admin';
     if (nextPath) return nextPath;
+    if (role === 'superadmin') return '/admin';
     return paketParam ? `/dashboard/qr?paket=${paketParam}` : '/dashboard/qr';
   };
   const [form, setForm] = useState({ login: '', password: '' });

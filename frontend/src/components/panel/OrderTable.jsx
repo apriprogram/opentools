@@ -137,7 +137,7 @@ function OrderRow({ number, order: o, expiresAt, onProof, onNota, onPdf }) {
             {o.licenseState === 'aktif' && expiresAt && (
               <Countdown expiresAt={expiresAt} className="block text-[12px] font-medium text-primary sm:text-[13px]" />
             )}
-            <LicenseQr licenseKey={o.licenseKey} />
+            <LicenseQr licenseKey={o.licenseKey} design={o.qrDesign} code={o.code} />
           </div>
         ) : (
           <span className="text-tertiary">-</span>

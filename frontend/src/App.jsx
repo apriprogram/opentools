@@ -35,12 +35,15 @@ import { ToastProvider } from './components/ui/Toast';
 import './i18n';
 
 // Halaman panel hanya bisa dibuka oleh peran yang sesuai. Peran lain diarahkan ke panelnya.
+// Super admin juga boleh membuka dashboard pengguna (QR, Linktree, Twibbon miliknya sendiri);
+// sebaliknya, akun user tidak bisa membuka halaman admin.
 function RequireRole({ role, children }) {
   const { user, loading } = useAuth();
   const location = useLocation();
   if (loading) return <div className="p-10 text-center text-[13px] text-tertiary">Memuat...</div>;
   if (!user) return <Navigate to={`/masuk?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
-  if (user.role !== role) return <Navigate to={user.role === 'superadmin' ? '/admin' : '/dashboard/qr'} replace />;
+  const allowed = user.role === role || user.role === 'superadmin';
+  if (!allowed) return <Navigate to="/dashboard/qr" replace />
   return children;
 }
 

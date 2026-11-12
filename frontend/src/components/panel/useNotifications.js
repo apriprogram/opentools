@@ -77,18 +77,17 @@ export function useNotifications(user) {
     if (!userId) return;
     setLoading(true);
     try {
-      let next;
-      if (role === 'superadmin') {
-        const res = await adminFetchQrOrders('pending').catch(() => ({ orders: [] }));
-        next = adminNotifications(res.orders || []);
-      } else {
-        const [orders, qrs, trees] = await Promise.all([
-          fetchMyOrders().catch(() => []),
-          fetchMyQr().catch(() => []),
-          fetchLinktrees().catch(() => []),
-        ]);
-        next = userNotifications(orders || [], qrs || [], trees || []);
-      }
+      // Super admin: pesanan yang perlu ditangani, ditambah notifikasi QR dan Linktree miliknya sendiri.
+      const [pending, orders, qrs, trees] = await Promise.all([
+        role === 'superadmin' ? adminFetchQrOrders('pending').catch(() => ({ orders: [] })) : { orders: [] },
+        fetchMyOrders().catch(() => []),
+        fetchMyQr().catch(() => []),
+        fetchLinktrees().catch(() => []),
+      ]);
+      const next = [
+        ...adminNotifications(pending.orders || []),
+        ...userNotifications(orders || [], qrs || [], trees || []),
+      ];
       next.sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0));
       setItems(next.slice(0, MAX_ITEMS));
     } finally {

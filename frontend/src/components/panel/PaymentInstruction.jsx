@@ -57,7 +57,7 @@ export default function PaymentInstruction({ order, payment, expiresAt, onUpdate
         )}
 
         <div className="mt-4 rounded-xl border border-border bg-card p-4 text-primary">
-          <LicenseQr licenseKey={order.licenseKey} />
+          <LicenseQr licenseKey={order.licenseKey} design={order.qrDesign} code={order.code} />
         </div>
       </div>
     );

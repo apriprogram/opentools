@@ -96,6 +96,11 @@ export default function UserQrPage() {
 
   // Desain dari generator menjadi satu pesanan. Bila qrParam ada, pesanan untuk QR itu (perpanjang / jadikan Premium).
   const placeOrder = async (design) => {
+    // Pesanan dicatat atas email akun. Akun tanpa email (super admin) tidak bisa memesan.
+    if (!user?.email) {
+      toast({ type: 'info', title: 'Akun ini belum punya email', message: 'Pemesanan Premium dilakukan dari akun pengguna yang terdaftar dengan email.' });
+      return;
+    }
     setBusy(paket);
     try {
       const res = await createQrOrder({

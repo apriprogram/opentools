@@ -208,7 +208,8 @@ export default function OrderDetailModal({ order: o, proofFetcher, onClose, onPr
           ['ID QR di akun', mono(o.qrId), { wide: true }],
         ]}
       >
-        {paid && o.licenseKey && <LicenseQr licenseKey={o.licenseKey} />}
+        {/* QR milik pemesan sudah tampil di bagian "Gambar QR". Barcode cek lisensi hanya untuk pesanan lama tanpa desain. */}
+        {paid && o.licenseKey && !o.qrDesign && <LicenseQr licenseKey={o.licenseKey} />}
       </DetailSection>
     </DetailModal>
   );
