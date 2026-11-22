@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import BrandLogo from '../ui/BrandLogo';
+import SiteLogo from '../ui/SiteLogo';
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -15,11 +15,12 @@ export default function Footer() {
           {/* Logo & Info */}
           <div className="flex flex-col items-center md:items-start gap-3">
             <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="flex h-[16px] w-[26px] sm:h-[24px] sm:w-[39px] items-center justify-center">
-                <BrandLogo className="h-full w-full text-primary" title="Logo Garudanexa" />
+              {/* Logo dan nama sama dengan navbar. */}
+              <div className="flex h-[20px] w-[20px] sm:h-[26px] sm:w-[26px] items-center justify-center">
+                <SiteLogo className="h-full w-full text-[#034AFC] dark:text-[#5B86FF]" title="Logo OpenTools" />
               </div>
-              <span className="text-[12px] sm:text-[14px] font-semibold leading-[16px] tracking-tight text-primary">
-                PT. Garuda Nexa Bahtera
+              <span className="text-[13px] sm:text-[15px] font-semibold leading-[18px] tracking-tight text-primary">
+                OPENTOOLS
               </span>
             </div>
           </div>
@@ -33,7 +34,7 @@ export default function Footer() {
             </div>
             <div>
               &copy; {currentYear}{' '}
-              <span className="font-medium text-primary">PT. Garuda Nexa Bahtera</span>. {t('footer.rights', 'Hak cipta dilindungi undang-undang.')}
+              <span className="font-medium text-primary">OPENTOOLS</span>. {t('footer.rights', 'Hak cipta dilindungi undang-undang.')}
             </div>
           </div>
 

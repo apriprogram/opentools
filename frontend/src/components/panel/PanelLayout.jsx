@@ -371,7 +371,7 @@ export default function PanelLayout({ title, children }) {
         {/* Footer panel: sama dengan footer situs */}
         <footer className="flex flex-col gap-2 px-3 pb-4 pt-2 text-[11px] text-tertiary sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5 sm:pb-5 sm:text-[12px] md:px-8">
           <p>
-            © {new Date().getFullYear()} <span className="font-medium text-secondary">PT. Garuda Nexa Bahtera</span>. Hak cipta dilindungi undang-undang.
+            © {new Date().getFullYear()} <span className="font-medium text-secondary">OPENTOOLS</span>. Hak cipta dilindungi undang-undang.
           </p>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             <Link to="/privacy" className="hover:text-primary">Kebijakan Privasi</Link>
