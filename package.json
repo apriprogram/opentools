@@ -1,0 +1,13 @@
+{
+  "name": "opentools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OpenTools: frontend React (frontend/dist, sudah di-build) disajikan oleh backend Express (backend/). Dipakai hosting Node.js seperti Hostinger Web Apps.",
+  "scripts": {
+    "postinstall": "npm --prefix backend ci --omit=dev --no-audit --no-fund",
+    "start": "node backend/start.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

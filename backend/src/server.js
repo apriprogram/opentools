@@ -2,6 +2,7 @@ import "./config/env.js";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import apiRouter from "./routes/api.js";
@@ -51,9 +52,11 @@ app.get("/health", (req, res) => {
 // Serve React frontend static files (build output in the public root, next to the backend folder).
 // STATIC_DIR bisa diisi untuk menunjuk folder lain. Folder backend (berisi .env dan kode server)
 // tidak boleh terbaca dari web, jadi permintaan ke /backend, /node_modules, /.git dan file dotfile ditolak.
+// Bila repo dijalankan utuh (mis. Hostinger Web Apps), build frontend ada di frontend/dist.
+const repoDist = path.join(__dirname, "../../frontend/dist");
 const frontendDist = process.env.STATIC_DIR
   ? path.resolve(process.env.STATIC_DIR)
-  : path.join(__dirname, "../../");
+  : fs.existsSync(path.join(repoDist, "index.html")) ? repoDist : path.join(__dirname, "../../");
 
 app.use((req, res, next) => {
   if (/^\/(backend|node_modules|\.git|temp|data)(\/|$)/i.test(req.path) || /\/\.[^/]+$/.test(req.path)) {
