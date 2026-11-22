@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
-import archiver from "archiver";
+import { ZipArchive } from "archiver";
 import { CATEGORIES_CONFIG, COMPRESSORS_CONFIG, visibleCategories } from "../config/tools.config.js";
 import { createJob, getJob } from "../services/job.service.js";
 import { runConversion } from "../services/converter.service.js";
@@ -291,7 +291,7 @@ export async function downloadAllZip(req, res) {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
 
-    const archive = archiver("zip", { zlib: { level: 7 } });
+    const archive = new ZipArchive({ zlib: { level: 7 } });
 
     archive.on("error", (err) => {
       console.error("Archive error:", err);
