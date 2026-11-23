@@ -4,6 +4,7 @@ import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import ProofModal from '../../components/panel/ProofModal';
 import OrderDetailModal from '../../components/panel/OrderDetailModal';
 import { LicenseChip, OrderStatusChip, PlanChip, ProofChip, WhatsappPill } from '../../components/panel/Chips';
+import { SkeletonRows } from '../../components/ui/Skeleton';
 import StatCards from '../../components/panel/table/StatCards';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
@@ -198,7 +199,7 @@ export default function AdminPanelPage() {
         </Button>
       </div>
 
-      <StatCards items={stats} />
+      <StatCards items={stats} loading={orders === null} />
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <TableToolbar table={table} filters={FILTERS} sorts={SORTS} searchPlaceholder="Cari kode, nama, email, WhatsApp, atau nota" />
@@ -217,13 +218,16 @@ export default function AdminPanelPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {table.pageRows.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-[13px] text-tertiary">
-                    {orders === null || loading ? 'Memuat...' : 'Tidak ada pesanan yang cocok.'}
-                  </td>
-                </tr>
-              )}
+              {table.pageRows.length === 0 &&
+                (orders === null || loading ? (
+                  <SkeletonRows rows={6} cols={7} />
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-3 py-8 text-center text-[13px] text-tertiary">
+                      {'Tidak ada pesanan yang cocok.'}
+                    </td>
+                  </tr>
+                ))}
               {table.pageRows.map((o, i) => (
                 <tr key={o.code} className={TR}>
                   <td className={TD_NUM}>{table.start + i + 1}</td>

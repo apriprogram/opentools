@@ -561,6 +561,25 @@
   }
 }
 
+/* Peralihan isi halaman panel: hanya memudar, tanpa transform, supaya bagian yang menempel (sticky)
+   dan jendela modal di dalamnya tetap bekerja normal. */
+.panel-content-in {
+  animation: panel-content-in 220ms ease-out both;
+}
+@keyframes panel-content-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-content-in {
+    animation: none;
+  }
+}
+
 /* ── Panel (dashboard pengguna dan super admin) ──
    Latar senada dengan halaman publik tetapi lebih tenang, karena isinya data dan tabel.
    Sidebar dan header memakai .glass; kartu konten tetap pekat supaya tabel dan kolom yang menempel tetap rapi. */

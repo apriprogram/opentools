@@ -4,6 +4,7 @@ import Button from '../ui/Button';
 import Switch from '../ui/Switch';
 import { DiscountBadge } from '../ui/PlanPrice';
 import { useToast } from '../ui/Toast';
+import { SkeletonCard } from '../ui/Skeleton';
 import { adminFetchPricingSettings, adminSavePricingSettings } from '../../services/qrApi';
 import { PERCENT_MAX, PRICE_MAX, PRICE_MIN, discountCut, rupiah, tanggalPanjang, todayWib } from '../../lib/pricing';
 
@@ -243,7 +244,14 @@ export default function PricingSettings() {
       </div>
     );
   }
-  if (!draft) return <p className="max-w-3xl rounded-2xl border border-border bg-card p-5 text-[13px] text-tertiary">Memuat...</p>;
+  if (!draft) {
+    return (
+      <div role="status" aria-label="Memuat harga" className="max-w-3xl space-y-4">
+        <SkeletonCard lines={4} />
+        <SkeletonCard lines={4} />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={save} className="max-w-3xl space-y-4 pb-24">

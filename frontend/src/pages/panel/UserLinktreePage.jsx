@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
+import { SkeletonList } from '../../components/ui/Skeleton';
 import LinktreeCard from '../../components/linktree/LinktreeCard';
 import { slugify, SLUG_RE } from '../../components/linktree/constants';
 import { fetchLinktrees, createLinktree, deleteLinktree } from '../../services/linktreeApi';
@@ -123,7 +124,7 @@ export default function UserLinktreePage() {
       )}
 
       {!list ? (
-        <p className="text-[13px] text-tertiary">Memuat...</p>
+        <SkeletonList count={2} />
       ) : list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
           <p className="text-[14px] text-primary">Belum ada Linktree.</p>

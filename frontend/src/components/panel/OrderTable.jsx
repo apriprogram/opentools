@@ -8,6 +8,7 @@ import ActionMenu from './table/ActionMenu';
 import TableToolbar from './table/TableToolbar';
 import TablePagination from './table/TablePagination';
 import { LicenseChip, OrderStatusChip } from './Chips';
+import { SkeletonRows } from '../ui/Skeleton';
 import { useTableControls, TH, TD, TD_NUM, TH_ACTION, TD_ACTION, THEAD, TR } from './table/useTableControls';
 
 // Filter, urutan, dan teks pencarian tabel. Didefinisikan di luar komponen supaya stabil.
@@ -52,9 +53,7 @@ export default function OrderTable({ orders, expiryByKey = {}, qrList = [], onPr
           </thead>
           <tbody className="divide-y divide-border">
             {!orders ? (
-              <tr>
-                <td colSpan={6} className="px-3 py-8 text-center text-[13px] text-tertiary">Memuat...</td>
-              </tr>
+              <SkeletonRows rows={4} cols={6} />
             ) : table.pageRows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-3 py-8 text-center text-[13px] text-tertiary">

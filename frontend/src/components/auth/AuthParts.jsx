@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, ImagePlus, Link2, QrCode } from 'lucide-react';
-import BrandLogo from '../ui/BrandLogo';
+import SiteLogo from '../ui/SiteLogo';
 
 // Kerangka halaman Masuk dan Daftar: logo, judul, kartu formulir, dan tautan pindah halaman di bawahnya.
 export function AuthShell({ title, subtitle, children, footer }) {
@@ -8,9 +8,8 @@ export function AuthShell({ title, subtitle, children, footer }) {
     <main className="flex w-full justify-center px-4 pb-28 pt-8 sm:px-6 sm:pt-12">
       <section className="w-full max-w-[420px]">
         <div className="mb-5 flex flex-col items-center text-center sm:mb-6">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-black text-card">
-            <BrandLogo className="h-6 w-8" />
-          </span>
+          {/* Logo OpenTools tanpa latar, sama seperti di navbar. */}
+          <SiteLogo className="h-11 w-11 text-[#034AFC] dark:text-[#5B86FF]" title="Logo OpenTools" />
           <h1 className="mt-4 text-[22px] font-semibold tracking-tight text-primary sm:text-[24px]">{title}</h1>
           {subtitle && <p className="mt-1 max-w-[340px] text-[13px] leading-relaxed text-secondary sm:text-[14px]">{subtitle}</p>}
         </div>

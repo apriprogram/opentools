@@ -3,6 +3,7 @@ import { Copy, ExternalLink, Eye, Images, MousePointerClick, RefreshCw, Trash2, 
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import DetailModal, { DetailSection } from '../../components/panel/DetailModal';
 import { Chip, WhatsappPill } from '../../components/panel/Chips';
+import { SkeletonRows } from '../../components/ui/Skeleton';
 import StatCards from '../../components/panel/table/StatCards';
 import FramePreview from '../../components/twibbon/FramePreview';
 import Button from '../../components/ui/Button';
@@ -177,7 +178,7 @@ export default function AdminTwibbonPage() {
         </Button>
       </div>
 
-      <StatCards items={stats} />
+      <StatCards items={stats} loading={list === null} />
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <TableToolbar table={table} filters={FILTERS} sorts={SORTS} searchPlaceholder="Cari judul, alamat, atau pembuat" />
@@ -196,13 +197,16 @@ export default function AdminTwibbonPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {table.pageRows.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-[13px] text-tertiary">
-                    {list === null || loading ? 'Memuat...' : list.length === 0 ? 'Belum ada Twibbon yang dibuat pengguna.' : 'Tidak ada Twibbon yang cocok.'}
-                  </td>
-                </tr>
-              )}
+              {table.pageRows.length === 0 &&
+                (list === null || loading ? (
+                  <SkeletonRows rows={6} cols={7} />
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-3 py-8 text-center text-[13px] text-tertiary">
+                      {list.length === 0 ? 'Belum ada Twibbon yang dibuat pengguna.' : 'Tidak ada Twibbon yang cocok.'}
+                    </td>
+                  </tr>
+                ))}
               {table.pageRows.map((t, i) => (
                 <tr key={t.id} className={TR}>
                   <td className={TD_NUM}>{table.start + i + 1}</td>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, QrCode } from 'lucide-react';
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
+import { SkeletonCard, SkeletonList } from '../../components/ui/Skeleton';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -197,7 +198,7 @@ export default function UserQrPage() {
           <section>
             <h2 className="mb-3 text-[14px] font-semibold text-primary sm:text-[15px]">Daftar QR Anda</h2>
             {!qrList ? (
-              <p className="text-[13px] text-tertiary">Memuat...</p>
+              <SkeletonList count={2} columns="lg:grid-cols-2" />
             ) : qrList.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
                 <p className="text-[14px] text-primary">Belum ada QR tersimpan.</p>
@@ -246,7 +247,7 @@ export default function UserQrPage() {
         qrMissing ? (
           <p className="text-[13px] text-tertiary">QR tidak ditemukan di akun Anda.</p>
         ) : qrParam && !qrList ? (
-          <p className="text-[13px] text-tertiary">Memuat...</p>
+          <SkeletonCard lines={3} />
         ) : (
           <PlanPicker
             plans={plans}
@@ -266,13 +267,13 @@ export default function UserQrPage() {
       {view === 'buat' && (
         <div>
           {Boolean(paket) && plans.length === 0 ? (
-            <p className="text-[13px] text-tertiary">Memuat paket...</p>
+            <SkeletonList count={2} columns="md:grid-cols-2" />
           ) : paket && !planObj ? (
             <p className="text-[13px] text-tertiary">
               Paket tidak dikenal. <Link to="/dashboard/qr?view=pilih" className="underline">Pilih paket lain</Link>.
             </p>
           ) : qrParam && !qrList ? (
-            <p className="text-[13px] text-tertiary">Memuat...</p>
+            <SkeletonCard lines={3} />
           ) : qrMissing ? (
             <p className="text-[13px] text-tertiary">QR tidak ditemukan di akun Anda.</p>
           ) : (
@@ -292,7 +293,7 @@ export default function UserQrPage() {
       {view === 'bayar' && (
         <div className="max-w-2xl">
           {!orders ? (
-            <p className="text-[13px] text-tertiary">Memuat...</p>
+            <SkeletonCard lines={5} />
           ) : !order ? (
             <div className="rounded-2xl border border-border bg-card p-5">
               <p className="text-[14px] text-primary">Pesanan {kode} tidak ditemukan di akun Anda.</p>

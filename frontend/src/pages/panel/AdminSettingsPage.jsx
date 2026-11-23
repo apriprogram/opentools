@@ -5,6 +5,7 @@ import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import Button from '../../components/ui/Button';
 import Switch from '../../components/ui/Switch';
 import { useToast } from '../../components/ui/Toast';
+import { SkeletonCard } from '../../components/ui/Skeleton';
 import PricingSettings from '../../components/panel/PricingSettings';
 import { adminFetchPaymentSettings, adminSavePaymentSettings } from '../../services/qrApi';
 
@@ -160,7 +161,10 @@ function PaymentSettings() {
           <Button size="sm" variant="secondary" icon={RotateCcw} onClick={load} className="mt-3">Muat ulang</Button>
         </div>
       ) : !draft ? (
-        <p className="max-w-3xl rounded-2xl border border-border bg-card p-5 text-[13px] text-tertiary">Memuat...</p>
+        <div role="status" aria-label="Memuat pengaturan" className="max-w-3xl space-y-4">
+          <SkeletonCard lines={3} />
+          <SkeletonCard lines={3} />
+        </div>
       ) : (
         <form onSubmit={save} className="max-w-3xl space-y-4 pb-24">
           <div>

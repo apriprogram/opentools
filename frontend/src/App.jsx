@@ -37,6 +37,8 @@ import { recordVisit } from './services/converterApi';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { ToastProvider } from './components/ui/Toast';
 import VersionWatcher from './components/ui/VersionWatcher';
+import { PanelShell } from './components/panel/PanelLayout';
+import { SkeletonPage } from './components/ui/Skeleton';
 import './i18n';
 
 // Halaman panel hanya bisa dibuka oleh peran yang sesuai. Peran lain diarahkan ke panelnya.
@@ -45,7 +47,13 @@ import './i18n';
 function RequireRole({ role, children }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  if (loading) return <div className="p-10 text-center text-[13px] text-tertiary">Memuat...</div>;
+  if (loading) {
+    return (
+      <div className="mx-auto w-full max-w-6xl p-4 sm:p-8">
+        <SkeletonPage />
+      </div>
+    );
+  }
   if (!user) return <Navigate to={`/masuk?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   const allowed = user.role === role || user.role === 'superadmin';
   if (!allowed) return <Navigate to="/dashboard/qr" replace />
@@ -103,7 +111,12 @@ function AppContent() {
       {!isPanel && <Navbar onOpenBatchModal={handleOpenBatch} />}
 
       {/* Dynamic Pages */}
-      <div key={location.pathname} className="flex-1 animate-in fade-in slide-in-from-top-4 duration-500 fill-mode-forwards">
+      {/* Halaman publik masuk dengan animasi. Panel tidak: kerangkanya (sidebar dan header) tetap terpasang,
+          hanya isinya yang berganti (lihat PanelShell). */}
+      <div
+        key={isDashboard ? 'panel' : location.pathname}
+        className={isDashboard ? 'flex-1' : 'flex-1 animate-in fade-in slide-in-from-top-4 duration-500 fill-mode-forwards'}
+      >
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/converters" element={<ConvertersPage />} />
@@ -124,6 +137,7 @@ function AppContent() {
           <Route path="/masuk" element={<LoginPage />} />
           <Route path="/daftar" element={<RegisterPage />} />
           <Route path="/dashboard" element={<Navigate to="/dashboard/qr" replace />} />
+          <Route element={<PanelShell />}>
           <Route path="/dashboard/qr" element={<RequireRole role="user"><UserQrPage /></RequireRole>} />
           <Route path="/dashboard/pesan" element={<RedirectPesan />} />
           <Route path="/dashboard/twibbon" element={<RequireRole role="user"><UserTwibbonPage /></RequireRole>} />
@@ -138,6 +152,7 @@ function AppContent() {
           <Route path="/admin/users" element={<RequireRole role="superadmin"><AdminUsersPage /></RequireRole>} />
           <Route path="/admin/pengaturan" element={<RequireRole role="superadmin"><AdminSettingsPage /></RequireRole>} />
           <Route path="/admin/qr" element={<Navigate to="/admin" replace />} />
+          </Route>
         </Routes>
       </div>
 

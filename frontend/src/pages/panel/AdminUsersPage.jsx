@@ -5,6 +5,7 @@ import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import { Chip, WhatsappPill } from '../../components/panel/Chips';
 import DetailModal from '../../components/panel/DetailModal';
 import { IconAction } from '../../components/panel/table/ActionMenu';
+import { SkeletonRows } from '../../components/ui/Skeleton';
 import StatCards from '../../components/panel/table/StatCards';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
@@ -214,7 +215,7 @@ export default function AdminUsersPage() {
         </Button>
       </div>
 
-      <StatCards items={stats} />
+      <StatCards items={stats} loading={list === null} />
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <TableToolbar table={table} filters={FILTERS} sorts={SORTS} searchPlaceholder="Cari nama, email, atau WhatsApp" />
@@ -233,13 +234,16 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {table.pageRows.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-[13px] text-tertiary">
-                    {list === null || loading ? 'Memuat...' : list.length === 0 ? 'Belum ada akun terdaftar.' : 'Tidak ada pengguna yang cocok.'}
-                  </td>
-                </tr>
-              )}
+              {table.pageRows.length === 0 &&
+                (list === null || loading ? (
+                  <SkeletonRows rows={6} cols={7} />
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-3 py-8 text-center text-[13px] text-tertiary">
+                      {list.length === 0 ? 'Belum ada akun terdaftar.' : 'Tidak ada pengguna yang cocok.'}
+                    </td>
+                  </tr>
+                ))}
               {table.pageRows.map((u, i) => (
                 <tr key={u.id} className={TR}>
                   <td className={TD_NUM}>{table.start + i + 1}</td>

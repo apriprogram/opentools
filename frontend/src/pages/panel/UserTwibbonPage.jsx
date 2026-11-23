@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCheck, Copy, Download, Eye, ImagePlus, Pencil, Plus, Trash2 } from 'lucide-react';
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
+import { SkeletonList } from '../../components/ui/Skeleton';
 import StatCards from '../../components/panel/table/StatCards';
 import FramePreview from '../../components/twibbon/FramePreview';
 import Button from '../../components/ui/Button';
@@ -133,7 +134,7 @@ export default function UserTwibbonPage() {
       {all.length > 0 && <StatCards items={stats} />}
 
       {!list ? (
-        <p className="text-[13px] text-tertiary">Memuat...</p>
+        <SkeletonList count={3} columns="sm:grid-cols-2 xl:grid-cols-3" />
       ) : list.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
           <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-card-muted text-secondary">

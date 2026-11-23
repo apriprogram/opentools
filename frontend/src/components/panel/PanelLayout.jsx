@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, ChevronDown, Images, QrCode, Link2, ClipboardList, Database, ImagePlus, LogOut, Eye, Menu, Moon, Settings, Sun, Undo2, UserCog, Users, X } from 'lucide-react';
 import Avatar from '../ui/Avatar';
 import SiteLogo from '../ui/SiteLogo';
@@ -76,7 +76,44 @@ export function PanelCrumb({ className = '' }) {
   );
 }
 
+// Kerangka panel yang tetap terpasang selama pengguna berpindah halaman panel (lihat PanelShell di App.jsx).
+// Halaman cukup menulis <PanelLayout title="...">isi</PanelLayout>: di dalam kerangka, PanelLayout hanya
+// mengirim judulnya ke kerangka dan menampilkan isinya. Sidebar dan header tidak dibuat ulang, jadi tidak berkedip.
+const ShellContext = createContext(null);
+
+/** Rute induk semua halaman panel. Sidebar dan header dipasang sekali; isi halaman berganti lewat <Outlet />. */
+export function PanelShell() {
+  const { user } = useAuth();
+  const [title, setTitle] = useState('');
+  const { pathname } = useLocation();
+
+  // Halaman baru dibuka dari atas, seperti pindah halaman biasa.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  // Belum masuk (atau sesi sedang diperiksa): penjaga rute di dalam Outlet yang menangani, tanpa kerangka.
+  if (!user) return <Outlet />;
+  return (
+    <ShellContext.Provider value={setTitle}>
+      <PanelFrame title={title}>
+        <Outlet />
+      </PanelFrame>
+    </ShellContext.Provider>
+  );
+}
+
 export default function PanelLayout({ title, children }) {
+  const setTitle = useContext(ShellContext);
+  useLayoutEffect(() => {
+    setTitle?.(title);
+  }, [setTitle, title]);
+  // Di luar kerangka (cadangan), tampilkan kerangka lengkap seperti dulu.
+  if (!setTitle) return <PanelFrame title={title}>{children}</PanelFrame>;
+  return <CrumbContext.Provider value={title}>{children}</CrumbContext.Provider>;
+}
+
+function PanelFrame({ title, children }) {
   const { user, signOut, stopImpersonating } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -365,7 +402,10 @@ export default function PanelLayout({ title, children }) {
         </div>
 
         <main className="min-w-0 flex-1 px-3 py-4 sm:px-5 sm:py-6 md:px-8 md:py-7">
-          <CrumbContext.Provider value={title}>{children}</CrumbContext.Provider>
+          {/* Hanya isi halaman yang berganti, dengan peralihan pudar singkat. */}
+          <div key={location.pathname} className="panel-content-in">
+            <CrumbContext.Provider value={title}>{children}</CrumbContext.Provider>
+          </div>
         </main>
 
         {/* Footer panel: sama dengan footer situs */}

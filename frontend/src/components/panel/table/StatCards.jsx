@@ -1,7 +1,8 @@
 import React from 'react';
+import Skeleton from '../../ui/Skeleton';
 
-// Ringkasan angka di atas tabel. items: [{ label, value, icon, hint? }]
-export default function StatCards({ items }) {
+// Ringkasan angka di atas tabel. items: [{ label, value, icon, hint? }]. loading: angka diganti kerangka.
+export default function StatCards({ items, loading = false }) {
   return (
     <div className="mb-3 grid grid-cols-2 gap-2 sm:mb-4 sm:gap-3 lg:grid-cols-4">
       {items.map(({ label, value, icon: Icon, hint }) => (
@@ -13,8 +14,12 @@ export default function StatCards({ items }) {
           )}
           <div className="min-w-0">
             <p className="truncate text-[11px] text-secondary sm:text-[12px]">{label}</p>
-            <p className="truncate text-[16px] font-semibold tabular-nums leading-tight text-primary sm:text-[20px]">{value}</p>
-            {hint && <p className="mt-0.5 truncate text-[10px] text-tertiary sm:text-[11px]">{hint}</p>}
+            {loading ? (
+              <Skeleton className="mt-1 h-5 w-16 sm:h-6" />
+            ) : (
+              <p className="truncate text-[16px] font-semibold tabular-nums leading-tight text-primary sm:text-[20px]">{value}</p>
+            )}
+            {hint && !loading && <p className="mt-0.5 truncate text-[10px] text-tertiary sm:text-[11px]">{hint}</p>}
           </div>
         </div>
       ))}

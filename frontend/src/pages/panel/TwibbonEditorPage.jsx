@@ -4,6 +4,7 @@ import {
   AlertTriangle, ArrowLeft, CalendarDays, CheckCheck, CheckCircle2, Copy, Download, Eraser, ExternalLink, Eye, ImagePlus, Rocket, RotateCcw, Save, Undo2, Upload,
 } from 'lucide-react';
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
+import { SkeletonCard } from '../../components/ui/Skeleton';
 import FramePreview from '../../components/twibbon/FramePreview';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
@@ -228,7 +229,10 @@ export default function TwibbonEditorPage() {
   if (loading) {
     return (
       <PanelLayout title="Twibbon">
-        <p className="text-[13px] text-tertiary">Memuat...</p>
+        <div role="status" aria-label="Memuat Twibbon" className="grid gap-4 lg:grid-cols-2">
+          <SkeletonCard lines={2} media />
+          <SkeletonCard lines={5} />
+        </div>
       </PanelLayout>
     );
   }

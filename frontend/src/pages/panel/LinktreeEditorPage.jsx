@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, BarChart3, CheckCheck, Copy, ExternalLink, EyeOff, Link2, Palette, RotateCcw, Rocket, Save, Settings2, Smartphone } from 'lucide-react';
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
+import { SkeletonCard } from '../../components/ui/Skeleton';
 import DetailModal from '../../components/panel/DetailModal';
 import { PublishChip } from '../../components/panel/Chips';
 import Button from '../../components/ui/Button';
@@ -124,7 +125,10 @@ export default function LinktreeEditorPage() {
   if (!draft || !saved) {
     return (
       <PanelLayout title="Linktree">
-        <p className="text-[13px] text-tertiary">Memuat...</p>
+        <div role="status" aria-label="Memuat Linktree" className="grid gap-4 lg:grid-cols-[1fr_340px]">
+          <SkeletonCard lines={6} />
+          <SkeletonCard lines={2} media />
+        </div>
       </PanelLayout>
     );
   }

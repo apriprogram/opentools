@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BadgeCheck, BarChart3, HardDrive, Minimize2, Percent, ReceiptText, RefreshCw, Repeat2, Table2, TrendingDown, Wallet } from 'lucide-react';
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
+import { SkeletonPage } from '../../components/ui/Skeleton';
 import StatCards from '../../components/panel/table/StatCards';
 import ColumnChart from '../../components/panel/charts/ColumnChart';
 import Button from '../../components/ui/Button';
@@ -375,7 +376,7 @@ export default function AdminStatsPage() {
 
       <div className={`transition-opacity duration-150 ${loading && raw ? 'opacity-60' : ''}`}>
         {raw === null ? (
-          <p className="rounded-2xl border border-border bg-card p-5 text-[13px] text-tertiary">Memuat...</p>
+          <SkeletonPage />
         ) : (
           <>
             <h2 className="mb-2 text-[14px] font-semibold text-primary sm:mb-3 sm:text-[15px]">Pesanan Premium</h2>

@@ -3,6 +3,7 @@ import { BarChart3, Copy, ExternalLink, Eye, Globe, Link2, List, MousePointerCli
 import PanelLayout, { PanelCrumb } from '../../components/panel/PanelLayout';
 import DetailModal, { DetailSection } from '../../components/panel/DetailModal';
 import { PublishChip, WhatsappPill } from '../../components/panel/Chips';
+import { SkeletonRows } from '../../components/ui/Skeleton';
 import StatCards from '../../components/panel/table/StatCards';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
@@ -192,7 +193,7 @@ export default function AdminLinktreePage() {
         </Button>
       </div>
 
-      <StatCards items={stats} />
+      <StatCards items={stats} loading={list === null} />
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <TableToolbar table={table} filters={FILTERS} sorts={SORTS} searchPlaceholder="Cari judul, alamat, atau pemilik" />
@@ -213,14 +214,11 @@ export default function AdminLinktreePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {table.pageRows.length === 0 && (
+              {table.pageRows.length === 0 && (list === null || loading) && <SkeletonRows rows={6} cols={9} />}
+              {table.pageRows.length === 0 && !(list === null || loading) && (
                 <tr>
                   <td colSpan={9} className="px-3 py-8 text-center text-[13px] text-tertiary">
-                    {list === null || loading
-                      ? 'Memuat...'
-                      : list.length === 0
-                        ? 'Belum ada Linktree yang dibuat pengguna.'
-                        : 'Tidak ada Linktree yang cocok.'}
+                    {list.length === 0 ? 'Belum ada Linktree yang dibuat pengguna.' : 'Tidak ada Linktree yang cocok.'}
                   </td>
                 </tr>
               )}
