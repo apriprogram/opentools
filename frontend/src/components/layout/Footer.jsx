@@ -17,7 +17,7 @@ export default function Footer() {
             <div className="flex items-center gap-2 sm:gap-2.5">
               {/* Logo dan nama sama dengan navbar. */}
               <div className="flex h-[20px] w-[20px] sm:h-[26px] sm:w-[26px] items-center justify-center">
-                <SiteLogo className="h-full w-full text-[#034AFC] dark:text-[#5B86FF]" title="Logo OpenTools" />
+                <SiteLogo className="h-full w-full text-[#034AFC] dark:text-[#5B86FF]" title={t('pages.footer_logo')} />
               </div>
               <span className="text-[13px] sm:text-[15px] font-semibold leading-[18px] tracking-tight text-primary">
                 OPENTOOLS
@@ -30,7 +30,7 @@ export default function Footer() {
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:gap-4">
               <Link to="/privacy" className="hover:text-primary transition-colors">{t('footer.privacy', 'Kebijakan Privasi')}</Link>
               <Link to="/terms" className="hover:text-primary transition-colors">{t('footer.terms', 'Syarat Ketentuan')}</Link>
-              <a href="https://wa.me/6282181361433?text=Halo%20saya%20ingin%20konsultasi%20mengenai%20website%20OpenTools" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">{t('footer.contact', 'Kontak')}</a>
+              <a href={`https://wa.me/6282181361433?text=${encodeURIComponent(t('pages.footer_contact_message'))}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">{t('footer.contact', 'Kontak')}</a>
             </div>
             <div>
               &copy; {currentYear}{' '}

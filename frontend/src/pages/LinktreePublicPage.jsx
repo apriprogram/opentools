@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowUpRight } from 'lucide-react';
 import { LOGO_PATH, LOGO_VIEWBOX } from '../lib/qrCode';
 import LinktreeView, { pageBackground } from '../components/linktree/LinktreeView';
@@ -9,6 +10,7 @@ import { fetchLinktree, fetchPublicLinktree, recordLinktreeView } from '../servi
 // Dengan ?pratinjau=<id>, pemilik yang sedang masuk bisa melihat Linktree-nya sendiri walau masih draf.
 // Pratinjau tidak dihitung sebagai kunjungan, dan klik tautannya tidak dicatat.
 export default function LinktreePublicPage() {
+  const { t } = useTranslation();
   const { slug } = useParams();
   const [params] = useSearchParams();
   const previewId = params.get('pratinjau');
@@ -47,7 +49,7 @@ export default function LinktreePublicPage() {
         setTree(data);
         setPreview(true);
         setStatus('ok');
-        document.title = `Pratinjau ${data.title} | OpenTools`;
+        document.title = t('linktree.public.preview_doc_title', { title: data.title });
       });
 
     (previewId ? loadPreview().catch(loadPublic) : loadPublic()).catch(() => {
@@ -57,6 +59,7 @@ export default function LinktreePublicPage() {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, previewId]);
 
   // Klik dicatat lewat sendBeacon agar tetap terkirim walau halaman langsung pindah ke tujuan.
@@ -72,15 +75,15 @@ export default function LinktreePublicPage() {
   };
 
   if (status === 'loading') {
-    return <div className="flex min-h-screen items-center justify-center text-[13px] text-tertiary">Memuat...</div>;
+    return <div className="flex min-h-screen items-center justify-center text-[13px] text-tertiary">{t('linktree.public.loading')}</div>;
   }
 
   if (status === 'notfound' || !tree) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="text-[18px] font-semibold text-primary">Halaman tidak ditemukan</p>
-        <p className="text-[13px] text-secondary">Linktree ini belum diterbitkan atau alamatnya salah.</p>
-        <Link to="/linktree" className="mt-2 text-[13px] underline text-primary">Buat Linktree Anda sendiri</Link>
+        <p className="text-[18px] font-semibold text-primary">{t('linktree.public.not_found_title')}</p>
+        <p className="text-[13px] text-secondary">{t('linktree.public.not_found_text')}</p>
+        <Link to="/linktree" className="mt-2 text-[13px] underline text-primary">{t('linktree.public.create_own')}</Link>
       </div>
     );
   }
@@ -96,10 +99,10 @@ export default function LinktreePublicPage() {
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-black px-4 py-2 text-center text-[12px] text-white">
           <span>
             {tree.published
-              ? 'Ini pratinjau halaman kamu. Kunjungan dan klik di sini tidak dihitung.'
-              : 'Pratinjau draf. Halaman ini belum diterbitkan, jadi hanya kamu yang bisa melihatnya.'}
+              ? t('linktree.public.preview_published')
+              : t('linktree.public.preview_draft')}
           </span>
-          <Link to={`/dashboard/linktree/${tree.id}`} className="font-medium underline">Edit Linktree</Link>
+          <Link to={`/dashboard/linktree/${tree.id}`} className="font-medium underline">{t('linktree.public.edit')}</Link>
         </div>
       )}
       <div className="flex-1">
@@ -109,7 +112,7 @@ export default function LinktreePublicPage() {
       <div className="flex justify-center px-4 pb-4 pt-2">
         <Link
           to="/linktree"
-          title="Buat Linktree kamu sendiri, gratis"
+          title={t('linktree.public.badge_title')}
           className="group inline-flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2 text-[10px] leading-none transition-transform duration-200 hover:scale-[1.04] active:scale-[0.98] motion-reduce:transition-none"
           style={{
             color: badgeColor,
@@ -128,7 +131,7 @@ export default function LinktreePublicPage() {
             </svg>
           </span>
           <span>
-            <span className="opacity-70">Dibuat dengan</span> <span className="font-semibold">OpenTools</span>
+            <span className="opacity-70">{t('linktree.public.made_with')}</span> <span className="font-semibold">OpenTools</span>
           </span>
           <ArrowUpRight size={10} strokeWidth={2} aria-hidden="true" className="opacity-60 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100 motion-reduce:transition-none" />
         </Link>

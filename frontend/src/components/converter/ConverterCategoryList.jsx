@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Video, Image as ImageIcon, Search, ArrowUpRight, Music, Film } from 'lucide-react';
 import Card from '../ui/Card';
 import { useTranslation } from 'react-i18next';
+import { toolLabel, toolDescription, categoryLabel } from '../../lib/toolText';
 
 export default function ConverterCategoryList({ categories = [], isCompressor = false }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,17 +15,17 @@ export default function ConverterCategoryList({ categories = [], isCompressor = 
 
     return categories
       .map((cat) => {
+        // Cocokkan nama dan deskripsi dalam bahasa aktif maupun bahasa Inggris dari server.
         const matchingTools = cat.tools.filter(
-          (t) =>
-            t.label.toLowerCase().includes(query) ||
-            t.description?.toLowerCase().includes(query) ||
-            t.from.some((f) => f.toLowerCase().includes(query)) ||
-            t.to.some((f) => f.toLowerCase().includes(query))
+          (tool) =>
+            [tool.label, tool.description, toolLabel(t, tool), toolDescription(t, tool)].some((text) => text?.toLowerCase().includes(query)) ||
+            tool.from.some((f) => f.toLowerCase().includes(query)) ||
+            tool.to.some((f) => f.toLowerCase().includes(query))
         );
         return { ...cat, tools: matchingTools };
       })
       .filter((cat) => cat.tools.length > 0);
-  }, [categories, searchQuery]);
+  }, [categories, searchQuery, t]);
 
   return (
     <div className="space-y-6">
@@ -70,7 +71,7 @@ export default function ConverterCategoryList({ categories = [], isCompressor = 
                     <CategoryIcon size={16} strokeWidth={1.75} />
                   </div>
                   <h2 className="text-[16px] font-semibold text-primary">
-                    {category.label}
+                    {categoryLabel(t, category)}
                   </h2>
                 </div>
                 <span className="text-[12px] font-medium text-secondary">
@@ -87,7 +88,7 @@ export default function ConverterCategoryList({ categories = [], isCompressor = 
                   return (
                       <Link
                         key={tool.id}
-                        to={`/${isCompressor ? 'compress' : 'convert'}/${tool.id}`}
+                        to={tool.route || `/${isCompressor ? 'compress' : 'convert'}/${tool.id}`}
                         className="group block"
                       >
                       <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-smooth hover:border-blue-500">
@@ -106,10 +107,10 @@ export default function ConverterCategoryList({ categories = [], isCompressor = 
                           {/* Tool Name & Description */}
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-[14px] font-medium leading-[18px] text-primary">
-                              {tool.label}
+                              {toolLabel(t, tool)}
                             </p>
                             <p className="mt-0.5 truncate text-[12px] leading-[16px] text-secondary">
-                              {tool.description || `Convert ${tool.from.join(', ')} to ${tool.to.join(', ')}`}
+                              {toolDescription(t, tool) || t('converter.convert_from_to', { from: tool.from.join(', '), to: tool.to.join(', ') })}
                             </p>
                           </div>
                         </div>
@@ -117,7 +118,7 @@ export default function ConverterCategoryList({ categories = [], isCompressor = 
                         {/* Right: Badge / Arrow */}
                         <div className="flex shrink-0 items-center gap-2">
                           <span className="hidden whitespace-nowrap rounded-sm bg-card-muted px-2 py-0.5 text-[11px] font-medium uppercase text-secondary sm:inline-block">
-                            {tool.to.length === 1 ? tool.to[0] : `${tool.to.length} formats`}
+                            {tool.to.length === 1 ? tool.to[0] : t('converter.formats_count', { count: tool.to.length })}
                           </span>
                           <div className="flex h-7 w-7 items-center justify-center rounded-full text-tertiary transition-colors group-hover:text-blue-500">
                             <ArrowUpRight size={16} strokeWidth={1.75} />

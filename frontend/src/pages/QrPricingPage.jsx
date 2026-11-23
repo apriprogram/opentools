@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Check, QrCode, ArrowLeft } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
 import Button from '../components/ui/Button';
@@ -8,8 +9,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { fetchQrPlans } from '../services/qrApi';
 import PlanPrice, { DiscountBadge } from '../components/ui/PlanPrice';
 
-const FREE_FEATURES = ['QR Code tanpa batas jumlah', 'Warna QR dan latar bisa dipilih', 'Logo di tengah (wajib)', 'Unduh PNG & SVG'];
-const PAID_FEATURES = ['Semua fitur gratis', 'Logo bisa dihilangkan', 'Warna dan link bisa diganti kapan saja', 'Untuk satu QR code'];
+// Kunci terjemahan fitur tiap paket (qr.plans.*).
+const FREE_FEATURES = ['unlimited', 'colors', 'logo', 'download'];
+const PAID_FEATURES = ['allFree', 'noLogo', 'editable', 'oneQr'];
 
 // Warna tiap paket berbayar: garis tepi kartu dan tanda centangnya. Bulanan biru, Tahunan emas.
 const PLAN_TONE = {
@@ -19,6 +21,7 @@ const PLAN_TONE = {
 
 // Halaman harga hanya menampilkan paket. Pemesanan, pembayaran, dan bukti dilakukan di dashboard akun.
 export default function QrPricingPage() {
+  const { t } = useTranslation();
   const { addToast: toast } = useToast();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -27,7 +30,7 @@ export default function QrPricingPage() {
   useEffect(() => {
     fetchQrPlans()
       .then((res) => setPlans(res.plans || []))
-      .catch(() => toast({ type: 'error', title: 'Gagal memuat paket', message: 'Coba muat ulang halaman.' }));
+      .catch(() => toast({ type: 'error', title: t('qr.pricing.loadFailed'), message: t('qr.pricing.reload') }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -47,7 +50,7 @@ export default function QrPricingPage() {
       return;
     }
     if (user.role === 'superadmin') {
-      toast({ type: 'info', title: 'Akun admin', message: 'Pemesanan paket dilakukan dari akun pengguna.' });
+      toast({ type: 'info', title: t('qr.pricing.adminAccount'), message: t('qr.pricing.adminAccountMsg') });
       return;
     }
     navigate(`/dashboard/qr?paket=${planId}`);
@@ -57,31 +60,31 @@ export default function QrPricingPage() {
     <PageContainer>
       <section className="mx-auto max-w-5xl pt-4">
         <Link to="/qr" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-secondary transition-colors hover:text-primary">
-          <ArrowLeft size={14} /> Kembali ke QR Generator
+          <ArrowLeft size={14} /> {t('qr.pricing.back')}
         </Link>
 
         <div className="mb-6">
-          <h1 className="text-[24px] font-semibold leading-[32px] tracking-tight text-primary sm:text-[28px]">Paket QR Generator</h1>
+          <h1 className="text-[24px] font-semibold leading-[32px] tracking-tight text-primary sm:text-[28px]">{t('qr.pricing.title')}</h1>
           <p className="mt-1 text-[14px] leading-[22px] text-secondary">
-            Daftar akun, pilih paket, lalu bayar lewat transfer (DANA atau rekening bank). Bukti transfer diunggah di dashboard, dan lisensi aktif otomatis jika bukti valid.
+            {t('qr.pricing.subtitle')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="flex flex-col rounded-2xl border border-border bg-card p-5">
-            <h2 className="mb-3 text-[15px] font-semibold text-primary">Gratis</h2>
+            <h2 className="mb-3 text-[15px] font-semibold text-primary">{t('qr.plans.free')}</h2>
             <p className="text-[26px] font-semibold leading-[30px] text-primary">
-              Rp0 <span className="text-[13px] font-normal text-secondary">selamanya</span>
+              Rp0 <span className="text-[13px] font-normal text-secondary">{t('qr.plans.forever')}</span>
             </p>
             <ul className="mt-4 flex-1 space-y-2">
               {FREE_FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-2 text-[13px] text-secondary">
-                  <Check size={15} strokeWidth={2} className="mt-[2px] shrink-0 text-primary" /> {f}
+                  <Check size={15} strokeWidth={2} className="mt-[2px] shrink-0 text-primary" /> {t(`qr.plans.freeFeatures.${f}`)}
                 </li>
               ))}
             </ul>
             <Link to="/qr" className="mt-5">
-              <Button variant="secondary" className="w-full"><QrCode size={15} /> Mulai gratis</Button>
+              <Button variant="secondary" className="w-full"><QrCode size={15} /> {t('qr.pricing.startFree')}</Button>
             </Link>
           </div>
 
@@ -95,20 +98,20 @@ export default function QrPricingPage() {
                 {p.discount ? (
                   <DiscountBadge discount={p.discount} />
                 ) : (
-                  yearlySaves(p) && <span className="premium-gold rounded-full border px-2 py-0.5 text-[11px] font-semibold">Hemat</span>
+                  yearlySaves(p) && <span className="premium-gold rounded-full border px-2 py-0.5 text-[11px] font-semibold">{t('qr.pricing.save')}</span>
                 )}
               </div>
-              <PlanPrice plan={p} period={p.id === 'monthly' ? '/ bulan' : '/ tahun'} className="text-primary" />
+              <PlanPrice plan={p} period={p.id === 'monthly' ? t('qr.plans.perMonth') : t('qr.plans.perYear')} className="text-primary" />
               {p.note && <p className="mt-1 text-[12px] text-secondary">{p.note}</p>}
               <ul className="mt-4 flex-1 space-y-2">
                 {PAID_FEATURES.map((f) => (
                   <li key={f} className="flex items-start gap-2 text-[13px] text-secondary">
-                    <Check size={15} strokeWidth={2} className={`mt-[2px] shrink-0 ${PLAN_TONE[p.id]?.check || 'text-primary'}`} /> {f}
+                    <Check size={15} strokeWidth={2} className={`mt-[2px] shrink-0 ${PLAN_TONE[p.id]?.check || 'text-primary'}`} /> {t(`qr.plans.paidFeatures.${f}`)}
                   </li>
                 ))}
               </ul>
               <Button variant="primary" className="mt-5 w-full" onClick={() => choose(p.id)}>
-                Pilih {p.label}
+                {t('qr.pricing.choose', { plan: p.label })}
               </Button>
             </div>
           ))}
@@ -116,7 +119,7 @@ export default function QrPricingPage() {
 
         {!user && (
           <p className="mt-6 text-[13px] text-secondary">
-            Sudah punya akun? <Link to="/masuk" className="underline hover:text-primary">Masuk</Link>.
+            {t('qr.pricing.haveAccount')} <Link to="/masuk" className="underline hover:text-primary">{t('qr.pricing.login')}</Link>.
           </p>
         )}
       </section>

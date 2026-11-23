@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ProgressBar from './ProgressBar';
 
 function formatBytes(bytes) {
@@ -22,6 +23,7 @@ function formatBytes(bytes) {
 }
 
 export default function FileItemCard({ fileItem, onDelete, onReplace, acceptFormats = [] }) {
+  const { t } = useTranslation();
   const replaceInputRef = useRef(null);
 
   const handleReplaceClick = (e) => {
@@ -117,7 +119,7 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
           {isActive ? (
             <div className="space-y-1">
               <div className="flex justify-between items-center text-[10px] sm:text-[11px] text-secondary">
-                <span>{fileItem.status === 'uploading' ? 'Uploading...' : 'Converting...'}</span>
+                <span>{fileItem.status === 'uploading' ? t('converter.uploading') : t('converter.converting')}</span>
                 <span className="font-medium">{fileItem.progress}%</span>
               </div>
               <ProgressBar progress={fileItem.progress} status={fileItem.status} />
@@ -144,14 +146,14 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
               {fileItem.status === 'done' && (
                 <>
                   <span className="shrink-0">•</span>
-                  <span className="text-success font-medium shrink-0">Done ✓</span>
+                  <span className="text-success font-medium shrink-0">{t('converter.done')}</span>
                 </>
               )}
               {fileItem.status === 'failed' && (
                 <>
                   <span className="shrink-0">•</span>
                   <span className="text-danger font-medium truncate" title={fileItem.error}>
-                    {fileItem.error || 'Failed'}
+                    {fileItem.error || t('converter.failed')}
                   </span>
                 </>
               )}
@@ -165,7 +167,8 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
             <button
               type="button"
               onClick={handleDownload}
-              title={`Download ${fileItem.outputFileName}`}
+              title={t('converter.download_file', { name: fileItem.outputFileName })}
+              aria-label={t('converter.download_file', { name: fileItem.outputFileName })}
               className="w-[30px] h-[30px] sm:w-[34px] sm:h-[34px] rounded-sm p-0 bg-accent-black dark:bg-white text-white dark:text-black hover:bg-accent-black-hover dark:hover:bg-zinc-200 flex items-center justify-center transition-smooth"
             >
               <Download size={13} strokeWidth={2} />
@@ -176,7 +179,8 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
             <button
               type="button"
               onClick={handleReplaceClick}
-              title="Replace file"
+              title={t('converter.replace_file')}
+              aria-label={t('converter.replace_file')}
               className="w-[28px] h-[28px] sm:w-[30px] sm:h-[30px] rounded-sm flex items-center justify-center text-tertiary hover:text-primary hover:bg-card-muted transition-smooth"
             >
               <Edit2 size={13} strokeWidth={1.75} />
@@ -187,7 +191,8 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
             <button
               type="button"
               onClick={() => onDelete(fileItem.id)}
-              title="Remove file"
+              title={t('converter.remove_file')}
+              aria-label={t('converter.remove_file')}
               className="w-[30px] h-[30px] sm:w-[34px] sm:h-[34px] rounded-sm p-0 flex items-center justify-center text-tertiary hover:text-danger hover:bg-[#FEE2E2] dark:hover:bg-red-900/30 transition-smooth"
             >
               <Trash2 size={13} strokeWidth={1.75} />

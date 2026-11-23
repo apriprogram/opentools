@@ -49,14 +49,14 @@
     "card_compress_desc": "Shrink videos, images, audio, and GIFs so they're easier to send.",
     "card_twibbon_desc": "Upload a PNG frame, share the link, and anyone can add their photo.",
     "card_qr_desc": "Turn a link into a QR code. Free with a logo; Premium lets you change colors and remove the logo.",
-    "card_linktree_desc": "One page for all your links. Free with an account, and you can make many.",
+    "card_linktree_desc": "One page for all your links. Free with an account, up to 3 Linktrees each.",
     "card_batch_desc": "Convert up to 20 files at once to one format, then download them as a ZIP.",
     "card_stats_desc": "See visitors, files processed, and the most-used tools in real time.",
     "chip_image": "Image",
     "chip_free": "Free",
     "chip_png_frame": "PNG frame",
     "chip_campaign_link": "Campaign link",
-    "chip_download_photo": "Download",
+    "chip_download_photo": "Download photo",
     "chip_themes": "Themes & colors",
     "chip_click_stats": "Click stats",
     "chip_max_files": "Max 20 files",
@@ -98,7 +98,8 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "contact": "Contact",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "desc": "A fast, privacy-first file converter and compressor, running on high-performance servers."
   },
   "common": {
     "back": "Back"

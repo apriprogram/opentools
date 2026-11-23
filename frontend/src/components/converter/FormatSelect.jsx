@@ -1,13 +1,16 @@
 import React from 'react';
 import Chip from '../ui/Chip';
 import Dropdown from '../ui/Dropdown';
+import { useTranslation } from 'react-i18next';
 
 export default function FormatSelect({
   formats = [],
   selectedFormat,
   onSelectFormat,
-  label = 'Target Format',
+  label,
 }) {
+  const { t } = useTranslation();
+  if (label === undefined) label = t('converter.target_format');
   if (!formats || formats.length === 0) return null;
 
   // If few formats, show as chips

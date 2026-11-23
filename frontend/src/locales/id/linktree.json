@@ -1,0 +1,60 @@
+{
+  "linktree": {
+    "features": {
+      "links_title": "Tautan tanpa batas",
+      "links_text": "Tambahkan semua link penting: toko, portofolio, video, dan kontak.",
+      "headers_title": "Header dan pemisah",
+      "headers_text": "Kelompokkan tautan dengan judul bagian agar mudah dibaca.",
+      "social_title": "Ikon sosial",
+      "social_text": "Instagram, YouTube, TikTok, WhatsApp, email, dan platform lainnya.",
+      "themes_title": "Tema dan warna",
+      "themes_text": "Pilih tema siap pakai atau atur warna latar, teks, dan tombol sendiri.",
+      "photos_title": "Foto dan latar",
+      "photos_text": "Unggah foto profil dan gambar latar untuk tampilan yang khas.",
+      "stats_title": "Statistik klik",
+      "stats_text": "Lihat berapa kali halaman dibuka dan tiap tautan diklik.",
+      "qr_title": "QR code halaman",
+      "qr_text": "Unduh QR code dari Linktree Anda untuk dicetak atau dibagikan.",
+      "multi_title": "Hingga 3 Linktree",
+      "multi_text": "Satu akun bisa membuat sampai 3 Linktree untuk tujuan yang berbeda."
+    },
+    "theme_liquid_purple": "Liquid glass ungu",
+    "sample": {
+      "title": "Nama Anda",
+      "bio": "Kreator konten dan pemilik toko online. Pesan untuk kerja sama di bawah.",
+      "header_latest": "Karya Terbaru",
+      "link_shop": "Toko Online Saya",
+      "link_video": "Video Terbaru",
+      "link_contact": "Hubungi Saya",
+      "header_collab": "Kerja Sama",
+      "link_portfolio": "Portofolio",
+      "link_schedule": "Jadwal Konsultasi",
+      "link_email": "Kirim Email"
+    },
+    "landing": {
+      "badge": "Gratis",
+      "title_big": "Satu link",
+      "title_rest": "untuk semua profil Anda",
+      "description": "Kumpulkan semua tautan penting dalam satu halaman. Daftar akun untuk membuat dan mengedit Linktree. Halaman yang sudah diterbitkan bisa dibuka siapa saja.",
+      "open_mine": "Buka Linktree saya",
+      "register_create": "Daftar dan buat Linktree",
+      "have_account_login": "Sudah punya akun? Masuk",
+      "mockup_label": "Contoh Linktree di ponsel",
+      "try_theme": "Coba tema",
+      "theme_aria": "Tema {{label}}"
+    },
+    "mockup_default_label": "Contoh tampilan di ponsel",
+    "public": {
+      "loading": "Memuat...",
+      "not_found_title": "Halaman tidak ditemukan",
+      "not_found_text": "Linktree ini belum diterbitkan atau alamatnya salah.",
+      "create_own": "Buat Linktree Anda sendiri",
+      "preview_doc_title": "Pratinjau {{title}} | OpenTools",
+      "preview_published": "Ini pratinjau halaman kamu. Kunjungan dan klik di sini tidak dihitung.",
+      "preview_draft": "Pratinjau draf. Halaman ini belum diterbitkan, jadi hanya kamu yang bisa melihatnya.",
+      "edit": "Edit Linktree",
+      "badge_title": "Buat Linktree kamu sendiri, gratis",
+      "made_with": "Dibuat dengan"
+    }
+  }
+}

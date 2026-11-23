@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Lock, Mail, Phone, UserPlus, UserRound } from 'lucide-react';
 import { AuthField, AuthShell, purposeText } from '../../components/auth/AuthParts';
 import Button from '../../components/ui/Button';
@@ -8,6 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { registerAccount } from '../../services/authApi';
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const { addToast: toast } = useToast();
   const { signIn } = useAuth();
   const navigate = useNavigate();
@@ -26,7 +28,7 @@ export default function RegisterPage() {
   const submit = async (e) => {
     e.preventDefault();
     if (form.password !== form.confirm) {
-      toast({ type: 'error', title: 'Password tidak sama', message: 'Ulangi password dengan benar.' });
+      toast({ type: 'error', title: t('auth.register.mismatch_title'), message: t('auth.register.mismatch_message') });
       return;
     }
     setBusy(true);
@@ -40,7 +42,7 @@ export default function RegisterPage() {
       signIn(res);
       navigate(nextPath || (paketParam ? `/dashboard/qr?paket=${paketParam}` : '/dashboard/qr'), { replace: true });
     } catch (err) {
-      toast({ type: 'error', title: 'Gagal daftar', message: err?.response?.data?.message || 'Coba lagi beberapa saat.' });
+      toast({ type: 'error', title: t('auth.register.error_title'), message: err?.response?.data?.message || t('auth.retry_later') });
     } finally {
       setBusy(false);
     }
@@ -51,59 +53,59 @@ export default function RegisterPage() {
 
   return (
     <AuthShell
-      title="Buat akun gratis"
-      subtitle={`Daftar ${purposeText(nextPath, paketParam)}.`}
+      title={t('auth.register.title')}
+      subtitle={t('auth.register.subtitle', { purpose: purposeText(t, nextPath, paketParam) })}
       footer={
         <>
-          Sudah punya akun?{' '}
-          <Link to={loginPath} className="font-medium text-primary underline underline-offset-2 hover:text-blue-500">Masuk</Link>
+          {t('auth.register.have_account')}{' '}
+          <Link to={loginPath} className="font-medium text-primary underline underline-offset-2 hover:text-blue-500">{t('auth.register.login_link')}</Link>
         </>
       }
     >
       <form onSubmit={submit} className="grid gap-4">
-        <AuthField id="name" label="Nama lengkap" icon={UserRound} required minLength={2} maxLength={120} autoComplete="name" placeholder="Nama kamu" value={form.name} onChange={set('name')} />
-        <AuthField id="email" label="Email" icon={Mail} type="email" required autoComplete="email" placeholder="nama@email.com" value={form.email} onChange={set('email')} />
+        <AuthField id="name" label={t('auth.register.name_label')} icon={UserRound} required minLength={2} maxLength={120} autoComplete="name" placeholder={t('auth.register.name_placeholder')} value={form.name} onChange={set('name')} />
+        <AuthField id="email" label={t('auth.email_label')} icon={Mail} type="email" required autoComplete="email" placeholder={t('auth.email_placeholder')} value={form.email} onChange={set('email')} />
         <AuthField
           id="whatsapp"
-          label="Nomor WhatsApp"
+          label={t('auth.register.whatsapp_label')}
           icon={Phone}
           type="tel"
           inputMode="tel"
           required
           autoComplete="tel"
           placeholder="081234567890"
-          hint="Dipakai admin untuk menghubungi kamu soal pesanan."
+          hint={t('auth.register.whatsapp_hint')}
           value={form.whatsapp}
           onChange={set('whatsapp')}
         />
         <AuthField
           id="password"
-          label="Password"
+          label={t('auth.password_label')}
           icon={Lock}
           type="password"
           required
           minLength={8}
           autoComplete="new-password"
-          placeholder="Minimal 8 karakter"
-          error={tooShort ? 'Password minimal 8 karakter.' : ''}
+          placeholder={t('auth.register.password_placeholder')}
+          error={tooShort ? t('auth.register.password_too_short') : ''}
           value={form.password}
           onChange={set('password')}
         />
         <AuthField
           id="confirm"
-          label="Ulangi password"
+          label={t('auth.register.confirm_label')}
           icon={Lock}
           type="password"
           required
           minLength={8}
           autoComplete="new-password"
-          placeholder="Ketik ulang password"
-          error={mismatch ? 'Belum sama dengan password di atas.' : ''}
+          placeholder={t('auth.register.confirm_placeholder')}
+          error={mismatch ? t('auth.register.confirm_mismatch') : ''}
           value={form.confirm}
           onChange={set('confirm')}
         />
         <Button type="submit" variant="primary" size="lg" icon={UserPlus} disabled={busy || tooShort || mismatch} className="mt-1 w-full">
-          {busy ? 'Membuat akun...' : 'Daftar'}
+          {busy ? t('auth.register.submitting') : t('auth.register.submit')}
         </Button>
       </form>
     </AuthShell>

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import i18n from '../i18n';
 
 export function useUpload(supportedExtensions = [], maxSizeMB = null) {
   // files: [{ id, file, name, size, type, previewUrl, error }]
@@ -52,11 +53,11 @@ export function useUpload(supportedExtensions = [], maxSizeMB = null) {
     });
 
     if (invalidNames.length > 0) {
-      setErrorMessage(`Unsupported format: ${invalidNames.join(', ')}. Supported: ${supportedExtensions.join(', ')}`);
+      setErrorMessage(i18n.t('converter.err_unsupported', { names: invalidNames.join(', '), supported: supportedExtensions.join(', ') }));
     }
 
     if (oversizedNames.length > 0) {
-      setErrorMessage(`File too large (max ${maxSizeMB}MB): ${oversizedNames.join(', ')}`);
+      setErrorMessage(i18n.t('converter.err_too_large', { size: maxSizeMB, names: oversizedNames.join(', ') }));
     }
 
     if (validItems.length > 0) {
@@ -76,11 +77,11 @@ export function useUpload(supportedExtensions = [], maxSizeMB = null) {
 
   const replaceFile = useCallback((id, newFile) => {
     if (!validateSize(newFile)) {
-      setErrorMessage(`File too large (max ${maxSizeMB}MB): ${newFile.name}`);
+      setErrorMessage(i18n.t('converter.err_too_large', { size: maxSizeMB, names: newFile.name }));
       return false;
     }
     if (!validateFile(newFile)) {
-      setErrorMessage(`Unsupported format for replacement: ${newFile.name}`);
+      setErrorMessage(i18n.t('converter.err_replace_format', { name: newFile.name }));
       return false;
     }
 

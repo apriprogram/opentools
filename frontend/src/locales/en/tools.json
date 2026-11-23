@@ -1,0 +1,370 @@
+{
+  "tools": {
+    "video-converter": {
+      "label": "Video Converter",
+      "description": "Universal video converter supporting MP4, MOV, MKV, WEBM, AVI, and more."
+    },
+    "audio-converter": {
+      "label": "Audio Converter",
+      "description": "High quality audio format conversion across MP3, WAV, OGG, AAC, FLAC, M4A."
+    },
+    "mp3-converter": {
+      "label": "MP3 Converter",
+      "description": "Convert any audio or video recording directly into high quality MP3 format."
+    },
+    "mp4-to-mp3": {
+      "label": "MP4 to MP3",
+      "description": "Extract clean audio track from MP4 video file to MP3 in seconds."
+    },
+    "video-to-mp3": {
+      "label": "Video to MP3",
+      "description": "Extract audio streams from all common video formats into 320kbps MP3."
+    },
+    "mp4-converter": {
+      "label": "MP4 Converter",
+      "description": "Convert MOV, AVI, MKV, WEBM videos into highly compatible H.264 MP4 format."
+    },
+    "mov-to-mp4": {
+      "label": "MOV to MP4",
+      "description": "Convert Apple QuickTime MOV videos to web-friendly MP4 format."
+    },
+    "mp3-to-ogg": {
+      "label": "MP3 to OGG",
+      "description": "Convert standard MP3 audio into lightweight OGG Vorbis audio."
+    },
+    "webm-to-mp4": {
+      "label": "WEBM to MP4",
+      "description": "Convert WEBM web videos to widely supported MP4."
+    },
+    "mkv-to-mp4": {
+      "label": "MKV to MP4",
+      "description": "Convert MKV videos to MP4 for phones and browsers."
+    },
+    "avi-to-mp4": {
+      "label": "AVI to MP4",
+      "description": "Convert old AVI videos to modern MP4."
+    },
+    "mp4-to-webm": {
+      "label": "MP4 to WEBM",
+      "description": "Convert MP4 to lightweight WEBM for the web."
+    },
+    "wav-to-mp3": {
+      "label": "WAV to MP3",
+      "description": "Convert large WAV recordings to small MP3 files."
+    },
+    "m4a-to-mp3": {
+      "label": "M4A to MP3",
+      "description": "Convert iPhone voice notes and M4A audio to MP3."
+    },
+    "ogg-to-mp3": {
+      "label": "OGG to MP3",
+      "description": "Convert OGG audio and WhatsApp voice notes to MP3."
+    },
+    "flac-to-mp3": {
+      "label": "FLAC to MP3",
+      "description": "Convert lossless FLAC music to MP3."
+    },
+    "aac-to-mp3": {
+      "label": "AAC to MP3",
+      "description": "Convert AAC audio to MP3."
+    },
+    "mp3-to-wav": {
+      "label": "MP3 to WAV",
+      "description": "Convert MP3 to uncompressed WAV for editing."
+    },
+    "mp4-to-wav": {
+      "label": "MP4 to WAV",
+      "description": "Extract the audio track of a video as WAV."
+    },
+    "image-converter": {
+      "label": "Image Converter",
+      "description": "Universal image conversion across WEBP, PNG, JPG, TIFF, GIF, BMP, AVIF."
+    },
+    "webp-to-png": {
+      "label": "WEBP to PNG",
+      "description": "Convert WEBP graphics to high-fidelity transparent PNG files."
+    },
+    "jfif-to-png": {
+      "label": "JFIF to PNG",
+      "description": "Convert JFIF / JPEG camera images to standard PNG format."
+    },
+    "png-to-svg": {
+      "label": "PNG to SVG",
+      "description": "Wrap and convert raster PNG images into scalable SVG vector containers."
+    },
+    "heic-to-jpg": {
+      "label": "HEIC to JPG",
+      "description": "Convert Apple iPhone HEIC/HEIF photos to universally viewable JPG images."
+    },
+    "heic-to-png": {
+      "label": "HEIC to PNG",
+      "description": "Convert Apple HEIC photos into uncompressed lossless PNG format."
+    },
+    "webp-to-jpg": {
+      "label": "WEBP to JPG",
+      "description": "Convert Google WEBP pictures to standard JPEG pictures with 100% quality."
+    },
+    "svg-converter": {
+      "label": "SVG Converter",
+      "description": "Convert SVG vectors to high-res PNG, JPG, WEBP or convert images to SVG."
+    },
+    "jpg-to-png": {
+      "label": "JPG to PNG",
+      "description": "Convert JPG photos to PNG."
+    },
+    "png-to-jpg": {
+      "label": "PNG to JPG",
+      "description": "Convert PNG images to smaller JPG files."
+    },
+    "jpg-to-webp": {
+      "label": "JPG to WEBP",
+      "description": "Convert JPG to lightweight WEBP for websites."
+    },
+    "png-to-webp": {
+      "label": "PNG to WEBP",
+      "description": "Convert PNG to WEBP while keeping transparency."
+    },
+    "avif-to-jpg": {
+      "label": "AVIF to JPG",
+      "description": "Convert AVIF images to universally viewable JPG."
+    },
+    "avif-to-png": {
+      "label": "AVIF to PNG",
+      "description": "Convert AVIF images to PNG."
+    },
+    "tiff-to-jpg": {
+      "label": "TIFF to JPG",
+      "description": "Convert TIFF scans to JPG."
+    },
+    "gif-to-webp": {
+      "label": "GIF to WEBP",
+      "description": "Convert animated GIF to much smaller animated WEBP."
+    },
+    "png-to-ico": {
+      "label": "PNG to ICO",
+      "description": "Create a favicon ICO (16 to 256 px) from an image."
+    },
+    "merge-pdf": {
+      "label": "Merge PDF",
+      "description": "Combine several PDF files into one, in the order you choose."
+    },
+    "organize-pdf": {
+      "label": "Organize PDF",
+      "description": "Reorder pages by drag and drop, delete, rotate, or add pages."
+    },
+    "scan-to-pdf": {
+      "label": "Scan to PDF",
+      "description": "Photograph documents with your camera and save them as one PDF."
+    },
+    "pdf-converter-legacy": {
+      "label": "PDF Converter",
+      "description": "Convert between PDF and various other formats."
+    },
+    "document-converter": {
+      "label": "Document Converter",
+      "description": "Convert between Word (DOCX), PDF and TXT."
+    },
+    "ebook-converter": {
+      "label": "Ebook Converter",
+      "description": "Convert eBooks to and from EPUB, PDF, MOBI."
+    },
+    "pdf-to-jpg": {
+      "label": "PDF to JPG",
+      "description": "Extract pages from PDF to high quality JPG images."
+    },
+    "pdf-to-epub": {
+      "label": "PDF to EPUB",
+      "description": "Convert PDF to EPUB format for e-readers."
+    },
+    "epub-to-pdf": {
+      "label": "EPUB to PDF",
+      "description": "Convert EPUB eBooks to standard PDF documents."
+    },
+    "heic-to-pdf": {
+      "label": "HEIC to PDF",
+      "description": "Convert HEIC images directly into a PDF document."
+    },
+    "jpg-to-pdf": {
+      "label": "JPG to PDF",
+      "description": "Convert a JPG image into a PDF document."
+    },
+    "word-to-pdf": {
+      "label": "Word to PDF",
+      "description": "Convert Word DOCX documents to PDF."
+    },
+    "pdf-to-word": {
+      "label": "PDF to Word",
+      "description": "Convert PDF text into an editable Word DOCX file."
+    },
+    "pdf-to-txt": {
+      "label": "PDF to TXT",
+      "description": "Extract all text from a PDF into a TXT file."
+    },
+    "word-to-txt": {
+      "label": "Word to TXT",
+      "description": "Extract plain text from a Word document."
+    },
+    "txt-to-pdf": {
+      "label": "TXT to PDF",
+      "description": "Turn a plain text file into a PDF document."
+    },
+    "txt-to-word": {
+      "label": "TXT to Word",
+      "description": "Turn a plain text file into a Word document."
+    },
+    "png-to-pdf": {
+      "label": "PNG to PDF",
+      "description": "Convert a PNG image into a PDF document."
+    },
+    "image-to-pdf": {
+      "label": "Image to PDF",
+      "description": "Convert JPG, PNG, WEBP or HEIC images into PDF."
+    },
+    "video-to-gif": {
+      "label": "Video to GIF",
+      "description": "Convert any video into an animated GIF."
+    },
+    "mp4-to-gif": {
+      "label": "MP4 to GIF",
+      "description": "Convert MP4 videos into animated GIF format."
+    },
+    "webm-to-gif": {
+      "label": "WEBM to GIF",
+      "description": "Convert WEBM web videos to GIF."
+    },
+    "apng-to-gif": {
+      "label": "APNG to GIF",
+      "description": "Convert animated PNG to standard GIF."
+    },
+    "gif-to-mp4": {
+      "label": "GIF to MP4",
+      "description": "Convert animated GIFs into MP4 video format."
+    },
+    "gif-to-apng": {
+      "label": "GIF to APNG",
+      "description": "Convert GIF to animated PNG (APNG) for better quality."
+    },
+    "image-to-gif": {
+      "label": "Image to GIF",
+      "description": "Convert static images to GIF format."
+    },
+    "mov-to-gif": {
+      "label": "MOV to GIF",
+      "description": "Convert MOV videos into GIF animations."
+    },
+    "avi-to-gif": {
+      "label": "AVI to GIF",
+      "description": "Convert AVI videos to GIF."
+    },
+    "video-compressor": {
+      "label": "Video Compressor",
+      "description": "Compress MP4, MOV, and AVI videos."
+    },
+    "mp3-compressor": {
+      "label": "MP3 Compressor",
+      "description": "Compress MP3 audio files."
+    },
+    "wav-compressor": {
+      "label": "WAV Compressor",
+      "description": "Compress WAV audio files."
+    },
+    "mp4-compressor": {
+      "label": "MP4 Compressor",
+      "description": "Shrink MP4 videos for WhatsApp, email and upload."
+    },
+    "mov-compressor": {
+      "label": "MOV Compressor",
+      "description": "Compress iPhone MOV videos."
+    },
+    "webm-compressor": {
+      "label": "WEBM Compressor",
+      "description": "Compress WEBM videos."
+    },
+    "mkv-compressor": {
+      "label": "MKV Compressor",
+      "description": "Compress MKV videos."
+    },
+    "m4a-compressor": {
+      "label": "M4A Compressor",
+      "description": "Compress M4A and AAC audio."
+    },
+    "ogg-compressor": {
+      "label": "OGG Compressor",
+      "description": "Compress OGG audio."
+    },
+    "flac-compressor": {
+      "label": "FLAC Compressor",
+      "description": "Make FLAC files smaller, lossless or with lower sample rate."
+    },
+    "image-compressor": {
+      "label": "Image Compressor",
+      "description": "Universal image compression."
+    },
+    "jpeg-compressor": {
+      "label": "JPEG Compressor",
+      "description": "Compress JPEG images."
+    },
+    "png-compressor": {
+      "label": "PNG Compressor",
+      "description": "Compress PNG images with high fidelity."
+    },
+    "webp-compressor": {
+      "label": "WEBP Compressor",
+      "description": "Compress WEBP images, animation kept."
+    },
+    "heic-compressor": {
+      "label": "HEIC Compressor",
+      "description": "Compress iPhone HEIC photos into small JPG."
+    },
+    "avif-compressor": {
+      "label": "AVIF Compressor",
+      "description": "Compress AVIF images."
+    },
+    "tiff-compressor": {
+      "label": "TIFF Compressor",
+      "description": "Compress large TIFF scans."
+    },
+    "pdf-compressor": {
+      "label": "PDF Compressor",
+      "description": "Reduce PDF file size."
+    },
+    "gif-compressor": {
+      "label": "GIF Compressor",
+      "description": "Reduce GIF file size."
+    }
+  },
+  "toolCategories": {
+    "video-audio": {
+      "label": "Video & Audio",
+      "description": "Convert video and audio files into modern, optimized formats with crystal clarity."
+    },
+    "image": {
+      "label": "Image",
+      "description": "Lightning-fast image conversions with lossless quality and web compression."
+    },
+    "pdf-documents": {
+      "label": "PDF & Documents",
+      "description": "Convert PDFs, Word documents, and eBooks easily."
+    },
+    "gif": {
+      "label": "GIF",
+      "description": "Create and convert animated GIFs from videos or images."
+    },
+    "compress-video-audio": {
+      "label": "Video & Audio",
+      "description": "Reduce file sizes of your media without losing quality."
+    },
+    "compress-image": {
+      "label": "Image",
+      "description": "Smart compression for web images."
+    },
+    "compress-pdf": {
+      "label": "PDF & Documents",
+      "description": "Compress heavy PDF documents."
+    },
+    "compress-gif": {
+      "label": "GIF",
+      "description": "Optimize animated GIFs."
+    }
+  }
+}

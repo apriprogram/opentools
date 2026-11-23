@@ -9,7 +9,8 @@ const fail = (res, error) => {
 // Akun: daftar, buat, ambil, ubah, dan hapus Linktree milik pengguna yang masuk.
 export const listLinktrees = async (req, res) => {
   try {
-    res.json({ success: true, linktrees: await lt.listLinktrees(req.user.id) });
+    // limit: jumlah Linktree maksimal akun ini (null = tanpa batas, untuk super admin).
+    res.json({ success: true, linktrees: await lt.listLinktrees(req.user.id), limit: lt.treeLimitFor(req.user) });
   } catch (error) {
     return fail(res, error);
   }
@@ -17,7 +18,7 @@ export const listLinktrees = async (req, res) => {
 
 export const createLinktree = async (req, res) => {
   try {
-    const linktree = await lt.createLinktree(req.user.id, req.body || {});
+    const linktree = await lt.createLinktree(req.user.id, req.body || {}, lt.treeLimitFor(req.user));
     res.status(201).json({ success: true, linktree });
   } catch (error) {
     return fail(res, error);

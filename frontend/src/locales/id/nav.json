@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "home": "Beranda",
+    "converters": "Konverter File",
+    "compressors": "Kompresor File",
+    "scan_pdf": "Scan ke PDF",
+    "merge_pdf": "Gabungkan PDF",
+    "organize_pdf": "Atur Halaman PDF",
+    "twibbon": "Twibbon",
+    "qr": "QR Generator",
+    "linktree": "Linktree",
+    "stats": "Statistik",
+    "batch": "Konversi banyak file",
+    "quick_menu": "Menu cepat",
+    "change_language": "Ganti bahasa",
+    "toggle_theme": "Ganti mode terang/gelap",
+    "open_menu": "Buka menu",
+    "twibbon_campaigns": "Kampanye Twibbon",
+    "linktree_builder": "Buat Linktree"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "legal": {
+    "last_updated": "Last updated: {{date}}",
+    "terms": {
+      "title": "Terms & Conditions",
+      "s1_title": "1. Acceptance of Terms",
+      "s1_p": "By accessing and using the OpenTools website, you accept and agree to be bound by these Terms and Conditions. If you do not agree with these terms, you are prohibited from using or accessing this site.",
+      "s2_title": "2. Use of the Service",
+      "s2_p": "OpenTools provides free and open file conversion and compression services. You agree to use this service only for lawful purposes and in accordance with applicable law. You may not:",
+      "s2_li1": "Use this service to process files containing malware, viruses, or other malicious code.",
+      "s2_li2": "Use this service to process illegal material, copyright-infringing material, or content prohibited by law.",
+      "s2_li3": "Attempt to deliberately overload our servers with DDoS attacks or automated spam requests.",
+      "s3_title": "3. Responsibility for Files",
+      "s3_p": "You bear full responsibility for the files you upload. We do not claim ownership of your files. Because our system is designed to delete files automatically after 5 minutes, we are not responsible for any data loss. Make sure you keep your original files before using our services.",
+      "s4_title": "4. Disclaimer",
+      "s4_p": "The materials on the OpenTools website are provided \"as is\". We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties, including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.",
+      "s5_title": "5. Limitation of Liability",
+      "s5_p": "In no event shall OpenTools or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on the OpenTools website.",
+      "s6_title": "6. Changes to the Terms",
+      "s6_p": "OpenTools may revise these terms of use for its website at any time without notice. By using this website, you agree to be bound by the then-current version of these Terms and Conditions of Use."
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "s1_title": "1. Our Privacy Commitment",
+      "s1_p": "At OpenTools, your privacy is our top priority. We built this platform on the principle that your files belong entirely to you. We never view, copy, or sell your data.",
+      "s2_title": "2. File Handling & Deletion",
+      "s2_li1_label": "End-to-End Processing:",
+      "s2_li1_text": "The files you upload are processed only for the conversion or compression you request.",
+      "s2_li2_label": "Automatic Deletion (5 Minutes):",
+      "s2_li2_text": "All uploaded and generated files are automatically and permanently deleted from our servers within 5 minutes at most after processing is complete.",
+      "s2_li3_label": "No Backup Copies:",
+      "s2_li3_text": "We do not keep backup copies of your files. Once deleted, the files cannot be recovered by anyone.",
+      "s3_title": "3. Data Collection",
+      "s3_intro_before": "We do",
+      "s3_intro_strong": "NOT",
+      "s3_intro_after": "collect or store:",
+      "s3_li1": "The contents of your document, image, audio, or video files.",
+      "s3_li2": "Personally identifiable information (name, email, etc.), since we do not require account registration.",
+      "s3_li3": "Ad-tracking data (our platform is 100% ad-free).",
+      "s4_title": "4. Security",
+      "s4_p": "All data transfers between your device and our servers are encrypted using industry-standard security protocols (HTTPS/TLS). We ensure your connection is protected from third parties.",
+      "s5_title": "5. Open Source",
+      "s5_p": "Transparency is the key to trust. The source code of OpenTools is open to the public. Anyone can audit, review, and verify that we keep our privacy promises. You can view our source code in our GitHub repository."
+    }
+  }
+}

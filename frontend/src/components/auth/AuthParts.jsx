@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, ImagePlus, Link2, QrCode } from 'lucide-react';
 import SiteLogo from '../ui/SiteLogo';
 
 // Kerangka halaman Masuk dan Daftar: logo, judul, kartu formulir, dan tautan pindah halaman di bawahnya.
 export function AuthShell({ title, subtitle, children, footer }) {
+  const { t } = useTranslation();
   return (
     <main className="flex w-full justify-center px-4 pb-28 pt-8 sm:px-6 sm:pt-12">
       <section className="w-full max-w-[420px]">
         <div className="mb-5 flex flex-col items-center text-center sm:mb-6">
           {/* Logo OpenTools tanpa latar, sama seperti di navbar. */}
-          <SiteLogo className="h-11 w-11 text-[#034AFC] dark:text-[#5B86FF]" title="Logo OpenTools" />
+          <SiteLogo className="h-11 w-11 text-[#034AFC] dark:text-[#5B86FF]" title={t('auth.logo_title')} />
           <h1 className="mt-4 text-[22px] font-semibold tracking-tight text-primary sm:text-[24px]">{title}</h1>
           {subtitle && <p className="mt-1 max-w-[340px] text-[13px] leading-relaxed text-secondary sm:text-[14px]">{subtitle}</p>}
         </div>
@@ -40,6 +42,7 @@ const INPUT =
 
 // Kolom isian dengan ikon di kiri. Untuk password, ada tombol mata di kanan untuk melihat atau menyembunyikan isinya.
 export function AuthField({ id, label, icon: Icon, type = 'text', hint, error, className = '', ...props }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const isPassword = type === 'password';
   return (
@@ -59,9 +62,9 @@ export function AuthField({ id, label, icon: Icon, type = 'text', hint, error, c
           <button
             type="button"
             onClick={() => setVisible((v) => !v)}
-            aria-label={visible ? 'Sembunyikan password' : 'Lihat password'}
+            aria-label={visible ? t('auth.hide_password') : t('auth.show_password')}
             aria-pressed={visible}
-            title={visible ? 'Sembunyikan password' : 'Lihat password'}
+            title={visible ? t('auth.hide_password') : t('auth.show_password')}
             className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-tertiary transition-smooth hover:bg-card-muted hover:text-primary"
           >
             {visible ? <EyeOff size={16} strokeWidth={1.75} aria-hidden="true" /> : <Eye size={16} strokeWidth={1.75} aria-hidden="true" />}
@@ -75,10 +78,10 @@ export function AuthField({ id, label, icon: Icon, type = 'text', hint, error, c
   );
 }
 
-// Keterangan singkat sesuai halaman yang dituju setelah masuk.
-export const purposeText = (nextPath, paket) => {
-  if (nextPath?.startsWith('/dashboard/twibbon')) return 'untuk membuat dan mengelola Twibbon kamu';
-  if (nextPath?.startsWith('/dashboard/linktree')) return 'untuk membuat dan mengelola Linktree kamu';
-  if (paket) return 'untuk melanjutkan pemesanan Premium Gold';
-  return 'untuk mengelola QR, Linktree, dan Twibbon kamu';
+// Keterangan singkat sesuai halaman yang dituju setelah masuk. t: fungsi terjemahan dari useTranslation.
+export const purposeText = (t, nextPath, paket) => {
+  if (nextPath?.startsWith('/dashboard/twibbon')) return t('auth.purpose_twibbon');
+  if (nextPath?.startsWith('/dashboard/linktree')) return t('auth.purpose_linktree');
+  if (paket) return t('auth.purpose_order');
+  return t('auth.purpose_default');
 };

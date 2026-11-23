@@ -1,0 +1,60 @@
+{
+  "linktree": {
+    "features": {
+      "links_title": "Unlimited links",
+      "links_text": "Add all your important links: shop, portfolio, videos, and contacts.",
+      "headers_title": "Headers and dividers",
+      "headers_text": "Group your links under section titles so they're easy to read.",
+      "social_title": "Social icons",
+      "social_text": "Instagram, YouTube, TikTok, WhatsApp, email, and other platforms.",
+      "themes_title": "Themes and colors",
+      "themes_text": "Pick a ready-made theme or set your own background, text, and button colors.",
+      "photos_title": "Photos and backgrounds",
+      "photos_text": "Upload a profile photo and background image for a distinctive look.",
+      "stats_title": "Click stats",
+      "stats_text": "See how many times your page was opened and each link was clicked.",
+      "qr_title": "Page QR code",
+      "qr_text": "Download a QR code for your Linktree to print or share.",
+      "multi_title": "Up to 3 Linktrees",
+      "multi_text": "One account can create up to 3 Linktrees for different purposes."
+    },
+    "theme_liquid_purple": "Purple liquid glass",
+    "sample": {
+      "title": "Your Name",
+      "bio": "Content creator and online shop owner. Collaboration inquiries below.",
+      "header_latest": "Latest Work",
+      "link_shop": "My Online Shop",
+      "link_video": "Latest Video",
+      "link_contact": "Contact Me",
+      "header_collab": "Collaborations",
+      "link_portfolio": "Portfolio",
+      "link_schedule": "Book a Consultation",
+      "link_email": "Send an Email"
+    },
+    "landing": {
+      "badge": "Free",
+      "title_big": "One link",
+      "title_rest": "for all your profiles",
+      "description": "Gather all your important links on one page. Sign up to create and edit your Linktree. Published pages can be opened by anyone.",
+      "open_mine": "Open my Linktree",
+      "register_create": "Sign up and create a Linktree",
+      "have_account_login": "Already have an account? Sign in",
+      "mockup_label": "Sample Linktree on a phone",
+      "try_theme": "Try a theme",
+      "theme_aria": "{{label}} theme"
+    },
+    "mockup_default_label": "Sample view on a phone",
+    "public": {
+      "loading": "Loading...",
+      "not_found_title": "Page not found",
+      "not_found_text": "This Linktree hasn't been published yet or the address is wrong.",
+      "create_own": "Create your own Linktree",
+      "preview_doc_title": "Preview {{title}} | OpenTools",
+      "preview_published": "This is a preview of your page. Visits and clicks here aren't counted.",
+      "preview_draft": "Draft preview. This page hasn't been published yet, so only you can see it.",
+      "edit": "Edit Linktree",
+      "badge_title": "Create your own Linktree for free",
+      "made_with": "Made with"
+    }
+  }
+}

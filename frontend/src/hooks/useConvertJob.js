@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
+import i18n from '../i18n';
 import { convertSingleFile, checkJobStatus, downloadAllAsZip } from '../services/converterApi';
 
 export function useConvertJob(toolId, targetFormat, targetPercent = null) {
@@ -15,12 +16,12 @@ export function useConvertJob(toolId, targetFormat, targetPercent = null) {
         if (!data.success) {
           clearInterval(interval);
           activePollers.current.delete(fileId);
-          onFailed(data.error?.message || 'Conversion failed');
+          onFailed(data.error?.message || i18n.t('converter.err_conversion'));
           return;
         }
 
         if (data.status === 'processing') {
-          onProgress(data.progress || 50, 'Converting...');
+          onProgress(data.progress || 50, i18n.t('converter.converting'));
         } else if (data.status === 'done') {
           clearInterval(interval);
           activePollers.current.delete(fileId);
@@ -28,7 +29,7 @@ export function useConvertJob(toolId, targetFormat, targetPercent = null) {
         } else if (data.status === 'failed') {
           clearInterval(interval);
           activePollers.current.delete(fileId);
-          onFailed(data.error?.message || 'Conversion failed');
+          onFailed(data.error?.message || i18n.t('converter.err_conversion'));
         }
       } catch (err) {
         console.error('Polling error:', err);
@@ -130,7 +131,7 @@ export function useConvertJob(toolId, targetFormat, targetPercent = null) {
           updateFileStatus(fileItem.id, {
             status: 'failed',
             progress: 0,
-            error: uploadRes.error?.message || 'Failed to start job',
+            error: uploadRes.error?.message || i18n.t('converter.err_start'),
           });
           checkAllFinished();
         }
@@ -138,7 +139,7 @@ export function useConvertJob(toolId, targetFormat, targetPercent = null) {
         updateFileStatus(fileItem.id, {
           status: 'failed',
           progress: 0,
-          error: err.response?.data?.error?.message || err.message || 'Upload error',
+          error: err.response?.data?.error?.message || err.message || i18n.t('converter.err_upload'),
         });
         checkAllFinished();
       }

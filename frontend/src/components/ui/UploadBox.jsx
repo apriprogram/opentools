@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { CloudUpload, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Button from './Button';
 
 export default function UploadBox({
@@ -7,19 +8,20 @@ export default function UploadBox({
   acceptFormats = [],
   maxSizeMB = 50,
   multiple = true,
-  title = "Choose a file or drag & drop it here.",
+  title = null,
   customSubtext = null,
   className = "",
 }) {
+  const { t } = useTranslation();
   const fileInputRef = useRef(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragError, setDragError] = useState(null);
 
   const formatListString = acceptFormats.length > 0
     ? acceptFormats.map((f) => f.toUpperCase().replace('.', '')).join(', ')
-    : 'Any format';
+    : t('converter.any_format');
 
-  const subtext = customSubtext || `${formatListString} • Up to ${maxSizeMB}MB`;
+  const subtext = customSubtext || t('converter.upload_limit', { formats: formatListString, size: maxSizeMB });
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -93,7 +95,7 @@ export default function UploadBox({
       </div>
 
       <p className={`text-[14px] font-medium leading-[20px] mb-1 transition-colors duration-150 ${isDragOver ? 'text-primary' : 'text-primary'}`}>
-        {title}
+        {title || t('converter.upload_title')}
       </p>
 
       <p className="text-[12px] font-normal text-secondary leading-[16px] mb-4">
@@ -113,7 +115,7 @@ export default function UploadBox({
           onClick={handleClickBrowse}
           className="pointer-events-none"
         >
-          Browse files
+          {t('converter.browse')}
         </Button>
       )}
     </div>

@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "home": "Home",
+    "converters": "File Converters",
+    "compressors": "File Compressors",
+    "scan_pdf": "Scan to PDF",
+    "merge_pdf": "Merge PDF",
+    "organize_pdf": "Organize PDF Pages",
+    "twibbon": "Twibbon",
+    "qr": "QR Generator",
+    "linktree": "Linktree",
+    "stats": "Statistics",
+    "batch": "Convert multiple files",
+    "quick_menu": "Quick menu",
+    "change_language": "Change language",
+    "toggle_theme": "Toggle light/dark mode",
+    "open_menu": "Open menu",
+    "twibbon_campaigns": "Twibbon Campaigns",
+    "linktree_builder": "Linktree Builder"
+  }
+}

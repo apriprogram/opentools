@@ -91,9 +91,9 @@ export default function Home() {
       span: SPAN_HALF,
       tone: 'graphite',
       icon: QrCode,
-      title: 'QR Generator',
+      title: t('pages.home_qr_title'),
       desc: t('home.card_qr_desc', 'Ubah link jadi QR code. Gratis dengan logo, Premium bisa ganti warna dan tanpa logo.'),
-      chips: [t('home.chip_free', 'Gratis'), 'PNG & SVG', 'Premium per QR'],
+      chips: [t('home.chip_free', 'Gratis'), 'PNG & SVG', t('pages.home_chip_premium_qr')],
       art: <IllusQr />,
     },
     {
@@ -135,7 +135,7 @@ export default function Home() {
       icon: BarChart2,
       title: t('home.card_stats_title', 'Statistik'),
       desc: t('home.card_stats_desc', 'Lihat jumlah pengunjung, file yang diproses, dan fitur terpopuler secara realtime.'),
-      chips: ['Realtime', t('home.chip_visitors', 'Pengunjung'), t('home.chip_files_processed', 'File diproses')],
+      chips: [t('pages.home_chip_realtime'), t('home.chip_visitors', 'Pengunjung'), t('home.chip_files_processed', 'File diproses')],
       art: <IllusStats />,
     },
   ];

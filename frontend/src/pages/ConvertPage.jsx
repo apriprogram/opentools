@@ -28,6 +28,7 @@ import SizeTarget from '../components/converter/SizeTarget';
 import { fetchTools, fetchCompressors } from '../services/converterApi';
 import { useUpload } from '../hooks/useUpload';
 import { useConvertJob } from '../hooks/useConvertJob';
+import { toolLabel, toolDescription } from '../lib/toolText';
 
 export default function ConvertPage() {
   const { t } = useTranslation();
@@ -69,6 +70,11 @@ export default function ConvertPage() {
           }
         }
         
+        // Alat yang punya halaman sendiri (misalnya Gabungkan PDF) dibuka di halamannya.
+        if (foundTool?.route) {
+          navigate(foundTool.route, { replace: true });
+          return;
+        }
         if (foundTool) {
           // Add a flag so we can display correct titles
           foundTool.isCompressor = isCompressor;
@@ -125,7 +131,7 @@ export default function ConvertPage() {
       <PageContainer>
         <div className="p-16 flex flex-col items-center justify-center gap-3 text-secondary">
           <Loader2 className="animate-spin" size={28} />
-          <p className="text-[13px]">Loading converter...</p>
+          <p className="text-[13px]">{t('converter.loading')}</p>
         </div>
       </PageContainer>
     );
@@ -150,7 +156,7 @@ export default function ConvertPage() {
           to="/"
           className="inline-flex items-center gap-2 text-[13px] font-medium text-secondary hover:text-primary transition-smooth"
         >
-          <IconButton icon={ArrowLeft} size="sm" variant="bordered" title="Kembali" />
+          <IconButton icon={ArrowLeft} size="sm" variant="bordered" title={t('converter.back')} />
           <span className="hidden sm:inline">{t('common.back', 'Kembali')}</span>
         </Link>
 
@@ -161,7 +167,7 @@ export default function ConvertPage() {
           icon={copiedShare ? Check : Share2}
           onClick={handleShare}
         >
-          {copiedShare ? 'Copied!' : 'Share Tool'}
+          {copiedShare ? t('converter.copied') : t('converter.share')}
         </Button>
       </div>
 
@@ -174,9 +180,12 @@ export default function ConvertPage() {
               <ToolIcon size={22} strokeWidth={1.75} />
             </div>
             <div>
-              <h1 className="text-[20px] font-semibold text-primary leading-[26px]">{tool.label}</h1>
+              <h1 className="text-[20px] font-semibold text-primary leading-[26px]">{toolLabel(t, tool)}</h1>
               <p className="text-[13px] text-secondary leading-[18px] mt-0.5">
-                {tool.description || `${tool.isCompressor ? 'Compress' : 'Convert'} ${tool.from.join(', ')} ${tool.isCompressor ? 'files' : '→ ' + selectedFormat.toUpperCase()}`}
+                {toolDescription(t, tool) ||
+                  (tool.isCompressor
+                    ? t('converter.compress_files', { from: tool.from.join(', ') })
+                    : t('converter.convert_from_to', { from: tool.from.join(', '), to: selectedFormat.toUpperCase() }))}
               </p>
             </div>
           </div>
@@ -189,7 +198,7 @@ export default function ConvertPage() {
               <span className="text-primary font-semibold">{selectedFormat.toUpperCase()}</span>
             </div>
             <div className="px-2.5 py-1 rounded-full bg-card-muted border border-border text-[11px] font-medium text-secondary">
-              Max {tool.maxSizeMB || 50}MB
+              {t('converter.max_size', { size: tool.maxSizeMB || 50 })}
             </div>
           </div>
         </div>
@@ -214,8 +223,8 @@ export default function ConvertPage() {
         {tool.to && tool.to.length > 1 && (
           <div className="p-4 bg-card-muted rounded-md border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <span className="text-[13px] font-semibold text-primary block">Output Format</span>
-              <span className="text-[12px] text-secondary">Select the target file format</span>
+              <span className="text-[13px] font-semibold text-primary block">{t('converter.output_format')}</span>
+              <span className="text-[12px] text-secondary">{t('converter.output_format_hint')}</span>
             </div>
             <FormatSelect
               formats={tool.to}
@@ -234,18 +243,18 @@ export default function ConvertPage() {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2.5">
                 <span className="text-[14px] font-semibold text-primary">
-                  Files ({files.length})
+                  {t('converter.files_count', { count: files.length })}
                 </span>
                 {allCompleted && anyDone && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#DCFCE7] dark:bg-green-900/40 text-success text-[11px] font-medium">
                     <CheckCircle2 size={11} />
-                    {doneFiles.length} {tool.isCompressor ? 'compressed' : 'converted'}
+                    {t(tool.isCompressor ? 'converter.n_compressed' : 'converter.n_converted', { count: doneFiles.length })}
                   </span>
                 )}
                 {failedFiles.length > 0 && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEE2E2] dark:bg-red-900/40 text-danger text-[11px] font-medium">
                     <AlertTriangle size={11} />
-                    {failedFiles.length} failed
+                    {t('converter.n_failed', { count: failedFiles.length })}
                   </span>
                 )}
               </div>
@@ -257,7 +266,7 @@ export default function ConvertPage() {
                   icon={RotateCcw}
                   className="h-7 text-[12px] px-2.5 bg-card-muted hover:bg-[#FEE2E2] hover:text-danger hover:border-danger/30 transition-smooth !rounded-sm"
                 >
-                  Reset
+                  {t('converter.reset')}
                 </Button>
               )}
             </div>
@@ -290,7 +299,7 @@ export default function ConvertPage() {
                   icon={FolderArchive}
                   className="w-full sm:w-auto !bg-green-500 hover:!bg-green-600 !border-green-500 hover:!border-green-600 !text-white transition-all"
                 >
-                  {isZipping ? 'Packaging ZIP...' : `Download All (${doneFiles.length}) ZIP`}
+                  {isZipping ? t('converter.zipping') : t('converter.download_all_zip', { count: doneFiles.length })}
                 </Button>
               ) : !isConverting ? (
                 <Button
@@ -299,7 +308,7 @@ export default function ConvertPage() {
                   onClick={clearFiles}
                   className="w-full sm:w-auto"
                 >
-                  Cancel
+                  {t('converter.cancel')}
                 </Button>
               ) : null}
             </div>
@@ -316,10 +325,10 @@ export default function ConvertPage() {
                   className={`w-full sm:w-auto min-w-[148px] ${isConverting ? 'opacity-80' : ''}`}
                 >
                   {isConverting
-                    ? (tool.isCompressor ? 'Compressing...' : 'Converting...')
+                    ? t(tool.isCompressor ? 'converter.compressing' : 'converter.converting')
                     : pendingFiles.length > 0
-                    ? `${tool.isCompressor ? 'Compress' : 'Convert'} ${pendingFiles.length} File${pendingFiles.length > 1 ? 's' : ''}`
-                    : (tool.isCompressor ? 'All Compressed' : 'All Converted')}
+                    ? t(tool.isCompressor ? 'converter.compress_n' : 'converter.convert_n', { count: pendingFiles.length })
+                    : t(tool.isCompressor ? 'converter.all_compressed' : 'converter.all_converted')}
                 </Button>
               ) : (
                 <Button
@@ -329,7 +338,7 @@ export default function ConvertPage() {
                   onClick={clearFiles}
                   className="w-full sm:w-auto min-w-[148px]"
                 >
-                  All Done!
+                  {t('converter.all_done')}
                 </Button>
               )}
             </div>

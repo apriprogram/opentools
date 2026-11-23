@@ -7,6 +7,12 @@ export async function fetchLinktrees() {
   return res.data.linktrees;
 }
 
+// Daftar Linktree beserta batas jumlahnya: { linktrees, limit } (limit null = tanpa batas).
+export async function fetchLinktreesWithLimit() {
+  const res = await api.get('/linktree', { headers: authHeaders() });
+  return { linktrees: res.data.linktrees, limit: res.data.limit ?? null };
+}
+
 export async function createLinktree({ title, slug }) {
   const res = await api.post('/linktree', { title, slug }, { headers: authHeaders() });
   return res.data.linktree;

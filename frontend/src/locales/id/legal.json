@@ -1,0 +1,46 @@
+{
+  "legal": {
+    "last_updated": "Terakhir diperbarui: {{date}}",
+    "terms": {
+      "title": "Syarat & Ketentuan",
+      "s1_title": "1. Penerimaan Syarat",
+      "s1_p": "Dengan mengakses dan menggunakan situs web OpenTools, Anda menerima dan setuju untuk terikat oleh Syarat dan Ketentuan ini. Jika Anda tidak setuju dengan ketentuan ini, Anda dilarang menggunakan atau mengakses situs ini.",
+      "s2_title": "2. Penggunaan Layanan",
+      "s2_p": "OpenTools menyediakan layanan konversi dan kompresi file secara gratis dan terbuka. Anda setuju untuk menggunakan layanan ini hanya untuk tujuan yang sah dan sesuai dengan hukum yang berlaku. Anda dilarang:",
+      "s2_li1": "Menggunakan layanan ini untuk memproses file yang mengandung malware, virus, atau kode berbahaya lainnya.",
+      "s2_li2": "Menggunakan layanan ini untuk memproses materi ilegal, melanggar hak cipta, atau konten yang dilarang oleh hukum.",
+      "s2_li3": "Mencoba membebani server kami secara sengaja dengan serangan DDoS atau permintaan spam otomatis.",
+      "s3_title": "3. Tanggung Jawab File",
+      "s3_p": "Anda memegang penuh tanggung jawab atas file yang Anda unggah. Kami tidak mengklaim kepemilikan atas file Anda. Karena sistem kami dirancang untuk menghapus file secara otomatis setelah 5 menit, kami tidak bertanggung jawab atas kehilangan data. Pastikan Anda menyimpan file asli Anda sebelum menggunakan layanan kami.",
+      "s4_title": "4. Penafian (Disclaimer)",
+      "s4_p": "Materi di situs web OpenTools disediakan \"sebagaimana adanya\". Kami tidak memberikan jaminan, tersurat maupun tersirat, dan dengan ini menolak dan meniadakan semua jaminan lainnya, termasuk namun tidak terbatas pada, jaminan tersirat atau kondisi yang dapat diperjualbelikan, kesesuaian untuk tujuan tertentu, atau non-pelanggaran kekayaan intelektual atau pelanggaran hak lainnya.",
+      "s5_title": "5. Batasan Tanggung Jawab",
+      "s5_p": "Dalam keadaan apa pun, OpenTools atau pemasoknya tidak bertanggung jawab atas segala kerusakan (termasuk, tanpa batasan, kerusakan karena hilangnya data atau keuntungan, atau karena gangguan bisnis) yang timbul dari penggunaan atau ketidakmampuan untuk menggunakan materi di situs web OpenTools.",
+      "s6_title": "6. Perubahan Syarat",
+      "s6_p": "OpenTools dapat merevisi syarat ketentuan penggunaan situs webnya kapan saja tanpa pemberitahuan. Dengan menggunakan situs web ini, Anda setuju untuk terikat oleh versi saat ini dari Syarat dan Ketentuan Penggunaan ini."
+    },
+    "privacy": {
+      "title": "Kebijakan Privasi",
+      "s1_title": "1. Komitmen Privasi Kami",
+      "s1_p": "Di OpenTools, privasi Anda adalah prioritas utama kami. Kami membangun platform ini dengan prinsip bahwa file Anda adalah milik Anda sepenuhnya. Kami tidak pernah melihat, menyalin, atau menjual data Anda.",
+      "s2_title": "2. Penanganan & Penghapusan File",
+      "s2_li1_label": "Proses End-to-End:",
+      "s2_li1_text": "File yang Anda unggah hanya diproses untuk tujuan konversi atau kompresi yang Anda minta.",
+      "s2_li2_label": "Penghapusan Otomatis (5 Menit):",
+      "s2_li2_text": "Semua file yang diunggah dan dihasilkan akan dihapus secara otomatis dan permanen dari server kami dalam waktu maksimal 5 menit setelah proses selesai.",
+      "s2_li3_label": "Tidak Ada Salinan Cadangan:",
+      "s2_li3_text": "Kami tidak menyimpan salinan cadangan dari file Anda. Setelah dihapus, file tersebut tidak dapat dipulihkan kembali oleh siapapun.",
+      "s3_title": "3. Pengumpulan Data",
+      "s3_intro_before": "Kami",
+      "s3_intro_strong": "TIDAK",
+      "s3_intro_after": "mengumpulkan atau menyimpan:",
+      "s3_li1": "Isi dari file dokumen, gambar, audio, atau video Anda.",
+      "s3_li2": "Informasi identitas pribadi (Nama, Email, dll) karena kami tidak mensyaratkan pendaftaran akun.",
+      "s3_li3": "Data pelacakan iklan (platform kami 100% bebas iklan).",
+      "s4_title": "4. Keamanan",
+      "s4_p": "Seluruh transfer data antara perangkat Anda dan server kami dienkripsi menggunakan protokol keamanan standar industri (HTTPS/TLS). Kami menjamin bahwa koneksi Anda aman dari pihak ketiga.",
+      "s5_title": "5. Open Source",
+      "s5_p": "Transparansi adalah kunci dari kepercayaan. Kode sumber (source code) dari OpenTools terbuka untuk publik. Siapa saja dapat mengaudit, meninjau, dan memastikan bahwa kami menepati janji privasi kami. Anda dapat melihat kode sumber kami di repositori GitHub kami."
+    }
+  }
+}

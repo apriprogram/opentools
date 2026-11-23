@@ -1,0 +1,370 @@
+{
+  "tools": {
+    "video-converter": {
+      "label": "Konverter Video",
+      "description": "Ubah video ke MP4, MOV, MKV, WEBM, AVI, dan lainnya."
+    },
+    "audio-converter": {
+      "label": "Konverter Audio",
+      "description": "Ubah audio antara MP3, WAV, OGG, AAC, FLAC, dan M4A dengan kualitas tinggi."
+    },
+    "mp3-converter": {
+      "label": "Konverter MP3",
+      "description": "Ubah rekaman audio atau video apa pun menjadi MP3 berkualitas tinggi."
+    },
+    "mp4-to-mp3": {
+      "label": "MP4 ke MP3",
+      "description": "Ambil suara dari video MP4 menjadi MP3 dalam hitungan detik."
+    },
+    "video-to-mp3": {
+      "label": "Video ke MP3",
+      "description": "Ambil suara dari berbagai format video menjadi MP3 320 kbps."
+    },
+    "mp4-converter": {
+      "label": "Konverter MP4",
+      "description": "Ubah video MOV, AVI, MKV, WEBM menjadi MP4 H.264 yang bisa diputar di mana saja."
+    },
+    "mov-to-mp4": {
+      "label": "MOV ke MP4",
+      "description": "Ubah video MOV dari iPhone/QuickTime menjadi MP4 yang ramah web."
+    },
+    "mp3-to-ogg": {
+      "label": "MP3 ke OGG",
+      "description": "Ubah audio MP3 menjadi OGG Vorbis yang lebih ringan."
+    },
+    "webm-to-mp4": {
+      "label": "WEBM ke MP4",
+      "description": "Ubah video WEBM menjadi MP4 yang didukung hampir semua perangkat."
+    },
+    "mkv-to-mp4": {
+      "label": "MKV ke MP4",
+      "description": "Ubah video MKV menjadi MP4 untuk HP dan browser."
+    },
+    "avi-to-mp4": {
+      "label": "AVI ke MP4",
+      "description": "Ubah video AVI lama menjadi MP4 modern."
+    },
+    "mp4-to-webm": {
+      "label": "MP4 ke WEBM",
+      "description": "Ubah MP4 menjadi WEBM yang ringan untuk website."
+    },
+    "wav-to-mp3": {
+      "label": "WAV ke MP3",
+      "description": "Ubah rekaman WAV yang besar menjadi MP3 yang kecil."
+    },
+    "m4a-to-mp3": {
+      "label": "M4A ke MP3",
+      "description": "Ubah voice note iPhone dan audio M4A menjadi MP3."
+    },
+    "ogg-to-mp3": {
+      "label": "OGG ke MP3",
+      "description": "Ubah audio OGG dan voice note WhatsApp menjadi MP3."
+    },
+    "flac-to-mp3": {
+      "label": "FLAC ke MP3",
+      "description": "Ubah musik FLAC lossless menjadi MP3."
+    },
+    "aac-to-mp3": {
+      "label": "AAC ke MP3",
+      "description": "Ubah audio AAC menjadi MP3."
+    },
+    "mp3-to-wav": {
+      "label": "MP3 ke WAV",
+      "description": "Ubah MP3 menjadi WAV tanpa kompresi untuk diedit."
+    },
+    "mp4-to-wav": {
+      "label": "MP4 ke WAV",
+      "description": "Ambil suara dari video menjadi WAV."
+    },
+    "image-converter": {
+      "label": "Konverter Gambar",
+      "description": "Ubah gambar antara WEBP, PNG, JPG, TIFF, GIF, BMP, dan AVIF."
+    },
+    "webp-to-png": {
+      "label": "WEBP ke PNG",
+      "description": "Ubah gambar WEBP menjadi PNG transparan berkualitas tinggi."
+    },
+    "jfif-to-png": {
+      "label": "JFIF ke PNG",
+      "description": "Ubah foto JFIF/JPEG menjadi PNG standar."
+    },
+    "png-to-svg": {
+      "label": "PNG ke SVG",
+      "description": "Bungkus gambar PNG menjadi file SVG yang bisa diperbesar."
+    },
+    "heic-to-jpg": {
+      "label": "HEIC ke JPG",
+      "description": "Ubah foto HEIC/HEIF dari iPhone menjadi JPG yang bisa dibuka di mana saja."
+    },
+    "heic-to-png": {
+      "label": "HEIC ke PNG",
+      "description": "Ubah foto HEIC dari iPhone menjadi PNG tanpa kehilangan kualitas."
+    },
+    "webp-to-jpg": {
+      "label": "WEBP ke JPG",
+      "description": "Ubah gambar WEBP menjadi JPG standar dengan kualitas penuh."
+    },
+    "svg-converter": {
+      "label": "Konverter SVG",
+      "description": "Ubah SVG menjadi PNG, JPG, WEBP resolusi tinggi, atau ubah gambar menjadi SVG."
+    },
+    "jpg-to-png": {
+      "label": "JPG ke PNG",
+      "description": "Ubah foto JPG menjadi PNG."
+    },
+    "png-to-jpg": {
+      "label": "PNG ke JPG",
+      "description": "Ubah gambar PNG menjadi JPG yang lebih kecil."
+    },
+    "jpg-to-webp": {
+      "label": "JPG ke WEBP",
+      "description": "Ubah JPG menjadi WEBP yang ringan untuk website."
+    },
+    "png-to-webp": {
+      "label": "PNG ke WEBP",
+      "description": "Ubah PNG menjadi WEBP dengan latar transparan tetap terjaga."
+    },
+    "avif-to-jpg": {
+      "label": "AVIF ke JPG",
+      "description": "Ubah gambar AVIF menjadi JPG yang bisa dibuka di mana saja."
+    },
+    "avif-to-png": {
+      "label": "AVIF ke PNG",
+      "description": "Ubah gambar AVIF menjadi PNG."
+    },
+    "tiff-to-jpg": {
+      "label": "TIFF ke JPG",
+      "description": "Ubah hasil scan TIFF menjadi JPG."
+    },
+    "gif-to-webp": {
+      "label": "GIF ke WEBP",
+      "description": "Ubah GIF bergerak menjadi WEBP bergerak yang jauh lebih kecil."
+    },
+    "png-to-ico": {
+      "label": "PNG ke ICO",
+      "description": "Buat ikon favicon ICO (16 sampai 256 px) dari gambar."
+    },
+    "merge-pdf": {
+      "label": "Gabungkan PDF",
+      "description": "Gabungkan beberapa file PDF menjadi satu, dengan urutan pilihanmu."
+    },
+    "organize-pdf": {
+      "label": "Atur Halaman PDF",
+      "description": "Susun ulang halaman dengan drag & drop, hapus, putar, atau tambah halaman."
+    },
+    "scan-to-pdf": {
+      "label": "Scan ke PDF",
+      "description": "Foto dokumen dengan kamera lalu simpan menjadi satu PDF."
+    },
+    "pdf-converter-legacy": {
+      "label": "Konverter PDF",
+      "description": "Ubah PDF ke berbagai format lain dan sebaliknya."
+    },
+    "document-converter": {
+      "label": "Konverter Dokumen",
+      "description": "Ubah dokumen antara Word (DOCX), PDF, dan TXT."
+    },
+    "ebook-converter": {
+      "label": "Konverter eBook",
+      "description": "Ubah eBook ke dan dari EPUB, PDF, MOBI."
+    },
+    "pdf-to-jpg": {
+      "label": "PDF ke JPG",
+      "description": "Simpan halaman PDF sebagai gambar JPG berkualitas tinggi."
+    },
+    "pdf-to-epub": {
+      "label": "PDF ke EPUB",
+      "description": "Ubah PDF menjadi EPUB untuk e-reader."
+    },
+    "epub-to-pdf": {
+      "label": "EPUB ke PDF",
+      "description": "Ubah eBook EPUB menjadi dokumen PDF."
+    },
+    "heic-to-pdf": {
+      "label": "HEIC ke PDF",
+      "description": "Ubah foto HEIC langsung menjadi dokumen PDF."
+    },
+    "jpg-to-pdf": {
+      "label": "JPG ke PDF",
+      "description": "Ubah gambar JPG menjadi dokumen PDF."
+    },
+    "word-to-pdf": {
+      "label": "Word ke PDF",
+      "description": "Ubah dokumen Word DOCX menjadi PDF."
+    },
+    "pdf-to-word": {
+      "label": "PDF ke Word",
+      "description": "Ubah teks PDF menjadi file Word DOCX yang bisa diedit."
+    },
+    "pdf-to-txt": {
+      "label": "PDF ke TXT",
+      "description": "Ambil semua teks dari PDF menjadi file TXT."
+    },
+    "word-to-txt": {
+      "label": "Word ke TXT",
+      "description": "Ambil teks biasa dari dokumen Word."
+    },
+    "txt-to-pdf": {
+      "label": "TXT ke PDF",
+      "description": "Ubah file teks biasa menjadi dokumen PDF."
+    },
+    "txt-to-word": {
+      "label": "TXT ke Word",
+      "description": "Ubah file teks biasa menjadi dokumen Word."
+    },
+    "png-to-pdf": {
+      "label": "PNG ke PDF",
+      "description": "Ubah gambar PNG menjadi dokumen PDF."
+    },
+    "image-to-pdf": {
+      "label": "Gambar ke PDF",
+      "description": "Ubah gambar JPG, PNG, WEBP, atau HEIC menjadi PDF."
+    },
+    "video-to-gif": {
+      "label": "Video ke GIF",
+      "description": "Ubah video apa pun menjadi GIF bergerak."
+    },
+    "mp4-to-gif": {
+      "label": "MP4 ke GIF",
+      "description": "Ubah video MP4 menjadi GIF bergerak."
+    },
+    "webm-to-gif": {
+      "label": "WEBM ke GIF",
+      "description": "Ubah video WEBM menjadi GIF."
+    },
+    "apng-to-gif": {
+      "label": "APNG ke GIF",
+      "description": "Ubah PNG bergerak (APNG) menjadi GIF standar."
+    },
+    "gif-to-mp4": {
+      "label": "GIF ke MP4",
+      "description": "Ubah GIF bergerak menjadi video MP4."
+    },
+    "gif-to-apng": {
+      "label": "GIF ke APNG",
+      "description": "Ubah GIF menjadi PNG bergerak (APNG) dengan kualitas lebih baik."
+    },
+    "image-to-gif": {
+      "label": "Gambar ke GIF",
+      "description": "Ubah gambar diam menjadi format GIF."
+    },
+    "mov-to-gif": {
+      "label": "MOV ke GIF",
+      "description": "Ubah video MOV menjadi animasi GIF."
+    },
+    "avi-to-gif": {
+      "label": "AVI ke GIF",
+      "description": "Ubah video AVI menjadi GIF."
+    },
+    "video-compressor": {
+      "label": "Kompresor Video",
+      "description": "Kompres video MP4, MOV, dan AVI."
+    },
+    "mp3-compressor": {
+      "label": "Kompresor MP3",
+      "description": "Kompres file audio MP3."
+    },
+    "wav-compressor": {
+      "label": "Kompresor WAV",
+      "description": "Kompres file audio WAV."
+    },
+    "mp4-compressor": {
+      "label": "Kompresor MP4",
+      "description": "Perkecil video MP4 untuk WhatsApp, email, dan unggahan."
+    },
+    "mov-compressor": {
+      "label": "Kompresor MOV",
+      "description": "Kompres video MOV dari iPhone."
+    },
+    "webm-compressor": {
+      "label": "Kompresor WEBM",
+      "description": "Kompres video WEBM."
+    },
+    "mkv-compressor": {
+      "label": "Kompresor MKV",
+      "description": "Kompres video MKV."
+    },
+    "m4a-compressor": {
+      "label": "Kompresor M4A",
+      "description": "Kompres audio M4A dan AAC."
+    },
+    "ogg-compressor": {
+      "label": "Kompresor OGG",
+      "description": "Kompres audio OGG."
+    },
+    "flac-compressor": {
+      "label": "Kompresor FLAC",
+      "description": "Perkecil file FLAC, tetap lossless atau dengan sample rate lebih rendah."
+    },
+    "image-compressor": {
+      "label": "Kompresor Gambar",
+      "description": "Kompres berbagai jenis gambar."
+    },
+    "jpeg-compressor": {
+      "label": "Kompresor JPEG",
+      "description": "Kompres gambar JPEG."
+    },
+    "png-compressor": {
+      "label": "Kompresor PNG",
+      "description": "Kompres gambar PNG dengan kualitas tetap tajam."
+    },
+    "webp-compressor": {
+      "label": "Kompresor WEBP",
+      "description": "Kompres gambar WEBP, animasinya tetap."
+    },
+    "heic-compressor": {
+      "label": "Kompresor HEIC",
+      "description": "Kompres foto HEIC iPhone menjadi JPG yang kecil."
+    },
+    "avif-compressor": {
+      "label": "Kompresor AVIF",
+      "description": "Kompres gambar AVIF."
+    },
+    "tiff-compressor": {
+      "label": "Kompresor TIFF",
+      "description": "Kompres hasil scan TIFF yang besar."
+    },
+    "pdf-compressor": {
+      "label": "Kompresor PDF",
+      "description": "Perkecil ukuran file PDF."
+    },
+    "gif-compressor": {
+      "label": "Kompresor GIF",
+      "description": "Perkecil ukuran file GIF."
+    }
+  },
+  "toolCategories": {
+    "video-audio": {
+      "label": "Video & Audio",
+      "description": "Ubah file video dan audio ke format modern dengan hasil tetap jernih."
+    },
+    "image": {
+      "label": "Gambar",
+      "description": "Ubah format gambar dengan cepat, kualitas tetap terjaga dan siap untuk web."
+    },
+    "pdf-documents": {
+      "label": "PDF & Dokumen",
+      "description": "Ubah PDF, dokumen Word, dan eBook dengan mudah."
+    },
+    "gif": {
+      "label": "GIF",
+      "description": "Buat dan ubah GIF bergerak dari video atau gambar."
+    },
+    "compress-video-audio": {
+      "label": "Video & Audio",
+      "description": "Perkecil ukuran file video dan audio tanpa banyak menurunkan kualitas."
+    },
+    "compress-image": {
+      "label": "Gambar",
+      "description": "Kompresi pintar untuk gambar web."
+    },
+    "compress-pdf": {
+      "label": "PDF & Dokumen",
+      "description": "Kompres dokumen PDF yang berat."
+    },
+    "compress-gif": {
+      "label": "GIF",
+      "description": "Optimalkan GIF bergerak."
+    }
+  }
+}

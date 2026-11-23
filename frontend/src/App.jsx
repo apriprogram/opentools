@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import BottomNav from './components/layout/BottomNav';
@@ -21,6 +21,13 @@ import TwibbonEditorPage from './pages/panel/TwibbonEditorPage';
 import LinktreeEditorPage from './pages/panel/LinktreeEditorPage';
 import QrGeneratorPage from './pages/QrGeneratorPage';
 import QrPricingPage from './pages/QrPricingPage';
+// Alat PDF dimuat hanya saat dibuka, karena library PDF-nya besar dan tidak dibutuhkan halaman lain.
+const PdfToolPage = lazy(() => import('./pages/PdfToolPage'));
+function PdfFallback() {
+  const { t } = useTranslation();
+  return <div className="flex justify-center p-16 text-[13px] text-tertiary">{t('pdf.loading_tool')}</div>;
+}
+const pdfFallback = <PdfFallback />;
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import UserQrPage from './pages/panel/UserQrPage';
@@ -32,6 +39,7 @@ import AdminStatsPage from './pages/panel/AdminStatsPage';
 import AdminTwibbonPage from './pages/panel/AdminTwibbonPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { recordVisit } from './services/converterApi';
 import ErrorBoundary from './components/ui/ErrorBoundary';
@@ -128,6 +136,9 @@ function AppContent() {
           <Route path="/convert/:type" element={<ConvertPage />} />
           <Route path="/compress/:type" element={<ConvertPage />} />
           <Route path="/batch" element={<BatchPage />} />
+          <Route path="/pdf/scan" element={<Suspense fallback={pdfFallback}><PdfToolPage mode="scan" /></Suspense>} />
+          <Route path="/pdf/gabung" element={<Suspense fallback={pdfFallback}><PdfToolPage mode="gabung" /></Suspense>} />
+          <Route path="/pdf/atur" element={<Suspense fallback={pdfFallback}><PdfToolPage mode="atur" /></Suspense>} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
           <Route path="/linktree" element={<LinktreeLandingPage />} />

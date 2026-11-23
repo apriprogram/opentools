@@ -18,7 +18,7 @@ const ZOOM_MAX = 3;
 const PHOTO_MAX_BYTES = 30 * 1024 * 1024;
 const PHOTO_MAX_SIDE = 2000;
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
-const angka = (n) => Number(n || 0).toLocaleString('id-ID');
+const angka = (n, locale = 'id-ID') => Number(n || 0).toLocaleString(locale);
 
 const loadImage = (src) =>
   new Promise((resolve, reject) => {
@@ -29,13 +29,13 @@ const loadImage = (src) =>
   });
 
 // Baca file foto sambil melaporkan kemajuannya (0 sampai 1).
-const readFile = (file, onProgress) =>
+const readFile = (file, onProgress, errorText) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onprogress = (e) => {
       if (e.lengthComputable) onProgress(e.loaded / e.total);
     };
-    reader.onerror = () => reject(new Error('File tidak bisa dibaca.'));
+    reader.onerror = () => reject(new Error(errorText));
     reader.onload = () => resolve(reader.result);
     reader.readAsDataURL(file);
   });
@@ -63,6 +63,7 @@ const TOOL_BTN =
 // Lembar "Bagikan": bagikan fotonya lewat menu bagikan perangkat (bila didukung), atau bagikan link Twibbon
 // ke media sosial. Media sosial tidak menerima foto lewat tautan, jadi untuk itu fotonya diunduh dulu.
 function ShareSheet({ title, url, resultUrl, canShareFile, onShareFile, onDownload, onCopy, copied, onClose }) {
+  const { t } = useTranslation();
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
   useEffect(() => {
@@ -78,7 +79,7 @@ function ShareSheet({ title, url, resultUrl, canShareFile, onShareFile, onDownlo
     };
   }, []);
 
-  const text = `Yuk pakai Twibbon "${title}"`;
+  const text = t('pages.twibbon_share_text', { title });
   const link = encodeURIComponent(url);
   const message = encodeURIComponent(`${text}: ${url}`);
   const targets = [
@@ -89,20 +90,20 @@ function ShareSheet({ title, url, resultUrl, canShareFile, onShareFile, onDownlo
   ];
 
   return createPortal(
-    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50 p-3 sm:items-center sm:p-4" onClick={() => closeRef.current()} role="dialog" aria-modal="true" aria-label="Bagikan Twibbon">
+    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50 p-3 sm:items-center sm:p-4" onClick={() => closeRef.current()} role="dialog" aria-modal="true" aria-label={t('pages.twibbon_share_dialog')}>
       <div
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-[420px] rounded-[28px] border border-white/60 bg-white/90 p-5 shadow-[0_24px_60px_-20px_rgba(15,23,42,0.6)] backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-900/90"
       >
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-[18px] font-bold tracking-tight text-primary">Bagikan</h2>
-          <button type="button" onClick={() => closeRef.current()} aria-label="Tutup" className={`${TOOL_BTN} h-9 w-9`}>
+          <h2 className="text-[18px] font-bold tracking-tight text-primary">{t('pages.twibbon_share')}</h2>
+          <button type="button" onClick={() => closeRef.current()} aria-label={t('pages.twibbon_close')} className={`${TOOL_BTN} h-9 w-9`}>
             <X size={17} strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
 
         <div className="mt-4 flex items-center gap-3 rounded-[20px] bg-zinc-900/[0.04] p-3 dark:bg-white/[0.06]">
-          {resultUrl && <img src={resultUrl} alt="Hasil Twibbon kamu" className="h-16 w-16 shrink-0 rounded-[14px] object-cover" />}
+          {resultUrl && <img src={resultUrl} alt={t('pages.twibbon_result_alt')} className="h-16 w-16 shrink-0 rounded-[14px] object-cover" />}
           <div className="min-w-0">
             <p className="text-[14px] font-medium text-primary [overflow-wrap:anywhere]">{title}</p>
             <p className="mt-0.5 truncate text-[12px] text-secondary">{url.replace(/^https?:\/\//, '')}</p>
@@ -111,11 +112,11 @@ function ShareSheet({ title, url, resultUrl, canShareFile, onShareFile, onDownlo
 
         {canShareFile && (
           <button type="button" onClick={onShareFile} className={`${PRIMARY_PILL} mt-4`}>
-            <Share2 size={17} strokeWidth={2} aria-hidden="true" /> Bagikan fotonya
+            <Share2 size={17} strokeWidth={2} aria-hidden="true" /> {t('pages.twibbon_share_photo')}
           </button>
         )}
 
-        <p className="mb-2 mt-4 text-[12px] font-medium text-secondary">Bagikan link Twibbon ke</p>
+        <p className="mb-2 mt-4 text-[12px] font-medium text-secondary">{t('pages.twibbon_share_link_to')}</p>
         <div className="grid grid-cols-4 gap-2">
           {targets.map((target) => (
             <a key={target.name} href={target.href} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-1.5 rounded-[18px] p-2 transition-colors duration-150 hover:bg-zinc-900/[0.05] dark:hover:bg-white/10">
@@ -130,17 +131,17 @@ function ShareSheet({ title, url, resultUrl, canShareFile, onShareFile, onDownlo
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button type="button" onClick={onCopy} className={`${GLASS_PILL} w-full bg-zinc-900/[0.05] dark:bg-white/10`}>
             {copied ? <CheckCheck size={15} strokeWidth={2} aria-hidden="true" /> : <Copy size={15} strokeWidth={1.75} aria-hidden="true" />}
-            {copied ? 'Disalin' : 'Salin link'}
+            {copied ? t('pages.twibbon_copied') : t('pages.twibbon_copy_link')}
           </button>
           <button type="button" onClick={onDownload} className={`${GLASS_PILL} w-full bg-zinc-900/[0.05] dark:bg-white/10`}>
-            <Download size={15} strokeWidth={1.75} aria-hidden="true" /> Unduh foto
+            <Download size={15} strokeWidth={1.75} aria-hidden="true" /> {t('pages.twibbon_download_photo')}
           </button>
         </div>
 
         <p className="mt-3 text-[11px] leading-relaxed text-tertiary">
           {canShareFile
-            ? 'Tombol Bagikan fotonya membuka menu bagikan perangkatmu, jadi fotonya bisa langsung dikirim ke aplikasi lain.'
-            : 'Media sosial tidak bisa menerima foto lewat tautan. Unduh fotonya dulu, lalu lampirkan saat membuat postingan.'}
+            ? t('pages.twibbon_share_hint_file')
+            : t('pages.twibbon_share_hint_social')}
         </p>
       </div>
     </div>,
@@ -150,7 +151,8 @@ function ShareSheet({ title, url, resultUrl, canShareFile, onShareFile, onDownlo
 
 // Halaman pakai Twibbon: pilih foto, atur posisi dan ukurannya di dalam bingkai, lalu unduh atau bagikan hasilnya.
 export default function TwibbonViewPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'id-ID';
   const { slug } = useParams();
   const { addToast: toast } = useToast();
   const [campaign, setCampaign] = useState(null);
@@ -228,26 +230,30 @@ export default function TwibbonViewPage() {
     if (!file.type.startsWith('image/')) {
       toast({
         type: 'error',
-        title: 'File ini bukan foto',
-        message: `File ${ext || 'ini'} tidak bisa dipasang di Twibbon. Pilih foto berformat JPG, PNG, atau WebP.`,
+        title: t('pages.twibbon_err_not_photo_title'),
+        message: ext ? t('pages.twibbon_err_not_photo_msg', { ext }) : t('pages.twibbon_err_not_photo_msg_noext'),
       });
       return;
     }
     if (file.size > PHOTO_MAX_BYTES) {
-      toast({ type: 'error', title: 'Foto terlalu besar', message: 'Ukuran foto maksimal 30 MB. Pilih foto lain atau perkecil dulu.' });
+      toast({ type: 'error', title: t('pages.twibbon_err_too_big_title'), message: t('pages.twibbon_err_too_big_msg') });
       return;
     }
-    setPhotoLoad({ percent: 0, label: 'Membaca foto...' });
+    setPhotoLoad({ percent: 0, label: t('pages.twibbon_reading') });
     try {
-      const raw = await readFile(file, (p) => setPhotoLoad({ percent: Math.round(p * 70), label: 'Membaca foto...' }));
-      setPhotoLoad({ percent: 75, label: 'Menyiapkan foto...' });
+      const raw = await readFile(
+        file,
+        (p) => setPhotoLoad({ percent: Math.round(p * 70), label: t('pages.twibbon_reading') }),
+        t('pages.twibbon_err_read')
+      );
+      setPhotoLoad({ percent: 75, label: t('pages.twibbon_preparing') });
       await nextFrame();
       let img;
       try {
         img = await loadImage(raw);
       } catch {
         throw new Error(
-          `Foto ${ext || ''} ini tidak bisa dibuka browser. Format seperti HEIC belum didukung. Ubah dulu ke JPG atau PNG, lalu coba lagi.`.replace('  ', ' ')
+          t('pages.twibbon_err_open', { ext: ext || '' }).replace('  ', ' ')
         );
       }
       // Foto dari kamera bisa sangat besar. Diperkecil supaya geser dan zoom tetap lancar.
@@ -263,13 +269,13 @@ export default function TwibbonViewPage() {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         prepared = canvas.toDataURL('image/jpeg', 0.92);
       }
-      setPhotoLoad({ percent: 100, label: 'Foto siap' });
+      setPhotoLoad({ percent: 100, label: t('pages.twibbon_ready') });
       await nextFrame();
       setPhoto(prepared);
       reset();
-      toast({ type: 'success', title: 'Foto terpasang', message: 'Geser dan perbesar sampai pas di bingkai.' });
+      toast({ type: 'success', title: t('pages.twibbon_photo_added_title'), message: t('pages.twibbon_photo_added_msg') });
     } catch (err) {
-      toast({ type: 'error', title: 'Foto gagal dimuat', message: err.message || 'Coba pilih foto lain.' });
+      toast({ type: 'error', title: t('pages.twibbon_photo_failed_title'), message: err.message || t('pages.twibbon_try_other') });
     } finally {
       setPhotoLoad(null);
     }
@@ -347,9 +353,9 @@ export default function TwibbonViewPage() {
       await nextFrame();
       saveBlob(await renderResult());
       countUsage();
-      toast({ type: 'success', title: 'Foto diunduh', message: 'Cek folder unduhan kamu.' });
+      toast({ type: 'success', title: t('pages.twibbon_downloaded_title'), message: t('pages.twibbon_downloaded_msg') });
     } catch {
-      toast({ type: 'error', title: 'Gagal membuat foto', message: 'Coba pilih foto lain.' });
+      toast({ type: 'error', title: t('pages.twibbon_render_failed'), message: t('pages.twibbon_try_other') });
     } finally {
       setProcessing('');
     }
@@ -363,7 +369,7 @@ export default function TwibbonViewPage() {
       const blob = await renderResult();
       setShare({ blob, url: URL.createObjectURL(blob) });
     } catch {
-      toast({ type: 'error', title: 'Gagal menyiapkan foto', message: 'Coba pilih foto lain.' });
+      toast({ type: 'error', title: t('pages.twibbon_share_prep_failed'), message: t('pages.twibbon_try_other') });
     } finally {
       setProcessing('');
     }
@@ -379,7 +385,7 @@ export default function TwibbonViewPage() {
       countUsage();
     } catch (err) {
       // Dibatalkan pengguna bukan kesalahan.
-      if (err?.name !== 'AbortError') toast({ type: 'error', title: 'Gagal membagikan', message: 'Unduh fotonya, lalu bagikan dari galeri.' });
+      if (err?.name !== 'AbortError') toast({ type: 'error', title: t('pages.twibbon_share_failed_title'), message: t('pages.twibbon_share_failed_msg') });
     }
   };
 
@@ -388,23 +394,23 @@ export default function TwibbonViewPage() {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      toast({ type: 'success', title: 'Link disalin', message: url });
+      toast({ type: 'success', title: t('pages.twibbon_link_copied'), message: url });
     } catch {
-      toast({ type: 'error', title: 'Gagal menyalin', message: `Salin manual: ${url}` });
+      toast({ type: 'error', title: t('pages.twibbon_copy_failed_title'), message: t('pages.twibbon_copy_manual', { url }) });
     }
   };
 
   if (loading) {
-    return <div className="flex min-h-[60vh] items-center justify-center text-[13px] text-tertiary">{t('home.loading', 'Memuat...')}</div>;
+    return <div className="flex min-h-[60vh] items-center justify-center text-[13px] text-tertiary">{t('pages.twibbon_loading')}</div>;
   }
 
   if (!campaign) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="text-[18px] font-semibold text-primary">{t('twibbon.not_found_title', 'Twibbon tidak ditemukan')}</p>
-        <p className="text-[13px] text-secondary">{t('twibbon.not_found_desc', 'Twibbon ini sudah dihapus atau alamatnya salah.')}</p>
+        <p className="text-[18px] font-semibold text-primary">{t('pages.twibbon_not_found_title')}</p>
+        <p className="text-[13px] text-secondary">{t('pages.twibbon_not_found_desc')}</p>
         <Link to="/campaigns" className="mt-2">
-          <Button variant="primary">{t('twibbon.browse_campaigns', 'Lihat semua Twibbon')}</Button>
+          <Button variant="primary">{t('pages.twibbon_browse_all')}</Button>
         </Link>
       </div>
     );
@@ -413,9 +419,9 @@ export default function TwibbonViewPage() {
   const adjusted = zoom !== 1 || offset.x !== 0 || offset.y !== 0 || flipH || flipV;
   const busy = Boolean(processing) || Boolean(photoLoad);
   const steps = [
-    ['Pilih foto', 'Ambil dari galeri atau kamera perangkatmu.', Boolean(photo)],
-    ['Atur posisinya', 'Geser foto dan perbesar sampai pas di bingkai.', Boolean(photo) && adjusted],
-    ['Unduh atau bagikan', 'Hasilnya berukuran 1080 x 1080 piksel.', false],
+    [t('pages.twibbon_step1_title'), t('pages.twibbon_step1_desc'), Boolean(photo)],
+    [t('pages.twibbon_step2_title'), t('pages.twibbon_step2_desc'), Boolean(photo) && adjusted],
+    [t('pages.twibbon_step3_title'), t('pages.twibbon_step3_desc'), false],
   ];
   // Lingkaran kemajuan: keliling lingkaran berjari-jari 26.
   const RING = 2 * Math.PI * 26;
@@ -430,7 +436,7 @@ export default function TwibbonViewPage() {
 
       <div className="mx-auto w-full max-w-[980px]">
         <Link to="/campaigns" className={`${GLASS_PILL} mb-4 h-9 px-3.5 text-[13px] text-blue-600 dark:text-blue-400 sm:mb-5`}>
-          <ArrowLeft size={15} strokeWidth={2} aria-hidden="true" /> {t('twibbon.back_to_campaigns', 'Semua Twibbon')}
+          <ArrowLeft size={15} strokeWidth={2} aria-hidden="true" /> {t('pages.twibbon_back_all')}
         </Link>
 
         <div className="grid gap-4 md:grid-cols-[minmax(0,460px)_minmax(0,1fr)] md:gap-6">
@@ -449,7 +455,7 @@ export default function TwibbonViewPage() {
               {photo ? (
                 <img
                   src={photo}
-                  alt="Foto kamu"
+                  alt={t('pages.twibbon_photo_alt')}
                   draggable={false}
                   className="absolute inset-0 h-full w-full object-cover"
                   style={{ transform: `translate(${offset.x * 100}%, ${offset.y * 100}%) scale(${zoom * (flipH ? -1 : 1)}, ${zoom * (flipV ? -1 : 1)})` }}
@@ -459,7 +465,7 @@ export default function TwibbonViewPage() {
                   <UserRound strokeWidth={1.25} aria-hidden="true" className="h-[42%] w-[42%]" />
                 </span>
               )}
-              <img src={campaign.frameBase64} alt={`Bingkai ${campaign.title}`} draggable={false} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
+              <img src={campaign.frameBase64} alt={t('pages.twibbon_frame_alt', { title: campaign.title })} draggable={false} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
 
               {/* Tanda memuat: foto sedang dibaca, atau hasil sedang dibuat */}
               {busy && (
@@ -489,7 +495,7 @@ export default function TwibbonViewPage() {
                   ) : (
                     <>
                       <Loader2 size={34} strokeWidth={2} aria-hidden="true" className="animate-spin motion-reduce:animate-none" />
-                      <span className="text-[13px] font-medium">{processing === 'share' ? 'Menyiapkan foto untuk dibagikan...' : 'Membuat foto...'}</span>
+                      <span className="text-[13px] font-medium">{processing === 'share' ? t('pages.twibbon_busy_share') : t('pages.twibbon_busy_render')}</span>
                     </>
                   )}
                 </div>
@@ -500,7 +506,7 @@ export default function TwibbonViewPage() {
               <p className="mt-3 flex items-start gap-2 rounded-[18px] bg-amber-500/15 px-3.5 py-3 text-[12px] leading-relaxed text-amber-800 dark:text-amber-300">
                 <AlertTriangle size={15} strokeWidth={2} aria-hidden="true" className="mt-0.5 shrink-0" />
                 <span>
-                  Bingkai ini belum punya area transparan, jadi foto tertutup bingkainya. Pembuatnya bisa memperbaikinya di menu Twibbon, lewat tombol Buat area foto.
+                  {t('pages.twibbon_opaque_warning')}
                 </span>
               </p>
             )}
@@ -516,14 +522,14 @@ export default function TwibbonViewPage() {
                     step={0.01}
                     value={zoom}
                     onChange={(e) => setZoom(Number(e.target.value))}
-                    aria-label="Ukuran foto"
+                    aria-label={t('pages.twibbon_zoom_label')}
                     className="h-1.5 min-w-0 flex-1 cursor-pointer accent-blue-500"
                   />
                   <ZoomIn size={16} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-secondary" />
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <p className="flex min-w-0 items-center gap-1.5 text-[12px] text-secondary">
-                    <Move size={13} strokeWidth={1.75} aria-hidden="true" className="shrink-0" /> Geser foto untuk mengatur posisinya
+                    <Move size={13} strokeWidth={1.75} aria-hidden="true" className="shrink-0" /> {t('pages.twibbon_drag_hint')}
                   </p>
                   <div className="flex shrink-0 items-center gap-1.5">
                     <button type="button" onClick={() => setFlipH((v) => !v)} aria-pressed={flipH} title={t('twibbon.flip_horizontal', 'Balik kiri-kanan')} aria-label={t('twibbon.flip_horizontal', 'Balik kiri-kanan')} className={TOOL_BTN}>
@@ -532,7 +538,7 @@ export default function TwibbonViewPage() {
                     <button type="button" onClick={() => setFlipV((v) => !v)} aria-pressed={flipV} title={t('twibbon.flip_vertical', 'Balik atas-bawah')} aria-label={t('twibbon.flip_vertical', 'Balik atas-bawah')} className={TOOL_BTN}>
                       <FlipVertical size={17} strokeWidth={1.75} aria-hidden="true" />
                     </button>
-                    <button type="button" onClick={reset} disabled={!adjusted} title="Kembalikan posisi awal" aria-label="Kembalikan posisi awal" className={TOOL_BTN}>
+                    <button type="button" onClick={reset} disabled={!adjusted} title={t('pages.twibbon_reset')} aria-label={t('pages.twibbon_reset')} className={TOOL_BTN}>
                       <RotateCcw size={17} strokeWidth={1.75} aria-hidden="true" />
                     </button>
                   </div>
@@ -545,7 +551,7 @@ export default function TwibbonViewPage() {
                 disabled={busy}
                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-[20px] bg-zinc-900/[0.04] px-4 py-3 text-[13px] font-medium text-blue-600 transition-colors duration-150 hover:bg-zinc-900/[0.08] disabled:opacity-60 dark:bg-white/[0.06] dark:text-blue-400 dark:hover:bg-white/[0.12]"
               >
-                <Camera size={16} strokeWidth={1.75} aria-hidden="true" /> Ketuk untuk memasang fotomu di bingkai ini
+                <Camera size={16} strokeWidth={1.75} aria-hidden="true" /> {t('pages.twibbon_tap_to_add')}
               </button>
             )}
           </div>
@@ -567,11 +573,11 @@ export default function TwibbonViewPage() {
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <div className="rounded-[18px] bg-zinc-900/[0.04] px-3.5 py-2.5 dark:bg-white/[0.06]">
                   <p className="flex items-center gap-1.5 text-[11px] text-secondary"><Eye size={13} strokeWidth={1.75} aria-hidden="true" /> {t('twibbon.views', 'Dilihat')}</p>
-                  <p className="mt-0.5 text-[18px] font-semibold leading-tight text-primary">{angka(campaign.views)}</p>
+                  <p className="mt-0.5 text-[18px] font-semibold leading-tight text-primary">{angka(campaign.views, locale)}</p>
                 </div>
                 <div className="rounded-[18px] bg-zinc-900/[0.04] px-3.5 py-2.5 dark:bg-white/[0.06]">
-                  <p className="flex items-center gap-1.5 text-[11px] text-secondary"><Download size={13} strokeWidth={1.75} aria-hidden="true" /> {t('twibbon.downloads', 'Dipakai')}</p>
-                  <p className="mt-0.5 text-[18px] font-semibold leading-tight text-primary">{angka(campaign.usage)}</p>
+                  <p className="flex items-center gap-1.5 text-[11px] text-secondary"><Download size={13} strokeWidth={1.75} aria-hidden="true" /> {t('pages.twibbon_used')}</p>
+                  <p className="mt-0.5 text-[18px] font-semibold leading-tight text-primary">{angka(campaign.usage, locale)}</p>
                 </div>
               </div>
               {campaign.description && <p className="mt-4 whitespace-pre-line text-[14px] leading-relaxed text-secondary [overflow-wrap:anywhere]">{campaign.description}</p>}
@@ -587,7 +593,7 @@ export default function TwibbonViewPage() {
                       {done ? <CheckCheck size={14} strokeWidth={2.25} aria-hidden="true" /> : i + 1}
                     </span>
                     <span className="min-w-0 leading-tight">
-                      <span className="block text-[14px] font-medium text-primary">{title}{done && <span className="sr-only"> (selesai)</span>}</span>
+                      <span className="block text-[14px] font-medium text-primary">{title}{done && <span className="sr-only"> {t('pages.twibbon_step_done')}</span>}</span>
                       <span className="mt-0.5 block text-[12px] text-secondary">{text}</span>
                     </span>
                   </li>
@@ -599,12 +605,12 @@ export default function TwibbonViewPage() {
                   <>
                     <button type="button" onClick={download} disabled={busy} className={PRIMARY_PILL}>
                       {processing === 'download' ? <Loader2 size={18} strokeWidth={2} aria-hidden="true" className="animate-spin motion-reduce:animate-none" /> : <Download size={18} strokeWidth={2} aria-hidden="true" />}
-                      {processing === 'download' ? t('twibbon.processing', 'Memproses...') : t('twibbon.download', 'Unduh hasil')}
+                      {processing === 'download' ? t('twibbon.processing', 'Memproses...') : t('pages.twibbon_download_result')}
                     </button>
                     <div className="grid grid-cols-2 gap-2">
                       <button type="button" onClick={openShare} disabled={busy} className={`${GLASS_PILL} h-11 w-full`}>
                         {processing === 'share' ? <Loader2 size={16} strokeWidth={2} aria-hidden="true" className="animate-spin motion-reduce:animate-none" /> : <Share2 size={16} strokeWidth={1.75} aria-hidden="true" />}
-                        Bagikan
+                        {t('pages.twibbon_share')}
                       </button>
                       <button type="button" onClick={() => fileRef.current?.click()} disabled={busy} className={`${GLASS_PILL} h-11 w-full`}>
                         <Camera size={16} strokeWidth={1.75} aria-hidden="true" /> {t('twibbon.change_photo', 'Ganti foto')}
@@ -614,20 +620,20 @@ export default function TwibbonViewPage() {
                 ) : (
                   <button type="button" onClick={() => fileRef.current?.click()} disabled={busy} className={PRIMARY_PILL}>
                     {photoLoad ? <Loader2 size={18} strokeWidth={2} aria-hidden="true" className="animate-spin motion-reduce:animate-none" /> : <Camera size={18} strokeWidth={2} aria-hidden="true" />}
-                    {photoLoad ? 'Memuat foto...' : t('twibbon.choose_photo', 'Pilih foto kamu')}
+                    {photoLoad ? t('pages.twibbon_loading_photo') : t('twibbon.choose_photo', 'Pilih foto kamu')}
                   </button>
                 )}
               </div>
-              <p className="mt-3 text-center text-[11px] leading-relaxed text-tertiary">Fotomu diproses di perangkat ini saja dan tidak diunggah ke server.</p>
+              <p className="mt-3 text-center text-[11px] leading-relaxed text-tertiary">{t('pages.twibbon_local_only')}</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <button type="button" onClick={copyLink} className={GLASS_PILL}>
                 {copied ? <CheckCheck size={15} strokeWidth={2} aria-hidden="true" /> : <Copy size={15} strokeWidth={1.75} aria-hidden="true" />}
-                {copied ? 'Link disalin' : 'Salin link Twibbon'}
+                {copied ? t('pages.twibbon_link_copied') : t('pages.twibbon_copy_twibbon_link')}
               </button>
               <Link to="/dashboard/twibbon/baru" className={GLASS_PILL}>
-                <ImagePlus size={15} strokeWidth={1.75} aria-hidden="true" /> Buat Twibbon sendiri
+                <ImagePlus size={15} strokeWidth={1.75} aria-hidden="true" /> {t('pages.twibbon_create_own')}
               </Link>
             </div>
           </div>
@@ -644,7 +650,7 @@ export default function TwibbonViewPage() {
           onDownload={() => {
             saveBlob(share.blob);
             countUsage();
-            toast({ type: 'success', title: 'Foto diunduh', message: 'Cek folder unduhan kamu.' });
+            toast({ type: 'success', title: t('pages.twibbon_downloaded_title'), message: t('pages.twibbon_downloaded_msg') });
           }}
           onCopy={copyLink}
           copied={copied}

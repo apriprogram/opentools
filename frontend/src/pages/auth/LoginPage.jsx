@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Lock, LogIn, Mail } from 'lucide-react';
 import { AuthField, AuthShell, purposeText } from '../../components/auth/AuthParts';
 import Button from '../../components/ui/Button';
@@ -8,6 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { loginAccount } from '../../services/authApi';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const { addToast: toast } = useToast();
   const { user, signIn } = useAuth();
   const navigate = useNavigate();
@@ -39,7 +41,7 @@ export default function LoginPage() {
       signIn(res);
       navigate(afterLogin(res.user.role), { replace: true });
     } catch (err) {
-      toast({ type: 'error', title: 'Gagal masuk', message: err?.response?.data?.message || 'Coba lagi beberapa saat.' });
+      toast({ type: 'error', title: t('auth.login.error_title'), message: err?.response?.data?.message || t('auth.retry_later') });
     } finally {
       setBusy(false);
     }
@@ -49,41 +51,41 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      title="Masuk ke akun"
-      subtitle={`Masuk ${purposeText(nextPath, paketParam)}.`}
+      title={t('auth.login.title')}
+      subtitle={t('auth.login.subtitle', { purpose: purposeText(t, nextPath, paketParam) })}
       footer={
         <>
-          Belum punya akun?{' '}
-          <Link to={registerPath} className="font-medium text-primary underline underline-offset-2 hover:text-blue-500">Daftar gratis</Link>
+          {t('auth.login.no_account')}{' '}
+          <Link to={registerPath} className="font-medium text-primary underline underline-offset-2 hover:text-blue-500">{t('auth.login.register_link')}</Link>
         </>
       }
     >
       <form onSubmit={submit} className="grid gap-4">
         <AuthField
           id="login"
-          label="Email"
+          label={t('auth.email_label')}
           icon={Mail}
           type="text"
           inputMode="email"
           autoComplete="username"
           required
-          placeholder="nama@email.com"
+          placeholder={t('auth.email_placeholder')}
           value={form.login}
           onChange={(e) => setForm({ ...form, login: e.target.value })}
         />
         <AuthField
           id="password"
-          label="Password"
+          label={t('auth.password_label')}
           icon={Lock}
           type="password"
           autoComplete="current-password"
           required
-          placeholder="Password kamu"
+          placeholder={t('auth.login.password_placeholder')}
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
         <Button type="submit" variant="primary" size="lg" icon={LogIn} disabled={busy || !form.login.trim() || !form.password} className="mt-1 w-full">
-          {busy ? 'Memeriksa...' : 'Masuk'}
+          {busy ? t('auth.login.submitting') : t('auth.login.submit')}
         </Button>
       </form>
     </AuthShell>

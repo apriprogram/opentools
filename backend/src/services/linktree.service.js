@@ -4,7 +4,9 @@ import { httpError } from "./qr.service.js";
 
 // Linktree: satu akun bisa membuat banyak Linktree. Halaman publik bisa dibuka siapa saja,
 // sedangkan membuat dan mengedit wajib masuk akun.
-export const MAX_TREES_PER_USER = 50;
+// Jumlah Linktree maksimal per akun pengguna. Super admin (Tools Admin) tidak dibatasi.
+export const MAX_TREES_PER_USER = 3;
+export const treeLimitFor = (user) => (user?.role === 'superadmin' ? null : MAX_TREES_PER_USER);
 export const MAX_ITEMS = 100;
 export const SOCIAL_PLATFORMS = [
   "website", "instagram", "youtube", "tiktok", "facebook", "x", "threads", "linkedin", "github",
@@ -257,10 +259,12 @@ export const getLinktree = async (userId, id) => {
   return toTree(row, await loadItems(row.id));
 };
 
-export const createLinktree = async (userId, { title, slug }) => {
-  const count = await query("SELECT COUNT(*) AS n FROM linktrees WHERE user_id = ?", [userId]);
-  if (Number(count[0].n) >= MAX_TREES_PER_USER) {
-    throw httpError(400, `Maksimal ${MAX_TREES_PER_USER} Linktree per akun.`);
+export const createLinktree = async (userId, { title, slug }, limit = MAX_TREES_PER_USER) => {
+  if (limit != null) {
+    const count = await query("SELECT COUNT(*) AS n FROM linktrees WHERE user_id = ?", [userId]);
+    if (Number(count[0].n) >= limit) {
+      throw httpError(403, `Batas ${limit} Linktree per akun sudah tercapai. Hapus salah satu Linktree untuk membuat yang baru.`);
+    }
   }
   const cleanedTitle = cleanTitle(title);
   const cleanedSlug = await checkSlug(slug, null);

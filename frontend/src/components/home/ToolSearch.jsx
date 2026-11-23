@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeftRight, ArrowUpRight, Minimize2, Search, X } from 'lucide-react';
 import { fetchCompressors, fetchTools } from '../../services/converterApi';
+import { categoryLabel, toolDescription, toolLabel } from '../../lib/toolText';
 
 // Pencarian tools di beranda: fitur utama, semua konverter, dan semua kompresor.
 // Daftar konverter dan kompresor baru dimuat saat kolom pencarian pertama kali dipakai.
@@ -12,6 +14,7 @@ const normalize = (text) => String(text || '').toLowerCase().normalize('NFKD').r
 
 /** Daftar semua tools yang bisa dicari. features: kartu fitur beranda [{ title, desc, chips, to, icon }]. */
 export function useToolIndex(features, active) {
+  const { t } = useTranslation();
   const [tools, setTools] = useState(null);
 
   useEffect(() => {
@@ -24,38 +27,51 @@ export function useToolIndex(features, active) {
           ? (result.value?.categories || []).flatMap((category) =>
               (category.tools || []).map((tool) => ({
                 key: `${kind}-${tool.id}`,
-                label: tool.label,
-                desc: tool.description || '',
-                to: `${base}/${tool.id}`,
+                tool,
+                category,
+                to: tool.route || `${base}/${tool.id}`,
                 icon,
                 kind,
                 from: tool.from || [],
                 target: tool.to || [],
-                group: category.label,
               }))
             )
           : [];
-      setTools([...flat(converters, 'Konverter', '/convert', ArrowLeftRight), ...flat(compressors, 'Kompresor', '/compress', Minimize2)]);
+      setTools([...flat(converters, 'converter', '/convert', ArrowLeftRight), ...flat(compressors, 'compressor', '/compress', Minimize2)]);
     });
     return () => {
       alive = false;
     };
   }, [active, tools]);
 
+  // Nama, deskripsi, dan jenis ditulis dalam bahasa aktif. Nama asli dari server tetap ikut dicari.
   return useMemo(() => {
+    const kindLabel = {
+      feature: t('pages.search_kind_feature'),
+      converter: t('pages.search_kind_converter'),
+      compressor: t('pages.search_kind_compressor'),
+    };
     const featureItems = features.map((f) => ({
       key: `fitur-${f.to}`,
       label: f.title,
       desc: f.desc,
       to: f.to,
       icon: f.icon,
-      kind: 'Fitur',
+      kind: 'feature',
+      kindLabel: kindLabel.feature,
       from: [],
       target: [],
       group: (f.chips || []).join(' '),
     }));
-    return { items: [...featureItems, ...(tools || [])], loading: active && tools === null };
-  }, [features, tools, active]);
+    const toolItems = (tools || []).map(({ tool, category, ...item }) => ({
+      ...item,
+      label: toolLabel(t, tool),
+      desc: `${toolDescription(t, tool)} ${tool.label || ''}`,
+      kindLabel: kindLabel[item.kind],
+      group: `${categoryLabel(t, category)} ${category.label || ''}`,
+    }));
+    return { items: [...featureItems, ...toolItems], loading: active && tools === null };
+  }, [features, tools, active, t]);
 }
 
 /** Hasil pencarian, diurutkan dari yang paling cocok. Semua kata harus ditemukan di satu tools. */
@@ -66,7 +82,7 @@ export function searchTools(items, query) {
   for (const item of items) {
     const label = normalize(item.label);
     const formats = [...item.from, ...item.target].map(normalize);
-    const rest = normalize(`${item.desc} ${item.group} ${item.kind}`);
+    const rest = normalize(`${item.desc} ${item.group} ${item.kindLabel}`);
     let score = 0;
     let matched = true;
     words.forEach((word, i) => {
@@ -78,12 +94,13 @@ export function searchTools(items, query) {
       if (i === 0 && item.from.map(normalize).includes(word)) score += 1;
       if (i === words.length - 1 && words.length > 1 && item.target.map(normalize).includes(word)) score += 2;
     });
-    if (matched) scored.push({ item, score: score + (item.kind === 'Fitur' ? 1 : 0) });
+    if (matched) scored.push({ item, score: score + (item.kind === 'feature' ? 1 : 0) });
   }
   return scored.sort((a, b) => b.score - a.score || a.item.label.localeCompare(b.item.label)).map((s) => s.item);
 }
 
 export function SearchBox({ value, onChange, onFocus, onSubmit }) {
+  const { t } = useTranslation();
   const inputRef = useRef(null);
   return (
     <form
@@ -94,7 +111,7 @@ export function SearchBox({ value, onChange, onFocus, onSubmit }) {
       }}
       className="relative mt-3 sm:mt-4 sm:max-w-[420px]"
     >
-      <label htmlFor="home-search" className="sr-only">Cari tools</label>
+      <label htmlFor="home-search" className="sr-only">{t('pages.search_label')}</label>
       <Search size={16} strokeWidth={1.75} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-tertiary max-sm:h-3.5 max-sm:w-3.5" />
       <input
         ref={inputRef}
@@ -104,7 +121,7 @@ export function SearchBox({ value, onChange, onFocus, onSubmit }) {
         enterKeyHint="search"
         autoComplete="off"
         spellCheck={false}
-        placeholder="Cari tools, misalnya MP4 ke MP3"
+        placeholder={t('pages.search_placeholder')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={onFocus}
@@ -123,7 +140,7 @@ export function SearchBox({ value, onChange, onFocus, onSubmit }) {
             onChange('');
             inputRef.current?.focus();
           }}
-          aria-label="Hapus pencarian"
+          aria-label={t('pages.search_clear')}
           className="absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-tertiary transition-smooth hover:bg-card-muted hover:text-primary"
         >
           <X size={14} strokeWidth={2} aria-hidden="true" />
@@ -136,15 +153,16 @@ export function SearchBox({ value, onChange, onFocus, onSubmit }) {
 const MAX_RESULTS = 24;
 
 export function SearchResults({ query, results, loading }) {
+  const { t } = useTranslation();
   const shown = results.slice(0, MAX_RESULTS);
   return (
     <section aria-labelledby="home-search-heading">
       <h2 id="home-search-heading" aria-live="polite" className="mb-2 text-[12px] text-secondary sm:mb-3 sm:text-[13px]">
         {loading && !results.length
-          ? 'Mencari...'
+          ? t('pages.search_loading')
           : results.length
-            ? `${results.length} tools cocok dengan "${query.trim()}"`
-            : `Tidak ada tools yang cocok dengan "${query.trim()}"`}
+            ? t('pages.search_count', { count: results.length, query: query.trim() })
+            : t('pages.search_none', { query: query.trim() })}
       </h2>
 
       {shown.length > 0 ? (
@@ -161,8 +179,9 @@ export function SearchResults({ query, results, loading }) {
                 <span className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-[13px] font-medium text-primary sm:text-[14px]">{item.label}</span>
                   <span className="mt-0.5 block truncate text-[11px] text-secondary sm:text-[12px]">
-                    {item.kind}
-                    {item.from.length > 0 && ` · ${item.from.slice(0, 3).join(', ').toUpperCase()} ke ${item.target.slice(0, 3).join(', ').toUpperCase()}`}
+                    {item.kindLabel}
+                    {item.from.length > 0 &&
+                      ` · ${t('pages.search_formats', { from: item.from.slice(0, 3).join(', ').toUpperCase(), to: item.target.slice(0, 3).join(', ').toUpperCase() })}`}
                   </span>
                 </span>
                 <ArrowUpRight size={15} strokeWidth={1.75} aria-hidden="true" className="shrink-0 text-tertiary transition-colors duration-200 group-hover:text-blue-500" />
@@ -173,17 +192,17 @@ export function SearchResults({ query, results, loading }) {
       ) : (
         !loading && (
           <div className="glass rounded-[28px] p-5 text-center sm:p-8">
-            <p className="text-[13px] text-primary sm:text-[14px]">Coba kata lain, misalnya nama format seperti JPG atau MP3.</p>
+            <p className="text-[13px] text-primary sm:text-[14px]">{t('pages.search_empty_hint')}</p>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Link to="/converters" className="inline-flex h-8 items-center rounded-full border border-border px-3 text-[12px] font-medium text-primary transition-smooth hover:border-blue-500">Semua konverter</Link>
-              <Link to="/compressors" className="inline-flex h-8 items-center rounded-full border border-border px-3 text-[12px] font-medium text-primary transition-smooth hover:border-blue-500">Semua kompresor</Link>
+              <Link to="/converters" className="inline-flex h-8 items-center rounded-full border border-border px-3 text-[12px] font-medium text-primary transition-smooth hover:border-blue-500">{t('pages.search_all_converters')}</Link>
+              <Link to="/compressors" className="inline-flex h-8 items-center rounded-full border border-border px-3 text-[12px] font-medium text-primary transition-smooth hover:border-blue-500">{t('pages.search_all_compressors')}</Link>
             </div>
           </div>
         )
       )}
 
       {results.length > MAX_RESULTS && (
-        <p className="mt-3 text-center text-[12px] text-tertiary">Menampilkan {MAX_RESULTS} hasil teratas. Tambahkan kata supaya lebih spesifik.</p>
+        <p className="mt-3 text-center text-[12px] text-tertiary">{t('pages.search_more', { count: MAX_RESULTS })}</p>
       )}
     </section>
   );

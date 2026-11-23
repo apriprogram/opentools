@@ -21,6 +21,12 @@ export function discountCut(price, discount) {
   return Math.max(0, Math.min(cut, base - PRICE_MIN));
 }
 
-/** Label singkat diskon: "Diskon 15%" atau "Hemat Rp5.000". */
-export const discountLabel = (discount) =>
-  !discount ? '' : discount.type === 'percent' ? `Diskon ${discount.value}%` : `Hemat ${rupiah(discount.amount ?? discount.value)}`;
+/** Label singkat diskon: "Diskon 15%" atau "Hemat Rp5.000". t (opsional): fungsi terjemahan i18next; tanpa t tetap bahasa Indonesia. */
+export const discountLabel = (discount, t) => {
+  if (!discount) return '';
+  if (discount.type === 'percent') {
+    return t ? t('qr.price.discountPercent', { value: discount.value }) : `Diskon ${discount.value}%`;
+  }
+  const amount = rupiah(discount.amount ?? discount.value);
+  return t ? t('qr.price.discountAmount', { amount }) : `Hemat ${amount}`;
+};

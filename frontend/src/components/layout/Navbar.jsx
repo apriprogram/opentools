@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getStoredSession } from '../../services/authApi';
 import { useTranslation } from 'react-i18next';
 import SiteLogo from '../ui/SiteLogo';
+import { toolLabel, categoryLabel } from '../../lib/toolText';
 
 // Menu lebar: alat populer ditaruh di atas, maksimal MENU_LIMIT per kolom.
 const MENU_LIMIT = 8;
@@ -205,18 +206,18 @@ export default function Navbar({ onOpenBatchModal }) {
                         {getIcon(cat.icon)}
                       </div>
                       <h3 className="text-[14px] font-semibold text-primary">
-                        {cat.label}
+                        {categoryLabel(t, cat)}
                       </h3>
                     </div>
                     <div className="flex flex-col space-y-1">
                       {menuTools(cat.tools).map((tool) => (
                         <Link
                           key={tool.id}
-                          to={`/convert/${tool.id}`}
+                          to={tool.route || `/convert/${tool.id}`}
                           onClick={() => setActiveMenu(null)}
                           className="flex items-center rounded-sm px-2 py-1.5 text-[13px] text-secondary transition-colors hover:bg-card-muted hover:text-primary"
                         >
-                          <span className="truncate">{tool.label}</span>
+                          <span className="truncate">{toolLabel(t, tool)}</span>
                         </Link>
                       ))}
                       {cat.tools.length > MENU_LIMIT && (
@@ -225,7 +226,7 @@ export default function Navbar({ onOpenBatchModal }) {
                           onClick={() => setActiveMenu(null)}
                           className="mt-1 flex items-center gap-1 rounded-sm px-2 py-1.5 text-[12px] font-medium text-blue-600 transition-colors hover:bg-card-muted dark:text-blue-400"
                         >
-                          Lihat semua ({cat.tools.length})
+                          {t('converter.see_all', { count: cat.tools.length })}
                         </Link>
                       )}
                     </div>
@@ -247,7 +248,7 @@ export default function Navbar({ onOpenBatchModal }) {
                         {getIcon(cat.icon)}
                       </div>
                       <h3 className="text-[14px] font-semibold text-primary">
-                        {cat.label}
+                        {categoryLabel(t, cat)}
                       </h3>
                     </div>
                     <div className="flex flex-col space-y-1">
@@ -258,7 +259,7 @@ export default function Navbar({ onOpenBatchModal }) {
                           onClick={() => setActiveMenu(null)}
                           className="flex items-center rounded-sm px-2 py-1.5 text-[13px] text-secondary transition-colors hover:bg-card-muted hover:text-primary"
                         >
-                          <span className="truncate">{tool.label}</span>
+                          <span className="truncate">{toolLabel(t, tool)}</span>
                         </Link>
                       ))}
                       {cat.tools.length > MENU_LIMIT && (
@@ -267,7 +268,7 @@ export default function Navbar({ onOpenBatchModal }) {
                           onClick={() => setActiveMenu(null)}
                           className="mt-1 flex items-center gap-1 rounded-sm px-2 py-1.5 text-[12px] font-medium text-blue-600 transition-colors hover:bg-card-muted dark:text-blue-400"
                         >
-                          Lihat semua ({cat.tools.length})
+                          {t('converter.see_all', { count: cat.tools.length })}
                         </Link>
                       )}
                     </div>
@@ -281,7 +282,8 @@ export default function Navbar({ onOpenBatchModal }) {
             <button
               onClick={toggleLanguage}
               className="p-1 sm:p-1.5 rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors flex items-center gap-1 sm:gap-1.5"
-              title="Change Language"
+              title={t('nav.change_language')}
+              aria-label={t('nav.change_language')}
             >
               <Globe size={16} className="max-sm:h-[14px] max-sm:w-[14px]" />
               <span className="text-[11px] sm:text-[12px] font-medium uppercase">{i18n.language?.substring(0, 2) || 'en'}</span>
@@ -289,12 +291,15 @@ export default function Navbar({ onOpenBatchModal }) {
             <button
               onClick={toggleTheme}
               className="p-1 sm:p-1.5 rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors"
-              title="Toggle Dark Mode"
+              title={t('nav.toggle_theme')}
+              aria-label={t('nav.toggle_theme')}
             >
               {theme === 'dark' ? <Sun size={18} className="max-sm:h-4 max-sm:w-4" /> : <Moon size={18} className="max-sm:h-4 max-sm:w-4" />}
             </button>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={t('nav.open_menu')}
+              aria-expanded={isMobileMenuOpen}
               className="p-1 sm:p-1.5 lg:hidden rounded-md text-secondary hover:text-primary hover:bg-card-muted transition-colors"
             >
               {isMobileMenuOpen ? <X size={20} className="max-sm:h-[18px] max-sm:w-[18px]" /> : <Menu size={20} className="max-sm:h-[18px] max-sm:w-[18px]" />}
@@ -338,7 +343,7 @@ export default function Navbar({ onOpenBatchModal }) {
           onClick={() => setIsMobileMenuOpen(false)}
           className="text-[13px] sm:text-[14px] text-primary p-2.5 sm:p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
-          <ImageIcon size={18} className="text-primary" /> Twibbon Campaigns
+          <ImageIcon size={18} className="text-primary" /> {t('nav.twibbon_campaigns')}
         </Link>
 
         <Link 
@@ -346,7 +351,7 @@ export default function Navbar({ onOpenBatchModal }) {
           onClick={() => setIsMobileMenuOpen(false)}
           className="text-[13px] sm:text-[14px] text-primary p-2.5 sm:p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
-          <Globe size={18} className="text-primary" /> Linktree Builder
+          <Globe size={18} className="text-primary" /> {t('nav.linktree_builder')}
         </Link>
 
         <Link
@@ -354,7 +359,7 @@ export default function Navbar({ onOpenBatchModal }) {
           onClick={() => setIsMobileMenuOpen(false)}
           className="text-[13px] sm:text-[14px] text-primary p-2.5 sm:p-3 bg-card-muted hover:bg-card border border-border rounded-md font-medium flex items-center gap-2 transition-colors"
         >
-          <QrCode size={18} className="text-primary" /> QR Generator
+          <QrCode size={18} className="text-primary" /> {t('nav.qr')}
         </Link>
 
         <Link

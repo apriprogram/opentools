@@ -7,21 +7,25 @@ import { useToast } from '../../components/ui/Toast';
 import { SkeletonList } from '../../components/ui/Skeleton';
 import LinktreeCard from '../../components/linktree/LinktreeCard';
 import { slugify, SLUG_RE } from '../../components/linktree/constants';
-import { fetchLinktrees, createLinktree, deleteLinktree } from '../../services/linktreeApi';
+import { fetchLinktreesWithLimit, createLinktree, deleteLinktree } from '../../services/linktreeApi';
 
-// Daftar Linktree milik akun. Satu akun bisa membuat banyak Linktree.
+// Daftar Linktree milik akun. Akun pengguna maksimal punya beberapa Linktree (batasnya dari server).
 export default function UserLinktreePage() {
   const { addToast: toast } = useToast();
   const navigate = useNavigate();
   const [list, setList] = useState(null);
+  const [limit, setLimit] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', slug: '' });
   const [slugEdited, setSlugEdited] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const load = () =>
-    fetchLinktrees()
-      .then(setList)
+    fetchLinktreesWithLimit()
+      .then((res) => {
+        setList(res.linktrees);
+        setLimit(res.limit);
+      })
       .catch(() => toast({ type: 'error', title: 'Gagal memuat', message: 'Daftar Linktree tidak bisa dimuat.' }));
 
   useEffect(() => {
@@ -62,6 +66,10 @@ export default function UserLinktreePage() {
     }
   };
 
+  // Kuota habis: tombol buat dikunci dan diberi keterangan.
+  const count = list?.length || 0;
+  const full = Boolean(limit) && count >= limit;
+
   return (
     <PanelLayout title="Linktree">
       <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
@@ -69,15 +77,35 @@ export default function UserLinktreePage() {
           <h1 className="text-[20px] font-semibold text-primary sm:text-[24px]">Linktree</h1>
           <PanelCrumb />
           <p className="mt-1 max-w-2xl text-[13px] text-secondary sm:text-[14px]">
-            Buat halaman berisi semua tautan Anda. Satu akun bisa membuat banyak Linktree.
+            {limit ? `Buat halaman berisi semua tautan Anda. Satu akun bisa membuat sampai ${limit} Linktree.` : 'Buat halaman berisi semua tautan Anda.'}
           </p>
         </div>
-        <Button variant="primary" icon={Plus} className="self-start whitespace-nowrap sm:self-auto" onClick={() => setShowForm((v) => !v)}>
-          Buat Linktree baru
-        </Button>
+        <div className="flex flex-col items-start gap-1.5 self-start sm:items-end sm:self-auto">
+          <Button
+            variant="primary"
+            icon={Plus}
+            className="whitespace-nowrap"
+            onClick={() => setShowForm((v) => !v)}
+            disabled={full}
+            title={full ? `Batas ${limit} Linktree sudah tercapai` : undefined}
+          >
+            Buat Linktree baru
+          </Button>
+          {limit && list && (
+            <span className={`text-[12px] tabular-nums ${full ? 'font-medium text-amber-600 dark:text-amber-400' : 'text-tertiary'}`}>
+              {count}/{limit} Linktree terpakai
+            </span>
+          )}
+        </div>
       </div>
 
-      {showForm && (
+      {full && (
+        <p role="status" className="mb-4 rounded-2xl bg-amber-500/10 px-4 py-3 text-[13px] text-amber-800 dark:text-amber-300">
+          Kamu sudah punya {limit} Linktree, batas maksimal per akun. Hapus salah satu untuk membuat yang baru, atau ubah Linktree yang sudah ada.
+        </p>
+      )}
+
+      {showForm && !full && (
         <form onSubmit={submit} className="mb-6 max-w-xl rounded-2xl border border-border bg-card p-4 sm:mb-8 sm:p-5">
           <p className="text-[15px] font-semibold text-primary">Linktree baru</p>
           <div className="mt-4 grid gap-4">

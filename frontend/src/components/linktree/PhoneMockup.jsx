@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Signal, Wifi } from 'lucide-react';
 
 // Lapisan sisi ponsel: beberapa salinan bingkai yang ditumpuk ke belakang, supaya terlihat tebal saat dimiringkan.
@@ -15,7 +16,8 @@ const EDGE_LAYERS = [2.4, 4.8, 7.2, 9.6, 12];
  * variabel CSS di pembungkus. Variabel yang berubah membuat browser menghitung ulang gaya seluruh isi layar
  * di setiap gerakan kursor; transform langsung hanya dikerjakan kartu grafis.
  */
-export default function PhoneMockup({ children, ink = '#FFFFFF', label = 'Contoh tampilan di ponsel', className = 'w-full px-6 py-8' }) {
+export default function PhoneMockup({ children, ink = '#FFFFFF', label, className = 'w-full px-6 py-8' }) {
+  const { t } = useTranslation();
   const sceneRef = useRef(null);
   const phoneRef = useRef(null);
   const glareRef = useRef(null);
@@ -74,7 +76,7 @@ export default function PhoneMockup({ children, ink = '#FFFFFF', label = 'Contoh
         <span aria-hidden="true" className="phone-key right-[-3px] top-[170px] h-[72px]" />
 
         <div className="phone-body">
-          <div className="phone-screen h-[500px] sm:h-[578px]" role="group" aria-label={label}>
+          <div className="phone-screen h-[500px] sm:h-[578px]" role="group" aria-label={label || t('linktree.mockup_default_label')}>
             <div className="phone-scroll h-full overflow-y-auto">{children}</div>
 
             {/* Bilah status dan Dynamic Island: hiasan, tidak menghalangi isi layar. */}

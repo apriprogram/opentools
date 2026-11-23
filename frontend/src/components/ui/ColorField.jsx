@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { TRANSPARENT_BG, isTransparentBg, qrBackdropStyle } from '../../lib/qrCode';
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
@@ -17,6 +18,7 @@ const SWATCH_ACTIVE = 'ring-2 ring-blue-500 ring-offset-2 ring-offset-transparen
 // Pemilih warna: bulatan warna (membuka pemilih warna perangkat), kode warna yang bisa diketik,
 // dan deretan warna siap pakai. allowTransparent menambah pilihan "tanpa latar" (nilainya 'transparent').
 export default function ColorField({ id, label, value, onChange, presets = [], allowTransparent = false }) {
+  const { t } = useTranslation();
   const clear = allowTransparent && isTransparentBg(value);
   const shown = clear ? '' : value;
   const [text, setText] = useState(shown);
@@ -45,8 +47,8 @@ export default function ColorField({ id, label, value, onChange, presets = [], a
             type="color"
             value={HEX_RE.test(value) ? value : '#FFFFFF'}
             onChange={(e) => onChange(e.target.value.toUpperCase())}
-            aria-label={`${label}: buka pemilih warna`}
-            title="Pilih warna lain"
+            aria-label={t('qr.color.openPicker', { label })}
+            title={t('qr.color.pickOther')}
             className="absolute -inset-2 h-[calc(100%+16px)] w-[calc(100%+16px)] cursor-pointer opacity-0"
           />
         </span>
@@ -58,7 +60,7 @@ export default function ColorField({ id, label, value, onChange, presets = [], a
           spellCheck={false}
           maxLength={7}
           value={text}
-          placeholder={clear ? 'Transparan' : '#000000'}
+          placeholder={clear ? t('qr.color.transparent') : '#000000'}
           onChange={(e) => onText(e.target.value.trim())}
           onBlur={() => setText(shown)}
           aria-invalid={clear || HEX_RE.test(text) ? undefined : 'true'}
@@ -67,14 +69,14 @@ export default function ColorField({ id, label, value, onChange, presets = [], a
       </div>
 
       {presets.length > 0 && (
-        <div role="group" aria-label={`Pilihan cepat ${label}`} className="mt-3 grid grid-cols-8 gap-1">
+        <div role="group" aria-label={t('qr.color.quickPicks', { label })} className="mt-3 grid grid-cols-8 gap-1">
           {allowTransparent && (
             <button
               type="button"
               onClick={() => onChange(TRANSPARENT_BG)}
-              aria-label="Tanpa latar (transparan)"
+              aria-label={t('qr.color.noBackground')}
               aria-pressed={clear}
-              title="Transparan"
+              title={t('qr.color.transparent')}
               className={`${SWATCH} ${clear ? SWATCH_ACTIVE : ''}`}
               style={qrBackdropStyle(TRANSPARENT_BG, 8)}
             >
@@ -88,7 +90,7 @@ export default function ColorField({ id, label, value, onChange, presets = [], a
                 key={color}
                 type="button"
                 onClick={() => onChange(color)}
-                aria-label={`Pakai warna ${color}`}
+                aria-label={t('qr.color.useColor', { color })}
                 aria-pressed={active}
                 title={color}
                 className={`${SWATCH} ${active ? SWATCH_ACTIVE : ''}`}
@@ -116,7 +118,7 @@ export default function ColorField({ id, label, value, onChange, presets = [], a
             className="h-4 w-4 shrink-0 rounded-full shadow-[inset_0_0_0_1px_rgba(0,0,0,0.14)]"
             style={qrBackdropStyle(TRANSPARENT_BG, 6)}
           />
-          <span className="truncate">Transparan</span>
+          <span className="truncate">{t('qr.color.transparent')}</span>
           {clear && <Check size={13} strokeWidth={2.5} aria-hidden="true" className="shrink-0 text-blue-500" />}
         </button>
       )}

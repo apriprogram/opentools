@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Check, Download, Lock, Crown, Link2, AlertTriangle, QrCode, Save, ReceiptText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { saveMyQr } from '../services/authApi';
@@ -41,6 +42,7 @@ function EmbeddedWrap({ children }) {
 // freePremium: warna dan logo bisa diatur tanpa pesanan (dipakai super admin di menu Tools Admin).
 export default function QrGeneratorPage({ embedded = false, orderPlan = null, renewQr = null, onOrder = null, orderBusy = false, freePremium = false }) {
   const Wrap = embedded ? EmbeddedWrap : PageContainer;
+  const { t, i18n } = useTranslation();
   const { addToast: toast } = useToast();
   const { user } = useAuth();
   const [link, setLink] = useState(renewQr?.link || '');
@@ -100,28 +102,35 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
     verifyQrLicense(key.trim().toUpperCase())
       .then((res) => {
         if (res.valid) {
-          toast({ type: 'success', title: 'Lisensi valid', message: `${res.planLabel} berlaku sampai ${new Date(res.expiresAt).toLocaleDateString('id-ID')}. Lisensi ini terikat pada satu QR.` });
+          toast({
+            type: 'success',
+            title: t('qr.generator.toast.licenseValid'),
+            message: t('qr.generator.toast.licenseValidMsg', {
+              plan: res.planLabel,
+              date: new Date(res.expiresAt).toLocaleDateString(i18n.language?.startsWith('en') ? 'en-US' : 'id-ID'),
+            }),
+          });
         } else {
-          toast({ type: 'error', title: res.expired ? 'Lisensi kedaluwarsa' : 'Kode tidak valid', message: 'Periksa kembali link lisensi Anda.' });
+          toast({ type: 'error', title: res.expired ? t('qr.generator.toast.licenseExpired') : t('qr.generator.toast.licenseInvalid'), message: t('qr.generator.toast.licenseCheck') });
         }
       })
-      .catch(() => toast({ type: 'error', title: 'Gagal', message: 'Tidak bisa menghubungi server. Coba lagi.' }));
+      .catch(() => toast({ type: 'error', title: t('qr.generator.toast.failed'), message: t('qr.generator.toast.serverError') }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const saveToAccount = async () => {
     if (!target) return;
     if (!clearBg && colors.fg.toLowerCase() === colors.bg.toLowerCase()) {
-      toast({ type: 'error', title: 'Warna belum bisa dipakai', message: 'Warna QR dan warna latar tidak boleh sama.' });
+      toast({ type: 'error', title: t('qr.generator.toast.colorInvalid'), message: t('qr.generator.toast.colorSame') });
       return;
     }
     setSaving(true);
     try {
       const saved = await saveMyQr({ link: target, fg: colors.fg, bg: colors.bg, logo: colors.logo });
       setSavedQr(saved);
-      toast({ type: 'success', title: 'QR disimpan', message: 'QR ini sekarang bisa dinonaktifkan atau dikelola dari daftar QR.' });
+      toast({ type: 'success', title: t('qr.generator.toast.savedTitle'), message: t('qr.generator.toast.savedMsg') });
     } catch (err) {
-      toast({ type: 'error', title: 'Gagal menyimpan', message: err?.response?.data?.message || 'Coba lagi beberapa saat.' });
+      toast({ type: 'error', title: t('qr.generator.toast.saveFailed'), message: err?.response?.data?.message || t('qr.generator.toast.tryLater') });
     } finally {
       setSaving(false);
     }
@@ -129,7 +138,7 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
 
   const placeOrder = () => {
     if (!target || tooLong) {
-      toast({ type: 'error', title: 'Link belum valid', message: 'Isi link atau teks QR terlebih dahulu.' });
+      toast({ type: 'error', title: t('qr.generator.toast.linkInvalid'), message: t('qr.generator.toast.linkInvalidMsg') });
       return;
     }
     onOrder?.({ link: target, fg: colors.fg, bg: colors.bg, logo: colors.logo });
@@ -145,7 +154,7 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
       const blob = await svgToPngBlob(svg, 1024);
       downloadBlob(blob, 'qr-opentools.png');
     } catch {
-      toast({ type: 'error', title: 'Gagal', message: 'QR tidak bisa diunduh sebagai PNG.' });
+      toast({ type: 'error', title: t('qr.generator.toast.failed'), message: t('qr.generator.toast.pngFailed') });
     }
   };
 
@@ -161,14 +170,14 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
       <section className="max-w-5xl mx-auto pt-4">
         <div className="mb-6">
           <h1 className="text-[24px] sm:text-[28px] font-semibold text-primary tracking-tight leading-[32px]">
-            {isPaid ? `Premium Gold ${orderPlan.label}` : freePremium ? 'Buat QR' : 'QR Generator'}
+            {isPaid ? `Premium Gold ${orderPlan.label}` : freePremium ? t('qr.generator.titleAdmin') : t('qr.generator.title')}
           </h1>
           <p className="text-[14px] text-secondary leading-[22px] mt-1">
             {isPaid
-              ? 'Untuk satu QR code. Atur link, warna, dan logo, lalu lanjut bayar.'
+              ? t('qr.generator.subtitlePaid')
               : freePremium
-                ? 'Atur link, warna, dan logo, lalu simpan. QR buatan admin memakai fitur Premium tanpa biaya.'
-              : 'Ubah link menjadi QR Code. Gratis, warna bisa dipilih sendiri, dengan logo di tengah.'}
+                ? t('qr.generator.subtitleAdmin')
+              : t('qr.generator.subtitle')}
           </p>
         </div>
 
@@ -177,53 +186,53 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
           <div className="lg:col-span-7 flex flex-col gap-5">
             <div className="rounded-2xl border border-border bg-card p-5">
               <label htmlFor="qr-link" className="flex items-center gap-2 text-[14px] font-medium text-primary mb-2">
-                <Link2 size={16} strokeWidth={1.75} /> Link atau teks
+                <Link2 size={16} strokeWidth={1.75} /> {t('qr.generator.linkLabel')}
               </label>
               <input
                 id="qr-link"
                 type="text"
                 inputMode="url"
-                placeholder="https://contoh.com/halaman-saya"
+                placeholder={t('qr.generator.linkPlaceholder')}
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 maxLength={1000}
                 className="w-full h-[44px] px-3 rounded-md border border-border bg-card text-primary text-[14px] placeholder:text-tertiary focus:outline-none focus:border-border-focus transition-smooth"
               />
               {link && target !== link.trim() && (
-                <p className="text-[12px] text-secondary mt-2">Akan dibuat sebagai: {target}</p>
+                <p className="text-[12px] text-secondary mt-2">{t('qr.generator.willBeCreatedAs', { target })}</p>
               )}
               {linkInside && (
                 <div className="mt-2 flex flex-col gap-2 rounded-md bg-amber-500/10 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <p className="min-w-0 text-[12px] leading-relaxed text-amber-700 dark:text-amber-400">
-                    Isian ini berisi link dan kata lain. Saat dipindai, hasilnya teks biasa dan link tidak langsung terbuka.
+                    {t('qr.generator.linkInside')}
                   </p>
-                  <Button size="sm" variant="secondary" onClick={() => setLink(linkInside)} className="shrink-0">Pakai link saja</Button>
+                  <Button size="sm" variant="secondary" onClick={() => setLink(linkInside)} className="shrink-0">{t('qr.generator.useLinkOnly')}</Button>
                 </div>
               )}
-              {tooLong && <p className="text-[12px] text-danger mt-2">Teks terlalu panjang untuk QR Code. Persingkat link Anda.</p>}
+              {tooLong && <p className="text-[12px] text-danger mt-2">{t('qr.generator.tooLong')}</p>}
             </div>
 
             <div className="rounded-2xl border border-border bg-card p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[15px] font-semibold text-primary">Tampilan</h2>
+                <h2 className="text-[15px] font-semibold text-primary">{t('qr.generator.appearance')}</h2>
                 {isPaid ? (
                   <span className="premium-gold inline-flex items-center gap-1.5 text-[12px] font-semibold border rounded-full px-2.5 py-1">
                     <Crown size={13} strokeWidth={1.75} /> Premium Gold {orderPlan.label}
                   </span>
                 ) : freePremium ? (
                   <span className="premium-gold inline-flex items-center gap-1.5 text-[12px] font-semibold border rounded-full px-2.5 py-1">
-                    <Crown size={13} strokeWidth={1.75} /> Fitur Premium
+                    <Crown size={13} strokeWidth={1.75} /> {t('qr.generator.premiumFeature')}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-secondary border border-border rounded-full px-2.5 py-1">
-                    Paket Gratis
+                    {t('qr.generator.freePlan')}
                   </span>
                 )}
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <ColorField id="qr-fg" label="Warna QR" value={fg} onChange={setFg} presets={FG_PRESETS} />
-                <ColorField id="qr-bg" label="Warna latar" value={bg} onChange={setBg} presets={BG_PRESETS} allowTransparent />
+                <ColorField id="qr-fg" label={t('qr.generator.fgLabel')} value={fg} onChange={setFg} presets={FG_PRESETS} />
+                <ColorField id="qr-bg" label={t('qr.generator.bgLabel')} value={bg} onChange={setBg} presets={BG_PRESETS} allowTransparent />
               </div>
 
               {/* Logo di tengah: bisa dimatikan di paket Premium, selalu tampil di paket gratis. */}
@@ -236,50 +245,50 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
                     <Check size={15} strokeWidth={2.5} />
                   </span>
                   <div className="min-w-0 leading-tight">
-                    <p className="text-[13px] font-medium text-primary">Logo di tengah</p>
+                    <p className="text-[13px] font-medium text-primary">{t('qr.generator.logoTitle')}</p>
                     <p className="mt-0.5 flex items-center gap-1 text-[12px] text-secondary">
                       {custom ? (
-                        colors.logo ? 'Logo tampil di tengah QR.' : 'QR tampil tanpa logo.'
+                        colors.logo ? t('qr.generator.logoShown') : t('qr.generator.logoHidden')
                       ) : (
                         <>
-                          <Lock size={12} strokeWidth={1.75} aria-hidden="true" className="shrink-0" /> Wajib di paket gratis
+                          <Lock size={12} strokeWidth={1.75} aria-hidden="true" className="shrink-0" /> {t('qr.generator.logoRequired')}
                         </>
                       )}
                     </p>
                   </div>
                 </div>
                 {custom && (
-                  <Switch size="md" checked={useLogo} onChange={setUseLogo} label="Tampilkan logo di tengah QR" title={useLogo ? 'Klik untuk menyembunyikan logo' : 'Klik untuk menampilkan logo'} />
+                  <Switch size="md" checked={useLogo} onChange={setUseLogo} label={t('qr.generator.logoSwitch')} title={useLogo ? t('qr.generator.logoSwitchHide') : t('qr.generator.logoSwitchShow')} />
                 )}
               </div>
 
               {sameColor && (
                 <p className="mt-3 flex items-start gap-2 rounded-md bg-red-500/10 px-2.5 py-2 text-[12px] text-red-700 dark:text-red-400">
                   <AlertTriangle size={14} className="mt-[1px] shrink-0" />
-                  Warna QR dan warna latar sama, jadi QR tidak bisa dipindai. Pilih dua warna yang berbeda.
+                  {t('qr.generator.sameColor')}
                 </p>
               )}
 
               {clearBg && (
                 <p className="mt-3 rounded-md bg-blue-500/10 px-2.5 py-2 text-[12px] leading-relaxed text-blue-700 dark:text-blue-300">
-                  Latar transparan: PNG dan SVG diunduh tanpa bidang latar. Tempel QR di atas bidang polos yang warnanya jauh berbeda dari warna QR, supaya tetap mudah dipindai.
+                  {t('qr.generator.transparentNote')}
                 </p>
               )}
 
               {lowContrast && (
                 <p className="mt-3 flex items-start gap-2 rounded-md bg-amber-500/10 px-2.5 py-2 text-[12px] text-amber-700 dark:text-amber-400">
                   <AlertTriangle size={14} className="mt-[1px] shrink-0" />
-                  Kontras warna rendah ({contrast.toFixed(1)}:1). QR mungkin sulit dipindai. Pilih warna yang lebih gelap untuk QR dan lebih terang untuk latar.
+                  {t('qr.generator.lowContrast', { ratio: contrast.toFixed(1) })}
                 </p>
               )}
 
               {!custom && (
                 <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border bg-card-muted p-4">
                   <p className="text-[13px] text-secondary">
-                    Ingin QR tanpa logo, dan warna serta link yang bisa diganti kapan saja? Paket Bulanan Rp30.000 atau Tahunan Rp300.000 untuk satu QR.
+                    {t('qr.generator.upsell')}
                   </p>
                   <Link to={user ? '/dashboard/qr?view=pilih' : '/qr/harga'} className="shrink-0">
-                    <Button variant="primary" size="sm" icon={Crown}>Lihat paket</Button>
+                    <Button variant="primary" size="sm" icon={Crown}>{t('qr.generator.seePlans')}</Button>
                   </Link>
                 </div>
               )}
@@ -287,19 +296,19 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
 
             {isPaid && (
               <div className="rounded-2xl border border-border bg-card p-5">
-                <h2 className="text-[15px] font-semibold text-primary mb-2">Ringkasan pesanan</h2>
+                <h2 className="text-[15px] font-semibold text-primary mb-2">{t('qr.generator.orderSummary')}</h2>
                 <p className="text-[13px] text-secondary">
-                  Paket {orderPlan.label} untuk 1 QR code: {orderPlan.note}. Harga {rupiah(orderPlan.price)}
+                  {t('qr.generator.orderLine', { plan: orderPlan.label, note: orderPlan.note, price: rupiah(orderPlan.price) })}
                   {orderPlan.discount && orderPlan.basePrice > orderPlan.price && (
                     <>
                       {' '}
-                      (dari <s>{rupiah(orderPlan.basePrice)}</s>, hemat {rupiah(orderPlan.basePrice - orderPlan.price)})
+                      ({t('qr.generator.orderFrom')} <s>{rupiah(orderPlan.basePrice)}</s>, {t('qr.generator.orderSave', { amount: rupiah(orderPlan.basePrice - orderPlan.price) })})
                     </>
                   )}
                   .
                 </p>
                 <p className="text-[12px] text-tertiary mt-2">
-                  Saat transfer, nominal ditambah kode unik 1 sampai 99 agar mudah dicocokkan. Lisensi aktif setelah pembayaran lunas.
+                  {t('qr.generator.orderNote')}
                 </p>
               </div>
             )}
@@ -310,11 +319,11 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
             <div className="rounded-2xl border border-border bg-card p-5 lg:sticky lg:top-24">
               <div className="aspect-square w-full rounded-xl border border-border flex items-center justify-center overflow-hidden" style={previewSrc ? qrBackdropStyle(colors.bg) : { backgroundColor: clearBg ? '#FFFFFF' : colors.bg }}>
                 {previewSrc ? (
-                  <img src={previewSrc} alt="Pratinjau QR Code" className="w-full h-full object-contain p-3" />
+                  <img src={previewSrc} alt={t('qr.generator.previewAlt')} className="w-full h-full object-contain p-3" />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-tertiary px-6 text-center">
                     <QrCode size={40} strokeWidth={1.25} />
-                    <span className="text-[13px]">Masukkan link untuk melihat QR Code</span>
+                    <span className="text-[13px]">{t('qr.generator.previewEmpty')}</span>
                   </div>
                 )}
               </div>
@@ -326,26 +335,26 @@ export default function QrGeneratorPage({ embedded = false, orderPlan = null, re
 
               {isPaid ? (
                 <Button variant="primary" icon={ReceiptText} className="w-full mt-2" disabled={!svg || orderBusy} onClick={placeOrder}>
-                  {orderBusy ? 'Membuat pesanan...' : `Lanjut bayar ${rupiah(orderPlan.price)}`}
+                  {orderBusy ? t('qr.generator.creatingOrder') : t('qr.generator.payNow', { price: rupiah(orderPlan.price) })}
                 </Button>
               ) : user ? (
                 <>
                   <Button variant="secondary" icon={Save} className="w-full mt-2" disabled={!svg || saving || isSaved} onClick={saveToAccount}>
-                    {saving ? 'Menyimpan...' : isSaved ? 'Tersimpan di akun' : 'Simpan ke akun'}
+                    {saving ? t('qr.generator.saving') : isSaved ? t('qr.generator.saved') : t('qr.generator.save')}
                   </Button>
                   {svg && !isSaved && (
                     <p className="mt-2 text-center text-[12px] leading-relaxed text-secondary">
-                      Simpan ke akun sebelum mengunduh, supaya QR bisa dinonaktifkan nanti.
+                      {t('qr.generator.saveHint')}
                     </p>
                   )}
                 </>
               ) : (
                 <Link to="/masuk" className="mt-3 block text-center text-[13px] text-secondary underline hover:text-primary">
-                  Masuk untuk menyimpan QR ke akun
+                  {t('qr.generator.loginToSave')}
                 </Link>
               )}
               <p className="text-[12px] text-tertiary mt-3 text-center">
-                PNG 1024 px untuk cetak dan media sosial. SVG bisa diperbesar tanpa pecah.
+                {t('qr.generator.downloadNote')}
               </p>
             </div>
           </div>

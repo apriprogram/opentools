@@ -1,5 +1,6 @@
 import React from 'react';
 import { Gauge, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const PRESETS = [25, 50, 75];
 
@@ -8,6 +9,7 @@ const PRESETS = [25, 50, 75];
  * value null = Otomatis (kualitas seimbang). Angka 10 sampai 90 = ukuran hasil dibidik sekian persen dari file asli.
  */
 export default function SizeTarget({ value, onChange, disabled = false }) {
+  const { t } = useTranslation();
   const custom = value != null;
   const percent = value ?? 50;
 
@@ -15,15 +17,15 @@ export default function SizeTarget({ value, onChange, disabled = false }) {
     <div className="rounded-md border border-border bg-card-muted p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="block text-[13px] font-semibold text-primary">Ukuran hasil</span>
+          <span className="block text-[13px] font-semibold text-primary">{t('converter.size_title')}</span>
           <span className="text-[12px] text-secondary">
-            {custom ? `Dibidik sekitar ${percent}% dari ukuran file asli.` : 'Otomatis: ukuran turun dengan kualitas tetap enak dilihat.'}
+            {custom ? t('converter.size_custom_hint', { percent }) : t('converter.size_auto_hint')}
           </span>
         </div>
-        <div role="radiogroup" aria-label="Cara menentukan ukuran hasil" className="inline-flex shrink-0 gap-1 self-start rounded-lg bg-card p-1 sm:self-auto">
+        <div role="radiogroup" aria-label={t('converter.size_mode')} className="inline-flex shrink-0 gap-1 self-start rounded-lg bg-card p-1 sm:self-auto">
           {[
-            [false, 'Otomatis', Sparkles],
-            [true, 'Atur persen', Gauge],
+            [false, t('converter.size_auto'), Sparkles],
+            [true, t('converter.size_custom'), Gauge],
           ].map(([isCustom, label, Icon]) => (
             <button
               key={label}
@@ -46,7 +48,7 @@ export default function SizeTarget({ value, onChange, disabled = false }) {
       {custom && (
         <div className="mt-4">
           <div className="flex items-center gap-3">
-            <label htmlFor="size-target" className="sr-only">Ukuran hasil dalam persen</label>
+            <label htmlFor="size-target" className="sr-only">{t('converter.size_slider')}</label>
             <input
               id="size-target"
               type="range"
@@ -75,7 +77,7 @@ export default function SizeTarget({ value, onChange, disabled = false }) {
                 {p}%
               </button>
             ))}
-            <span className="text-[11px] text-tertiary">Makin kecil persennya, makin kecil file dan makin turun kualitasnya.</span>
+            <span className="text-[11px] text-tertiary">{t('converter.size_note')}</span>
           </div>
         </div>
       )}

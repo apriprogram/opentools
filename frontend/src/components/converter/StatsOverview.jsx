@@ -3,6 +3,7 @@ import { ArrowUpRight, Users, UploadCloud, DownloadCloud, Activity, MapPin } fro
 import Card from '../ui/Card';
 import { fetchStats } from '../../services/converterApi';
 import { useTranslation } from 'react-i18next';
+import { toolLabel } from '../../lib/toolText';
 
 function formatBytes(bytes) {
   if (!bytes || bytes === 0) return '0 B';
@@ -12,14 +13,15 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-function formatToolId(toolId) {
-  if (!toolId) return 'Unknown';
+function formatToolId(toolId, unknown) {
+  if (!toolId) return unknown;
   return toolId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
 export default function StatsOverview({ id }) {
   const [data, setData] = useState({ visitors: 0, processedFiles: 0, uploadsBytes: 0, downloadsBytes: 0, countries: {} });
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'id-ID';
 
   useEffect(() => {
     let mounted = true;
@@ -46,7 +48,7 @@ export default function StatsOverview({ id }) {
     {
       id: 'visitors',
       label: t('overview.total_visitors', 'Total Visitors'),
-      value: data.visitors.toLocaleString(),
+      value: data.visitors.toLocaleString(locale),
       change: t('overview.realtime', 'Realtime'),
       isPositive: true,
       icon: Users,
@@ -54,7 +56,7 @@ export default function StatsOverview({ id }) {
     {
       id: 'conversions',
       label: t('overview.files_processed', 'Files Processed (Convert/Compress)'),
-      value: data.processedFiles.toLocaleString(),
+      value: data.processedFiles.toLocaleString(locale),
       change: t('overview.realtime', 'Realtime'),
       isPositive: true,
       icon: Activity,
@@ -134,7 +136,7 @@ export default function StatsOverview({ id }) {
                 <div key={toolId} className="flex items-center justify-between p-3 rounded-md bg-card-muted border border-border hover:border-yellow-500 transition-colors">
                    <div className="flex items-center gap-3">
                      <span className="text-[13px] font-semibold text-yellow-600 dark:text-yellow-500">#{idx + 1}</span>
-                     <span className="text-[14px] font-semibold text-primary">{formatToolId(toolId)}</span>
+                     <span className="text-[14px] font-semibold text-primary">{toolLabel(t, { id: toolId, label: formatToolId(toolId, t('pages.stats_unknown')) })}</span>
                    </div>
                    <div className="flex items-center gap-2">
                      <span className="bg-primary text-card px-2 py-0.5 rounded text-[11px] font-bold">{count}x</span>

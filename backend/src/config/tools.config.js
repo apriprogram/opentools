@@ -221,6 +221,10 @@ export const CATEGORIES_CONFIG = [
     icon: "file-text",
     description: "Convert PDFs, Word documents, and eBooks easily.",
     tools: [
+      // Alat PDF yang berjalan di browser pengguna (tanpa unggah ke server). route: alamat halamannya.
+      { id: "merge-pdf", label: "Merge PDF", description: "Combine several PDF files into one, in the order you choose.", category: "pdf-documents", type: "document", from: ["pdf"], to: ["pdf"], defaultTo: "pdf", maxSizeMB: 200, popular: true, route: "/pdf/gabung" },
+      { id: "organize-pdf", label: "Organize PDF", description: "Reorder pages by drag and drop, delete, rotate, or add pages.", category: "pdf-documents", type: "document", from: ["pdf"], to: ["pdf"], defaultTo: "pdf", maxSizeMB: 200, popular: true, route: "/pdf/atur" },
+      { id: "scan-to-pdf", label: "Scan to PDF", description: "Photograph documents with your camera and save them as one PDF.", category: "pdf-documents", type: "document", from: ["jpg", "png", "webp"], to: ["pdf"], defaultTo: "pdf", maxSizeMB: 200, popular: true, route: "/pdf/scan" },
       { id: "pdf-converter-legacy", label: "PDF Converter", description: "Convert between PDF and various other formats.", category: "pdf-documents", type: "document", from: ["pdf", "docx", "epub", "jpg", "png"], to: ["pdf", "docx", "jpg", "epub"], defaultTo: "pdf", maxSizeMB: 50 },
       { id: "document-converter", label: "Document Converter", description: "Convert between Word (DOCX), PDF and TXT.", category: "pdf-documents", type: "document", from: ["pdf", "docx", "txt"], to: ["pdf", "docx", "txt"], defaultTo: "pdf", maxSizeMB: 50 },
       { id: "ebook-converter", label: "Ebook Converter", description: "Convert eBooks to and from EPUB, PDF, MOBI.", category: "pdf-documents", type: "document", from: ["epub", "pdf", "mobi"], to: ["epub", "pdf", "mobi"], defaultTo: "epub", maxSizeMB: 50 },

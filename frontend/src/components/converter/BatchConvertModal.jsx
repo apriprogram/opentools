@@ -7,10 +7,12 @@ import FileItemCard from '../ui/FileItemCard';
 import FormatSelect from './FormatSelect';
 import { useUpload } from '../../hooks/useUpload';
 import { useConvertJob } from '../../hooks/useConvertJob';
+import { useTranslation } from 'react-i18next';
 
 const ALL_FORMATS = ['png', 'jpg', 'webp', 'mp3', 'mp4', 'ogg', 'wav', 'svg'];
 
 export default function BatchConvertModal({ isOpen, onClose }) {
+  const { t } = useTranslation();
   const [targetFormat, setTargetFormat] = useState('png');
   const {
     files,
@@ -48,8 +50,8 @@ export default function BatchConvertModal({ isOpen, onClose }) {
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Import Multiple Files"
-      subtitle="Convert dozens of files in batch with high speed."
+      title={t('pages.batch_modal_title')}
+      subtitle={t('pages.batch_modal_subtitle')}
       icon={FolderArchive}
       maxWidth="max-w-[660px]"
       footer={
@@ -61,7 +63,7 @@ export default function BatchConvertModal({ isOpen, onClose }) {
               onClick={clearFiles}
               disabled={isConverting}
             >
-              Clear Queue
+              {t('batch.clear_queue', 'Bersihkan Antrean')}
             </Button>
 
             <div className="flex items-center gap-2">
@@ -72,7 +74,7 @@ export default function BatchConvertModal({ isOpen, onClose }) {
                   onClick={() => downloadAllZip(files)}
                   disabled={isZipping}
                 >
-                  {isZipping ? 'Generating ZIP...' : 'Download All (ZIP)'}
+                  {isZipping ? t('batch.packaging_zip', 'Membungkus ZIP...') : t('pages.batch_modal_download_zip')}
                 </Button>
               ) : (
                 <Button
@@ -82,7 +84,7 @@ export default function BatchConvertModal({ isOpen, onClose }) {
                   disabled={isConverting}
                   icon={Sparkles}
                 >
-                  {isConverting ? 'Processing Batch...' : `Convert ${files.length} Files`}
+                  {isConverting ? t('batch.processing', 'Memproses...') : t('batch.convert_files', { count: files.length })}
                 </Button>
               )}
             </div>
@@ -96,8 +98,8 @@ export default function BatchConvertModal({ isOpen, onClose }) {
           onFilesSelected={addFiles}
           maxSizeMB={150}
           multiple={true}
-          title="Drop multiple files here or browse"
-          customSubtext="Images, Videos, or Audios • Up to 20 files at once"
+          title={t('batch.upload_title', 'Tarik beberapa file ke sini atau telusuri')}
+          customSubtext={t('batch.upload_subtext', 'Gambar, Video, atau Audio • Maksimal 20 file sekaligus')}
         />
 
         {errorMessage && (
@@ -111,10 +113,10 @@ export default function BatchConvertModal({ isOpen, onClose }) {
           <div className="p-4 bg-card-muted rounded-md border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <span className="text-[13px] font-semibold text-primary block">
-                Universal Output Format
+                {t('batch.format_title', 'Format Output Universal')}
               </span>
               <span className="text-[12px] text-secondary">
-                All selected files will be converted into this format
+                {t('batch.format_desc', 'Semua file yang dipilih akan dikonversi ke format ini')}
               </span>
             </div>
             <FormatSelect
@@ -130,7 +132,7 @@ export default function BatchConvertModal({ isOpen, onClose }) {
         {hasFiles && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-[13px] font-semibold text-primary">
-              <span>Queue ({files.length} files)</span>
+              <span>{t('pages.batch_modal_queue', { count: files.length })}</span>
             </div>
             <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
               {files.map((fileItem) => (
