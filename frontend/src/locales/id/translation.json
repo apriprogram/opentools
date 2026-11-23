@@ -2,8 +2,8 @@
   "navbar": {
     "title": "OPENTOOLS",
     "subtitle": "Konverter File",
-    "all_converters": "Semua Konverter",
-    "all_compressors": "Semua Kompresor",
+    "all_converters": "Konverter",
+    "all_compressors": "Kompresor",
     "batch_convert": "Konversi Massal",
     "login": "Masuk",
     "dashboard": "Dashboard"

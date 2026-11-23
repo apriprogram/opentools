@@ -27,6 +27,12 @@ export const adminToolStats = async (req, res) => {
   }
 };
 
+// Persen ukuran hasil kompresi dari isian formulir (10 sampai 90), atau null bila tidak diatur.
+const parseTargetPercent = (value) => {
+  const n = Math.round(Number(value));
+  return Number.isFinite(n) && n >= 10 && n <= 90 ? n : null;
+};
+
 /**
  * GET /api/v1/tools
  */
@@ -68,6 +74,7 @@ export async function convertSingle(req, res) {
     }
 
     const { toolId, targetFormat } = req.body;
+    const targetPercent = parseTargetPercent(req.body.targetPercent);
     if (!targetFormat) {
       return res.status(400).json({
         success: false,
@@ -97,7 +104,8 @@ export async function convertSingle(req, res) {
       outputFileName,
       fromFormat: inputExt,
       targetFormat: finalTargetFormat,
-      fileSize: req.file.size
+      fileSize: req.file.size,
+      targetPercent
     });
 
     // Fire-and-forget conversion
@@ -134,6 +142,7 @@ export async function convertBatch(req, res) {
     }
 
     const { toolId, targetFormat } = req.body;
+    const targetPercent = parseTargetPercent(req.body.targetPercent);
     const finalTargetFormat = (targetFormat || "png").toLowerCase().replace(".", "");
     const jobsCreated = [];
 
@@ -155,7 +164,8 @@ export async function convertBatch(req, res) {
         outputFileName,
         fromFormat: inputExt,
         targetFormat: finalTargetFormat,
-        fileSize: file.size
+        fileSize: file.size,
+        targetPercent
       });
 
       recordUpload(file.size);
@@ -205,6 +215,8 @@ export function getJobStatus(req, res) {
     fileName: job.outputFileName,
     originalFileName: job.originalFileName,
     downloadUrl: job.downloadUrl,
+    fileSize: job.fileSize,
+    outputSize: job.outputSize,
     error: job.error
   });
 }

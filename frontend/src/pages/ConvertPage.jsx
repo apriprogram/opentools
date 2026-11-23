@@ -24,6 +24,7 @@ import IconButton from '../components/ui/IconButton';
 import UploadBox from '../components/ui/UploadBox';
 import FileItemCard from '../components/ui/FileItemCard';
 import FormatSelect from '../components/converter/FormatSelect';
+import SizeTarget from '../components/converter/SizeTarget';
 import { fetchTools, fetchCompressors } from '../services/converterApi';
 import { useUpload } from '../hooks/useUpload';
 import { useConvertJob } from '../hooks/useConvertJob';
@@ -37,6 +38,8 @@ export default function ConvertPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFormat, setSelectedFormat] = useState('');
   const [copiedShare, setCopiedShare] = useState(false);
+  // Kompresor: null = otomatis (kualitas seimbang), angka = ukuran hasil dalam persen dari file asli.
+  const [targetPercent, setTargetPercent] = useState(null);
 
   useEffect(() => {
     async function loadToolInfo() {
@@ -100,7 +103,9 @@ export default function ConvertPage() {
     isZipping,
     convertQueue,
     downloadAllZip,
-  } = useConvertJob(tool?.id || type, selectedFormat);
+  } = useConvertJob(tool?.id || type, selectedFormat, targetPercent);
+  // PDF dikompres dengan cara tetap (tidak bisa dibidik ukurannya), jadi pengatur persen tidak ditampilkan.
+  const canTargetSize = Boolean(tool?.isCompressor) && tool?.type !== 'document';
 
   const handleStartConvert = () => {
     if (!files.length) return;
@@ -220,6 +225,8 @@ export default function ConvertPage() {
             />
           </div>
         )}
+
+        {canTargetSize && <SizeTarget value={targetPercent} onChange={setTargetPercent} disabled={isConverting} />}
 
         {/* File Queue */}
         {hasFiles && (

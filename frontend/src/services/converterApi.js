@@ -23,11 +23,13 @@ export async function recordVisit(country) {
 // Uploads can be up to 100MB; the default 60s api timeout would abort slow uploads.
 const UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 
-export async function convertSingleFile(file, toolId, targetFormat, onUploadProgress) {
+// targetPercent (kompresor, opsional): ukuran hasil yang dibidik, persen dari file asli (10 sampai 90).
+export async function convertSingleFile(file, toolId, targetFormat, onUploadProgress, targetPercent = null) {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('toolId', toolId || 'custom');
   formData.append('targetFormat', targetFormat);
+  if (targetPercent) formData.append('targetPercent', String(targetPercent));
 
   const res = await api.post('/convert', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

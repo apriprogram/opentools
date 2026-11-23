@@ -125,6 +125,22 @@ export default function FileItemCard({ fileItem, onDelete, onReplace, acceptForm
           ) : (
             <div className="flex items-center gap-1.5 text-[11px] sm:text-[12px] text-secondary overflow-hidden">
               <span className="shrink-0">{formatBytes(fileItem.size)}</span>
+              {fileItem.status === 'done' && fileItem.outputSize > 0 && (
+                <>
+                  <span className="shrink-0 text-tertiary">→</span>
+                  <span className="shrink-0 font-medium text-primary">{formatBytes(fileItem.outputSize)}</span>
+                  {fileItem.size > 0 && fileItem.outputSize !== fileItem.size && (
+                    <span
+                      className={`shrink-0 rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums sm:text-[11px] ${
+                        fileItem.outputSize < fileItem.size ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-card-muted text-secondary'
+                      }`}
+                    >
+                      {fileItem.outputSize < fileItem.size ? '−' : '+'}
+                      {Math.abs(Math.round((1 - fileItem.outputSize / fileItem.size) * 100))}%
+                    </span>
+                  )}
+                </>
+              )}
               {fileItem.status === 'done' && (
                 <>
                   <span className="shrink-0">•</span>

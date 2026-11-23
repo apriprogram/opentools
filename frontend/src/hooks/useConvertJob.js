@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { convertSingleFile, checkJobStatus, downloadAllAsZip } from '../services/converterApi';
 
-export function useConvertJob(toolId, targetFormat) {
+export function useConvertJob(toolId, targetFormat, targetPercent = null) {
   const [isConverting, setIsConverting] = useState(false);
   const [isAllDone, setIsAllDone] = useState(false);
   const [isZipping, setIsZipping] = useState(false);
@@ -24,7 +24,7 @@ export function useConvertJob(toolId, targetFormat) {
         } else if (data.status === 'done') {
           clearInterval(interval);
           activePollers.current.delete(fileId);
-          onDone(data.downloadUrl, data.fileName);
+          onDone(data.downloadUrl, data.fileName, data.outputSize);
         } else if (data.status === 'failed') {
           clearInterval(interval);
           activePollers.current.delete(fileId);
@@ -86,7 +86,8 @@ export function useConvertJob(toolId, targetFormat) {
               status: 'uploading',
               progress: Math.min(99, percent),
             });
-          }
+          },
+          targetPercent
         );
 
         if (uploadRes.success && uploadRes.jobId) {
@@ -106,12 +107,13 @@ export function useConvertJob(toolId, targetFormat) {
                 progress,
               });
             },
-            (downloadUrl, outputFileName) => {
+            (downloadUrl, outputFileName, outputSize) => {
               updateFileStatus(fileItem.id, {
                 status: 'done',
                 progress: 100,
                 downloadUrl,
                 outputFileName,
+                outputSize: outputSize ?? null,
               });
               checkAllFinished();
             },
@@ -141,7 +143,7 @@ export function useConvertJob(toolId, targetFormat) {
         checkAllFinished();
       }
     }
-  }, [toolId, targetFormat, pollJob]);
+  }, [toolId, targetFormat, targetPercent, pollJob]);
 
   const downloadAllZip = useCallback(async (files) => {
     const completedJobIds = files

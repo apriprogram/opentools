@@ -2,8 +2,8 @@
   "navbar": {
     "title": "OPENTOOLS",
     "subtitle": "File Converter",
-    "all_converters": "All Converters",
-    "all_compressors": "All Compressors",
+    "all_converters": "Converters",
+    "all_compressors": "Compressors",
     "batch_convert": "Batch Convert",
     "login": "Log in",
     "dashboard": "Dashboard"

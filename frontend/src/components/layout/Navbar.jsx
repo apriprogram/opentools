@@ -8,6 +8,10 @@ import { getStoredSession } from '../../services/authApi';
 import { useTranslation } from 'react-i18next';
 import SiteLogo from '../ui/SiteLogo';
 
+// Menu lebar: alat populer ditaruh di atas, maksimal MENU_LIMIT per kolom.
+const MENU_LIMIT = 8;
+const menuTools = (tools) => [...tools.filter((t) => t.popular), ...tools.filter((t) => !t.popular)].slice(0, MENU_LIMIT);
+
 export default function Navbar({ onOpenBatchModal }) {
   const location = useLocation();
   const [categories, setCategories] = useState([]);
@@ -205,7 +209,7 @@ export default function Navbar({ onOpenBatchModal }) {
                       </h3>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      {cat.tools.slice(0, 10).map((tool) => (
+                      {menuTools(cat.tools).map((tool) => (
                         <Link
                           key={tool.id}
                           to={`/convert/${tool.id}`}
@@ -215,6 +219,15 @@ export default function Navbar({ onOpenBatchModal }) {
                           <span className="truncate">{tool.label}</span>
                         </Link>
                       ))}
+                      {cat.tools.length > MENU_LIMIT && (
+                        <Link
+                          to="/converters"
+                          onClick={() => setActiveMenu(null)}
+                          className="mt-1 flex items-center gap-1 rounded-sm px-2 py-1.5 text-[12px] font-medium text-blue-600 transition-colors hover:bg-card-muted dark:text-blue-400"
+                        >
+                          Lihat semua ({cat.tools.length})
+                        </Link>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -238,7 +251,7 @@ export default function Navbar({ onOpenBatchModal }) {
                       </h3>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      {cat.tools.slice(0, 10).map((tool) => (
+                      {menuTools(cat.tools).map((tool) => (
                         <Link
                           key={tool.id}
                           to={`/compress/${tool.id}`}
@@ -248,6 +261,15 @@ export default function Navbar({ onOpenBatchModal }) {
                           <span className="truncate">{tool.label}</span>
                         </Link>
                       ))}
+                      {cat.tools.length > MENU_LIMIT && (
+                        <Link
+                          to="/compressors"
+                          onClick={() => setActiveMenu(null)}
+                          className="mt-1 flex items-center gap-1 rounded-sm px-2 py-1.5 text-[12px] font-medium text-blue-600 transition-colors hover:bg-card-muted dark:text-blue-400"
+                        >
+                          Lihat semua ({cat.tools.length})
+                        </Link>
+                      )}
                     </div>
                   </div>
                 ))}
